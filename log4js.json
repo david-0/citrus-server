@@ -1,0 +1,30 @@
+{
+  "appenders": {
+    "out": {
+      "type": "console",
+      "layout": {
+        "type": "pattern",
+        "pattern": "%d [%[%-5p%]] %c - %m"
+      }
+    },
+    "file": {
+      "type": "dateFile",
+      "filename": "logs/citrus-server.log",
+      "pattern": "-yyyyMMdd",
+      "alwaysIncludePattern": false,
+      "layout": {
+        "type": "pattern",
+        "pattern": "%d [%-5p] %c - %m"
+      }
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "out",
+        "file"
+      ],
+      "level": "debug"
+    }
+  }
+}
