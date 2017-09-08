@@ -163,7 +163,7 @@ class Server {
 
   // Configure databases
   private databases(): void {
-    DBService.init("localhost");
+    DBService.init();
   }
 
   // Configure sockets
