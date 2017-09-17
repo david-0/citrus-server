@@ -1,8 +1,9 @@
 import {Column, HasMany, Model, Table} from "sequelize-typescript";
+import {IFruit} from "../entities/IFruit";
 import {FruitVolume} from "./FruitVolume";
 
 @Table
-export class Fruit extends Model<Fruit> {
+export class Fruit extends Model<Fruit> implements IFruit {
 
   @Column
   public name: string;

@@ -9,4 +9,7 @@ export class Transport extends Model<Transport> {
 
   @HasMany(() => FruitVolume)
   public fruitVolumes: FruitVolume[];
+
+  @Column
+  public comment: string;
 }
