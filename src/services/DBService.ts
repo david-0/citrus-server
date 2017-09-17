@@ -3,9 +3,6 @@ import {getLogger, Logger} from "../utils/logger";
 
 const LOGGER: Logger = getLogger("DBService");
 
-/**
- * This singleton class manages the connection to the database and keeps it up and running.
- */
 export class DBService {
 
   public static init(): DBService {
@@ -26,9 +23,24 @@ export class DBService {
       .catch((err) => {
         LOGGER.error("Unable to connect to the database:", err);
       });
+    this.db.sync()
+      .then(() => {
+        LOGGER.info("Model sync successfully.");
+      })
+      .catch((err) => {
+        LOGGER.error("Model sync failed:", err);
+      });
+
+    return DBService.instance;
+  }
+
+  public get service(): DBService {
     return DBService.instance;
   }
 
   private static instance: DBService = new DBService();
   private static db: Sequelize;
+
+  private constructor() {
+  }
 }
