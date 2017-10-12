@@ -143,7 +143,7 @@ class Server {
     this.app.use("/api/fruit", GenericRouter.getOne(fruitController));
     this.app.use("/api/fruit", GenericRouter.post(fruitController));
     this.app.use("/api/fruit", GenericRouter.put(fruitController));
-//    this.app.use("/api/fruit", GenericRouter.getAll(fruitController));
+    this.app.use("/api/fruit", GenericRouter.getAll(fruitController));
     this.app.use("/api/fruit", GenericRouter.getRange(fruitController));
     this.app.use("/api/fruit", GenericRouter.del(fruitController));
 
