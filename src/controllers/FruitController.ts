@@ -31,8 +31,13 @@ export class FruitController implements IController {
   }
 
   public getRange(req: express.Request, res: express.Response): void {
-    const order = this.createOrderCondition(req.query);
-    Fruit.findAndCountAll<Fruit>({order: [], offset: req.params.offset, limit: req.params.limit}).then((result) => {
+    const queryCond = this.createFilterCondition(req);
+    Fruit.findAndCountAll<Fruit>({
+      limit: req.params.limit,
+      offset: req.params.offset,
+      order: [],
+      where: queryCond,
+    }).then((result) => {
       res.json(result);
     }).catch((err) => {
       res.status(404).json({error: `error retrieving all Fruits. ${err}`});
@@ -77,9 +82,14 @@ export class FruitController implements IController {
       });
   }
 
-
-  private createOrderCondition(req: express.Request): string[] {
-    LOGGER.error("createOrder");
-    return null;
+  private createFilterCondition(req: express.Request): any {
+    if (req.query && req.query.filter) {
+      return {
+        name: {
+          $like: `%${req.query.filter}%`,
+        },
+      };
+    }
+    return {};
   }
 }
