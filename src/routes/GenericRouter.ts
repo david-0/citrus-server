@@ -35,6 +35,12 @@ export class GenericRouter {
     return router;
   }
 
+  public static getRange(controller: IController): Router {
+    const router = express.Router();
+    router.route("/:offset/:limit").get((req, res) => controller.getRange(req, res));
+    return router;
+  }
+
   public static post(controller: IController): Router {
     const router = express.Router();
     router.route("/").post((req, res) => controller.add(req, res));

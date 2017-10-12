@@ -13,6 +13,8 @@ import {SocketService} from "./socket/SocketService";
 import {getLogger, Logger} from "./utils/logger";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
+import {FruitController} from "./controllers/FruitController";
+import {GenericRouter} from "./routes/GenericRouter";
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -137,6 +139,13 @@ class Server {
     this.app.use("/", this.appendHeaders);
 
 //    this.app.use(getAuthenticationRoute(this.jwtConfig));
+    const fruitController = new FruitController();
+    this.app.use("/api/fruit", GenericRouter.getOne(fruitController));
+    this.app.use("/api/fruit", GenericRouter.post(fruitController));
+    this.app.use("/api/fruit", GenericRouter.put(fruitController));
+//    this.app.use("/api/fruit", GenericRouter.getAll(fruitController));
+    this.app.use("/api/fruit", GenericRouter.getRange(fruitController));
+    this.app.use("/api/fruit", GenericRouter.del(fruitController));
 
     this.app.use("/api", this.createError);
 
@@ -149,7 +158,7 @@ class Server {
   private appendHeaders(req: express.Request, res: express.Response, next: express.NextFunction) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    res.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE, PUT");
     next();
   }
 
