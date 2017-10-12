@@ -35,8 +35,8 @@ export class FruitController implements IController {
     Fruit.findAndCountAll<Fruit>({
       limit: req.params.limit,
       offset: req.params.offset,
-      order: [],
-      where: queryCond,
+      order: this.createOrderCondition(req),
+      where: this.createFilterCondition(req),
     }).then((result) => {
       res.json(result);
     }).catch((err) => {
@@ -91,5 +91,12 @@ export class FruitController implements IController {
       };
     }
     return {};
+  }
+
+  private createOrderCondition(req: express.Request): any {
+    if (req.query && req.query.columnName) {
+      return [[req.query.columnName, req.query.direction]];
+    }
+    return [];
   }
 }
