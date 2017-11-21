@@ -1,3 +1,5 @@
-export interface IRole {
-    name: string;
+import {IId} from "./IId";
+
+export interface IRole extends IId {
+  name: string;
 }
