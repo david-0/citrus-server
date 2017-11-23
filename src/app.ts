@@ -7,14 +7,21 @@ import * as createError from "http-errors";
 import * as https from "https";
 import * as log4js from "log4js";
 import * as path from "path";
-import * as socketIo from "socket.io";
+import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
+import {GenericController} from "./controllers/GenericController";
+import {GenericRouter} from "./routes/GenericRouter";
 import {DBService} from "./services/DBService";
 import {SocketService} from "./socket/SocketService";
-import {getLogger, Logger} from "./utils/logger";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
-import {FruitController} from "./controllers/FruitController";
-import {GenericRouter} from "./routes/GenericRouter";
+import {getLogger, Logger} from "./utils/logger";
+import {UserModelWrapper} from "./controllers/UserModelWrapper";
+import {RoleModelWrapper} from "./controllers/RoleModelWrapper";
+import {AddressModelWrapper} from "./controllers/AddressModelWrapper";
+import {DeliveryModelWrapper} from "./controllers/DeliveryModelWrapper";
+import {OrderModelWrapper} from "./controllers/OrderModelWrapper";
+import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
+import {ShipmentModelWrapper} from "./controllers/ShipmentModelWrapper";
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -139,14 +146,14 @@ class Server {
     this.app.use("/", this.appendHeaders);
 
 //    this.app.use(getAuthenticationRoute(this.jwtConfig));
-    const fruitController = new FruitController();
-    this.app.use("/api/fruit", GenericRouter.getOne(fruitController));
-    this.app.use("/api/fruit", GenericRouter.post(fruitController));
-    this.app.use("/api/fruit", GenericRouter.put(fruitController));
-    this.app.use("/api/fruit", GenericRouter.getAll(fruitController));
-    this.app.use("/api/fruit", GenericRouter.getRange(fruitController));
-    this.app.use("/api/fruit", GenericRouter.del(fruitController));
-
+    this.app.use("/api/address", GenericRouter.all(new GenericController(new AddressModelWrapper())));
+    this.app.use("/api/article", GenericRouter.all(new GenericController(new ArticleModelWrapper())));
+    this.app.use("/api/delivery", GenericRouter.all(new GenericController(new DeliveryModelWrapper())));
+    this.app.use("/api/order", GenericRouter.all(new GenericController(new OrderModelWrapper())));
+    this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController(new PickupLocationModelWrapper())));
+    this.app.use("/api/role", GenericRouter.all(new GenericController(new RoleModelWrapper())));
+    this.app.use("/api/shipment", GenericRouter.all(new GenericController(new ShipmentModelWrapper())));
+    this.app.use("/api/user", GenericRouter.all(new GenericController(new UserModelWrapper())));
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);

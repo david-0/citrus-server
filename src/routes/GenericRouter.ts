@@ -13,6 +13,10 @@ export class GenericRouter {
       .get((req, res) => controller.get(req, res))
       .put((req, res) => controller.update(req, res))
       .delete((req, res) => controller.del(req, res));
+
+    router.route("/:offset/:limit")
+      .get((req, res) => controller.getRange(req, res));
+
     return router;
   }
 
