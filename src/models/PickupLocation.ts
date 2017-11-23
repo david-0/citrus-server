@@ -11,7 +11,7 @@ import {PickupLocationDelivery} from "./PickupLocationDelivery";
 
 @Table
 export class PickupLocation extends Model<PickupLocation> implements IPickupLocaltion {
-  @BelongsToMany(() => Delivery, () => PickupLocation)
+  @BelongsToMany(() => Delivery, () => PickupLocationDelivery)
   public deliveries: IDelivery[];
 
   @Column
