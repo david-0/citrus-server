@@ -1,13 +1,8 @@
+import {IAddress, IOrder, IOrderItem, IUser} from "citrus-common";
 import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
-import {IDelivery} from "../entities/IDelivery";
-import {Article} from "./Article";
-import {IOrder} from "../entities/IOrder";
 import {Address} from "./Address";
-import {IAddress} from "../entities/IAddress";
-import {User} from "./User";
-import {IUser} from "../entities/IUser";
-import {IOrderItem} from "../entities/IOrderItem";
 import {OrderItem} from "./OrderItem";
+import {User} from "./User";
 
 @Table
 export class Order extends Model<Order> implements IOrder {

@@ -1,16 +1,12 @@
-import {BelongsTo, BelongsToMany, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
-import {IGpsLocation} from "../entities/IGpsLocation";
-import {IPickupLocaltion} from "../entities/IPickupLocaltion";
-import {Delivery} from "./Delivery";
-import {IDelivery} from "../entities/IDelivery";
-import {User} from "./User";
-import {IUser} from "../entities/IUser";
+import {IAddress, IDelivery, IPickupLocation, IUser} from "citrus-common";
+import {BelongsTo, BelongsToMany, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {Address} from "./Address";
-import {IAddress} from "../entities/IAddress";
+import {Delivery} from "./Delivery";
 import {PickupLocationDelivery} from "./PickupLocationDelivery";
+import {User} from "./User";
 
 @Table
-export class PickupLocation extends Model<PickupLocation> implements IPickupLocaltion {
+export class PickupLocation extends Model<PickupLocation> implements IPickupLocation {
   @BelongsToMany(() => Delivery, () => PickupLocationDelivery)
   public deliveries: IDelivery[];
 

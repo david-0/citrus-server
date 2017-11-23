@@ -1,6 +1,5 @@
+import {IDelivery, IOrderItem} from "citrus-common";
 import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
-import {IDelivery} from "../entities/IDelivery";
-import {IOrderItem} from "../entities/IOrderItem";
 import {Delivery} from "./Delivery";
 import {Order} from "./Order";
 

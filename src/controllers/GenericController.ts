@@ -1,15 +1,16 @@
 import * as express from "express";
+import log4js = require("log4js");
+import {Logger} from "log4js";
 import {Model} from "sequelize-typescript";
-import {getLogger, Logger} from "../utils/logger";
 import {IController} from "./IController";
 import {IModelWrapper} from "./IModelWrapper";
 
-let LOGGER: Logger = getLogger("GenericController");
+let LOGGER: Logger = log4js.getLogger("GenericController");
 
 export class GenericController<T extends Model<T>> implements IController {
 
   constructor(private wrapper: IModelWrapper<T>) {
-    LOGGER  = getLogger(`GenericController-${wrapper.name}`);
+    LOGGER  = log4js.getLogger(`GenericController-${wrapper.name}`);
   }
 
   public add(req: express.Request, res: express.Response): void {

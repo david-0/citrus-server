@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import {SignOptions} from "jsonwebtoken";
 import {Logger} from "log4js";
-import {getLogger} from "./logger";
+import log4js = require("log4js");
 
-const LOGGER: Logger = getLogger("JwtConfiguration");
+const LOGGER: Logger = log4js.getLogger("JwtConfiguration");
 
 export class JwtConfiguration {
   private devSharedKey: string = "sdjhwisnd,inres";

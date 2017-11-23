@@ -1,12 +1,7 @@
-import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
-import {IDelivery} from "../entities/IDelivery";
+import {IArticle, IShipment, IShipmentItem} from "citrus-common";
+import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {Article} from "./Article";
-import {OrderItem} from "./OrderItem";
-import {IShipment} from "../entities/IShipment";
-import {Delivery} from "./Delivery";
-import {IShipmentItem} from "../entities/IShipmentItem";
 import {Shipment} from "./Shipment";
-import {IArticle} from "../entities/IArticle";
 
 @Table
 export class ShipmentItem extends Model<ShipmentItem> implements IShipmentItem {

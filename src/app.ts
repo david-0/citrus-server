@@ -6,24 +6,24 @@ import * as http from "http";
 import * as createError from "http-errors";
 import * as https from "https";
 import * as log4js from "log4js";
+import {Logger} from "log4js";
 import * as path from "path";
+import {AddressModelWrapper} from "./controllers/AddressModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
+import {DeliveryModelWrapper} from "./controllers/DeliveryModelWrapper";
 import {GenericController} from "./controllers/GenericController";
+import {OrderModelWrapper} from "./controllers/OrderModelWrapper";
+import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
+import {RoleModelWrapper} from "./controllers/RoleModelWrapper";
+import {ShipmentModelWrapper} from "./controllers/ShipmentModelWrapper";
+import {UserModelWrapper} from "./controllers/UserModelWrapper";
 import {GenericRouter} from "./routes/GenericRouter";
 import {DBService} from "./services/DBService";
 import {SocketService} from "./socket/SocketService";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
-import {getLogger, Logger} from "./utils/logger";
-import {UserModelWrapper} from "./controllers/UserModelWrapper";
-import {RoleModelWrapper} from "./controllers/RoleModelWrapper";
-import {AddressModelWrapper} from "./controllers/AddressModelWrapper";
-import {DeliveryModelWrapper} from "./controllers/DeliveryModelWrapper";
-import {OrderModelWrapper} from "./controllers/OrderModelWrapper";
-import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
-import {ShipmentModelWrapper} from "./controllers/ShipmentModelWrapper";
 
-const LOGGER: Logger = getLogger("Server");
+const LOGGER: Logger = log4js.getLogger("Server");
 
 declare var process: any;
 declare var dirname: any;

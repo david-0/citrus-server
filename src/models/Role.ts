@@ -1,5 +1,5 @@
+import {IRole} from "citrus-common";
 import {BelongsToMany, Column, Model, Table} from "sequelize-typescript";
-import {IRole} from "../entities/IRole";
 import {User} from "./User";
 import {UserRole} from "./UserRole";
 

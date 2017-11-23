@@ -1,7 +1,8 @@
+import log4js = require("log4js");
+import {Logger} from "log4js";
 import {Sequelize} from "sequelize-typescript";
-import {getLogger, Logger} from "../utils/logger";
 
-const LOGGER: Logger = getLogger("DBService");
+const LOGGER: Logger = log4js.getLogger("DBService");
 
 export class DBService {
 

@@ -1,9 +1,5 @@
+import {IArticle, IDelivery, IOrderItem, IPickupLocation, IShipment} from "citrus-common";
 import {BelongsToMany, Column, HasMany, Model, Table} from "sequelize-typescript";
-import {IArticle} from "../entities/IArticle";
-import {IDelivery} from "../entities/IDelivery";
-import {IOrderItem} from "../entities/IOrderItem";
-import {IPickupLocaltion} from "../entities/IPickupLocaltion";
-import {IShipment} from "../entities/IShipment";
 import {Article} from "./Article";
 import {OrderItem} from "./OrderItem";
 import {PickupLocation} from "./PickupLocation";
@@ -29,5 +25,5 @@ export class Delivery extends Model<Delivery> implements IDelivery {
   public shipments: IShipment[];
 
   @BelongsToMany(() => PickupLocation, () => PickupLocationDelivery)
-  public pickupLocations: IPickupLocaltion[];
+  public pickupLocations: IPickupLocation[];
 }

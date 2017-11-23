@@ -1,8 +1,9 @@
-import {getLogger, Logger} from "../utils/logger";
 import Namespace = SocketIO.Namespace;
 import Socket = SocketIO.Socket;
+import {Logger} from "log4js";
+import log4js = require("log4js");
 
-const LOGGER: Logger = getLogger("GenericSocket");
+const LOGGER: Logger = log4js.getLogger("GenericSocket");
 
 /**
  * The GenericSocket sends values to all registered clients.

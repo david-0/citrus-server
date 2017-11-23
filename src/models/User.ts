@@ -1,6 +1,5 @@
+import {IOrder, IUser} from "citrus-common";
 import {BelongsToMany, Column, HasMany, Model, Table} from "sequelize-typescript";
-import {IOrder} from "../entities/IOrder";
-import {IUser} from "../entities/IUser";
 import {Order} from "./Order";
 import {Role} from "./Role";
 import {UserRole} from "./UserRole";

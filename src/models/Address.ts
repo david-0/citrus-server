@@ -1,7 +1,5 @@
+import {IAddress, IGpsLocation, IOrder} from "citrus-common";
 import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
-import {IAddress} from "../entities/IAddress";
-import {IGpsLocation} from "../entities/IGpsLocation";
-import {IOrder} from "../entities/IOrder";
 import {GpsLocation} from "./GpsLocation";
 import {Order} from "./Order";
 
