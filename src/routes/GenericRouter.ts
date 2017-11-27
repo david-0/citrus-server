@@ -9,12 +9,12 @@ export class GenericRouter {
       .post((req, res) => controller.add(req, res))
       .get((req, res) => controller.getAll(req, res));
 
-    router.route("/:id")
+    router.route("/:id([0-9]+)")
       .get((req, res) => controller.get(req, res))
       .put((req, res) => controller.update(req, res))
       .delete((req, res) => controller.del(req, res));
 
-    router.route("/:offset/:limit")
+    router.route("/:offset([0-9]+)/:limit([0-9]+)")
       .get((req, res) => controller.getRange(req, res));
 
     return router;
@@ -23,13 +23,13 @@ export class GenericRouter {
   public static get(controller: IController): Router {
     const router = express.Router();
     router.route("/").get((req, res) => controller.getAll(req, res));
-    router.route("/:id").get((req, res) => controller.get(req, res));
+    router.route("/:id([0-9]+)").get((req, res) => controller.get(req, res));
     return router;
   }
 
   public static getOne(controller: IController): Router {
     const router = express.Router();
-    router.route("/:id").get((req, res) => controller.get(req, res));
+    router.route("/:id([0-9]+)").get((req, res) => controller.get(req, res));
     return router;
   }
 
@@ -41,7 +41,7 @@ export class GenericRouter {
 
   public static getRange(controller: IController): Router {
     const router = express.Router();
-    router.route("/:offset/:limit").get((req, res) => controller.getRange(req, res));
+    router.route("/:offset([0-9]+)/:limit([0-9]+)").get((req, res) => controller.getRange(req, res));
     return router;
   }
 
@@ -53,13 +53,13 @@ export class GenericRouter {
 
   public static put(controller: IController): Router {
     const router = express.Router();
-    router.route("/:id").put((req, res) => controller.update(req, res));
+    router.route("/:id([0-9]+)").put((req, res) => controller.update(req, res));
     return router;
   }
 
   public static del(controller: IController): Router {
     const router = express.Router();
-    router.route("/:id").delete((req, res) => controller.del(req, res));
+    router.route("/:id([0-9]+)").delete((req, res) => controller.del(req, res));
     return router;
   }
 }
