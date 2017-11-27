@@ -36,7 +36,6 @@ export class GenericController<T extends Model<T>> implements IController {
   }
 
   public getRange(req: express.Request, res: express.Response): void {
-    const queryCond = this.createFilterCondition(req);
     this.wrapper.findAndCountAll({
       limit: req.params.limit,
       offset: req.params.offset,
