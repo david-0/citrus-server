@@ -19,7 +19,7 @@ export class ShipmentModelWrapper implements IModelWrapper<Shipment> {
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: Shipment[]; count: number; }> {
-    return Shipment.findAndCountAll();
+    return Shipment.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<Shipment> {

@@ -19,7 +19,7 @@ export class UserModelWrapper implements IModelWrapper<User> {
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: User[]; count: number; }> {
-    return User.findAndCountAll();
+    return User.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<User> {

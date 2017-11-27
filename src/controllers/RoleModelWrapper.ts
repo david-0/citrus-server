@@ -19,7 +19,7 @@ export class RoleModelWrapper implements IModelWrapper<Role> {
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: Role[]; count: number; }> {
-    return Role.findAndCountAll();
+    return Role.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<Role> {

@@ -19,7 +19,7 @@ export class OrderModelWrapper implements IModelWrapper<Order> {
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: Order[]; count: number; }> {
-    return Order.findAndCountAll();
+    return Order.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<Order> {

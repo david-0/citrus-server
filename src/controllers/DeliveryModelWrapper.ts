@@ -19,7 +19,7 @@ export class DeliveryModelWrapper implements IModelWrapper<Delivery> {
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: Delivery[]; count: number; }> {
-    return Delivery.findAndCountAll();
+    return Delivery.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<Delivery> {

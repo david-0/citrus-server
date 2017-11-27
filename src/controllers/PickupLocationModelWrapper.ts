@@ -19,7 +19,7 @@ export class PickupLocationModelWrapper implements IModelWrapper<PickupLocation>
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: PickupLocation[]; count: number; }> {
-    return PickupLocation.findAndCountAll();
+    return PickupLocation.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<PickupLocation> {

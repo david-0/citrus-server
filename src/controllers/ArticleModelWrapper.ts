@@ -19,7 +19,7 @@ export class ArticleModelWrapper implements IModelWrapper<Article> {
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: Article[]; count: number; }> {
-    return Article.findAndCountAll();
+    return Article.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<Article> {

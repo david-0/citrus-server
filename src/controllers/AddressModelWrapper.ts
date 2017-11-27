@@ -19,7 +19,7 @@ export class AddressModelWrapper implements IModelWrapper<Address> {
   }
 
   public findAndCountAll(options?: IFindOptions): Promise<{ rows: Address[]; count: number; }> {
-    return Address.findAndCountAll();
+    return Address.findAndCountAll(options);
   }
 
   public findById(identifier?: string | number, options?: IFindOptions): Promise<Address> {
