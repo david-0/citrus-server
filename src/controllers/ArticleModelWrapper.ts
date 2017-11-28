@@ -10,6 +10,10 @@ export class ArticleModelWrapper implements IModelWrapper<Article> {
     return "Article";
   }
 
+  public filterColumns(): string[] {
+    return ["number", "description", "price", "amount"];
+  }
+
   public create(values?: any, options?: ICreateOptions): Promise<Article> {
     return Article.create(values, options);
   }

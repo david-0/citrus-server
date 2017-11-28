@@ -10,6 +10,10 @@ export class DeliveryModelWrapper implements IModelWrapper<Delivery> {
     return "Delivery";
   }
 
+  public filterColumns(): string[] {
+    return ["comment"];
+  }
+
   public create(values?: any, options?: ICreateOptions): Promise<Delivery> {
     return Delivery.create(values, options);
   }

@@ -10,6 +10,10 @@ export class UserModelWrapper implements IModelWrapper<User> {
     return "User";
   }
 
+  public filterColumns(): string[] {
+    return ["email", "name", "prename", "telNumber"];
+  }
+
   public create(values?: any, options?: ICreateOptions): Promise<User> {
     return User.create(values, options);
   }

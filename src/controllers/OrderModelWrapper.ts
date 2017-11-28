@@ -10,6 +10,10 @@ export class OrderModelWrapper implements IModelWrapper<Order> {
     return "Order";
   }
 
+  public filterColumns(): string[] {
+    return ["description"];
+  }
+
   public create(values?: any, options?: ICreateOptions): Promise<Order> {
     return Order.create(values, options);
   }

@@ -10,6 +10,10 @@ export class PickupLocationModelWrapper implements IModelWrapper<PickupLocation>
     return "PickupLocation";
   }
 
+  public filterColumns(): string[] {
+    return ["fromDate"];
+  }
+
   public create(values?: any, options?: ICreateOptions): Promise<PickupLocation> {
     return PickupLocation.create(values, options);
   }

@@ -6,6 +6,8 @@ export interface IModelWrapper<T extends Model<T>> {
 
   name(): string;
 
+  filterColumns(): string[];
+
   create(values?: any, options?: ICreateOptions): Promise<T>;
 
   findAll(options?: IFindOptions): Promise<T[]>;

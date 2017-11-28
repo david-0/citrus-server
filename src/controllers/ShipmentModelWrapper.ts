@@ -10,6 +10,10 @@ export class ShipmentModelWrapper implements IModelWrapper<Shipment> {
     return "Shipment";
   }
 
+  public filterColumns(): string[] {
+    return ["number", "comment"];
+  }
+
   public create(values?: any, options?: ICreateOptions): Promise<Shipment> {
     return Shipment.create(values, options);
   }

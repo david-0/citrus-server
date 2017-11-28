@@ -10,6 +10,10 @@ export class RoleModelWrapper implements IModelWrapper<Role> {
     return "Role";
   }
 
+  public filterColumns(): string[] {
+    return ["name"];
+  }
+
   public create(values?: any, options?: ICreateOptions): Promise<Role> {
     return Role.create(values, options);
   }

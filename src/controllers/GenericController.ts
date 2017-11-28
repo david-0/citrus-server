@@ -1,16 +1,16 @@
 import * as express from "express";
-import log4js = require("log4js");
 import {Logger} from "log4js";
 import {Model} from "sequelize-typescript";
 import {IController} from "./IController";
 import {IModelWrapper} from "./IModelWrapper";
+import log4js = require("log4js");
 
 let LOGGER: Logger = log4js.getLogger("GenericController");
 
 export class GenericController<T extends Model<T>> implements IController {
 
   constructor(private wrapper: IModelWrapper<T>) {
-    LOGGER  = log4js.getLogger(`GenericController-${wrapper.name}`);
+    LOGGER = log4js.getLogger(`GenericController-${wrapper.name}`);
   }
 
   public add(req: express.Request, res: express.Response): void {
@@ -88,12 +88,12 @@ export class GenericController<T extends Model<T>> implements IController {
   }
 
   private createFilterCondition(req: express.Request): any {
-    if (req.query && req.query.filter) {
-      return {
-        name: {
-          $like: `%${req.query.filter}%`,
-        },
-      };
+    if (req.query && req.query.filter && this.wrapper.filterColumns().length > 0) {
+      const or = {};
+      this.wrapper.filterColumns().forEach((columnName) => {
+        or[columnName] = {$like: `%${req.query.filter}%`};
+      });
+      return {$or: or};
     }
     return {};
   }

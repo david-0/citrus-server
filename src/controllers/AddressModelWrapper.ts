@@ -5,9 +5,12 @@ import {Address} from "../models/Address";
 import {IModelWrapper} from "./IModelWrapper";
 
 export class AddressModelWrapper implements IModelWrapper<Address> {
-
   public name() {
     return "Address";
+  }
+
+  public filterColumns(): string[] {
+    return ["name", "prename", "street", "number", "plz", "city"];
   }
 
   public create(values?: any, options?: ICreateOptions): Promise<Address> {
