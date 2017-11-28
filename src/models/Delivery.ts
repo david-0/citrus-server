@@ -3,7 +3,6 @@ import {BelongsToMany, Column, HasMany, Model, Table} from "sequelize-typescript
 import {Article} from "./Article";
 import {OrderItem} from "./OrderItem";
 import {PickupLocation} from "./PickupLocation";
-import {PickupLocationDelivery} from "./PickupLocationDelivery";
 import {Shipment} from "./Shipment";
 
 @Table
@@ -24,6 +23,6 @@ export class Delivery extends Model<Delivery> implements IDelivery {
   @HasMany(() => Shipment)
   public shipments: IShipment[];
 
-  @BelongsToMany(() => PickupLocation, () => PickupLocationDelivery)
+  @HasMany(() => PickupLocation)
   public pickupLocations: IPickupLocation[];
 }

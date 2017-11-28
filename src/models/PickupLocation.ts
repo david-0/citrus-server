@@ -1,14 +1,17 @@
 import {IAddress, IDelivery, IPickupLocation, IUser} from "citrus-common";
-import {BelongsTo, BelongsToMany, Column, ForeignKey, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {Address} from "./Address";
 import {Delivery} from "./Delivery";
-import {PickupLocationDelivery} from "./PickupLocationDelivery";
 import {User} from "./User";
 
 @Table
 export class PickupLocation extends Model<PickupLocation> implements IPickupLocation {
-  @BelongsToMany(() => Delivery, () => PickupLocationDelivery)
-  public deliveries: IDelivery[];
+  @ForeignKey(() => Delivery)
+  @Column
+  public deliveryId: number;
+
+  @BelongsTo(() => Delivery)
+  public delivery: IDelivery;
 
   @Column
   public fromDate: Date;
