@@ -6,10 +6,10 @@ import {Address} from "./Address";
 export class GpsLocation extends Model<GpsLocation> implements IGpsLocation {
 
   @Column
-  public length: number;
+  public latitude: number;
 
   @Column
-  public width: number;
+  public longitude: number;
 
   @HasOne(() => Address)
   public address: IAddress;
