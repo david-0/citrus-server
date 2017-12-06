@@ -1,6 +1,7 @@
-import {IOrder, IUser} from "citrus-common";
+import {IAddress, ICustomerOrder, IUser} from "citrus-common";
 import {BelongsToMany, Column, HasMany, Model, Table} from "sequelize-typescript";
-import {Order} from "./Order";
+import {Address} from "./Address";
+import {CustomerOrder} from "./CustomerOrder";
 import {Role} from "./Role";
 import {UserRole} from "./UserRole";
 
@@ -22,11 +23,14 @@ export class User extends Model<User> implements IUser {
   public prename: string;
 
   @Column
-  public telNumber: string;
+  public phone: string;
 
   @Column
-  public mobileNumber: string;
+  public mobile: string;
 
-  @HasMany(() => Order)
-  public orders: IOrder[];
+  @HasMany(() => CustomerOrder)
+  public customerOrders: ICustomerOrder[];
+
+  @HasMany(() => Address)
+  public addresses: IAddress[];
 }

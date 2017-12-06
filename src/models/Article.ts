@@ -1,11 +1,22 @@
-import {IArticle, IDelivery, IShipmentItem} from "citrus-common";
-import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
-import {Delivery} from "./Delivery";
-import {ShipmentItem} from "./ShipmentItem";
+import {
+  EArticleStatus,
+  IArticle,
+  IPickupLocation,
+  IPricedArticle,
+  IUnitOfMeasurement,
+  IVendorOrderItem
+} from "citrus-common";
+import {BelongsTo, BelongsToMany, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {ArticlePickupLocation} from "./ArticlePickupLocation";
+import {PickupLocation} from "./PickupLocation";
+import {PricedArticle} from "./PricedArticle";
+import {Role} from "./Role";
+import {UnitOfMeasurement} from "./UnitOfMeasurement";
+import {UserRole} from "./UserRole";
+import {VendorOrderItem} from "./VendorOrderItem";
 
 @Table
 export class Article extends Model<Article> implements IArticle {
-
   @Column
   public number: number;
 
@@ -13,21 +24,27 @@ export class Article extends Model<Article> implements IArticle {
   public description: string;
 
   @Column
-  public price: number;
+  public stock: number;
+
+  @ForeignKey(() => UnitOfMeasurement)
+  @Column
+  public unitOfMeasurementId: number;
+
+  @BelongsTo(() => UnitOfMeasurement)
+  public unitOfMeasurement: IUnitOfMeasurement;
 
   @Column
-  public amount: number;
+  public status: EArticleStatus;
 
   @Column
   public visibleFrom: Date;
 
-  @ForeignKey(() => Delivery)
-  @Column
-  public deliveryId: number;
+  @HasMany(() => VendorOrderItem)
+  public vendorOrderItems: IVendorOrderItem[];
 
-  @BelongsTo(() => Delivery)
-  public delivery: IDelivery;
+  @HasMany(() => PricedArticle)
+  public pricedArticles: IPricedArticle[];
 
-  @HasMany(() => ShipmentItem)
-  public shipmentItems: IShipmentItem[];
+  @BelongsToMany(() => PickupLocation, () => ArticlePickupLocation)
+  public pickupLocations: IPickupLocation[];
 }

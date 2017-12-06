@@ -10,7 +10,7 @@ export class AddressModelWrapper implements IModelWrapper<Address> {
   }
 
   public filterColumns(): string[] {
-    return ["name", "prename", "street", "number", "plz", "city"];
+    return ["name", "prename", "street", "number", "zipcode", "city"];
   }
 
   public create(values?: any, options?: ICreateOptions): Promise<Address> {

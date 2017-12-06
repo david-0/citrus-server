@@ -1,10 +1,19 @@
-import {IAddress, IGpsLocation, IOrder} from "citrus-common";
-import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {IAddress, IGpsLocation, IUser} from "citrus-common";
+import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {GpsLocation} from "./GpsLocation";
-import {Order} from "./Order";
+import {User} from "./User";
 
 @Table
 export class Address extends Model<Address> implements IAddress {
+  @ForeignKey(() => User)
+  @Column
+  public userId: number;
+
+  @BelongsTo(() => User)
+  public user: IUser;
+
+  @Column
+  public description: string;
 
   @Column
   public name: string;
@@ -26,11 +35,11 @@ export class Address extends Model<Address> implements IAddress {
   public number: string;
 
   @Column
-  public plz: string;
+  public addition: string;
+
+  @Column
+  public zipcode: string;
 
   @Column
   public city: string;
-
-  @HasMany(() => Order)
-  public orders: IOrder[];
 }

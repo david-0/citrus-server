@@ -11,7 +11,7 @@ export class UserModelWrapper implements IModelWrapper<User> {
   }
 
   public filterColumns(): string[] {
-    return ["email", "name", "prename", "telNumber"];
+    return ["email", "name", "prename", "phone", "mobile"];
   }
 
   public create(values?: any, options?: ICreateOptions): Promise<User> {
@@ -31,7 +31,14 @@ export class UserModelWrapper implements IModelWrapper<User> {
   }
 
   public update(values: any, options: UpdateOptions): Promise<[number, User[]]> {
+    /*  if (isUndefined(values.password)) {
+        this.findById(values.id).then((user) => {
+          values.password = user.password;
+          return User.update(values, options);
+        });
+      } else {*/
     return User.update(values, options);
+    //    };
   }
 
 }
