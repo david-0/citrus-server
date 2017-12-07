@@ -8,6 +8,9 @@ import {UserRole} from "./UserRole";
 @Table
 export class User extends Model<User> implements IUser {
   @Column
+  public number: number;
+
+  @Column
   public email: string;
 
   @Column

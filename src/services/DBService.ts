@@ -11,7 +11,7 @@ export class DBService {
     this.db = new Sequelize({
       dialect: "postgres",
       modelPaths: [__dirname + "/../models"],
-      name: "citrus1",
+      name: "citrus",
       password: "citrus",
       username: "citrus",
     });
