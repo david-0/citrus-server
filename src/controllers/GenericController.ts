@@ -2,14 +2,18 @@ import * as express from "express";
 import {Logger} from "log4js";
 import {Model} from "sequelize-typescript";
 import {IController} from "./IController";
+import {ModelRegistry} from "./ModelRegistry";
 import log4js = require("log4js");
 
 let LOGGER: Logger = log4js.getLogger("GenericController");
 
 export class GenericController<T extends Model<T>> implements IController {
 
+  private registry = new ModelRegistry();
+
   constructor(private model: typeof Model) {
     LOGGER = log4js.getLogger(`GenericController-${model.name}`);
+
   }
 
   public add(req: express.Request, res: express.Response): void {
@@ -36,6 +40,7 @@ export class GenericController<T extends Model<T>> implements IController {
 
   public getRange(req: express.Request, res: express.Response): void {
     this.model.findAndCountAll({
+      include: this.getIncludeOptions(req),
       limit: req.params.limit,
       offset: req.params.offset,
       order: this.createOrderCondition(req),
@@ -48,8 +53,7 @@ export class GenericController<T extends Model<T>> implements IController {
   }
 
   public get(req: express.Request, res: express.Response): void {
-//    const options = {include: req.query.include};
-    this.model.findById(req.params.id)
+    this.model.findById(req.params.id, {include: this.getIncludeOptions(req)})
       .then((item) => {
         res.json(item);
       }).catch((err) => {
@@ -104,5 +108,18 @@ export class GenericController<T extends Model<T>> implements IController {
       return [[req.query.columnName, req.query.direction]];
     }
     return [];
+  }
+
+  private getIncludeOptions(req: express.Request): Array<typeof Model> {
+    const includes: Array<typeof Model> = new Array<typeof Model>();
+    if (req.query && req.query.include) {
+      if (typeof req.query.include === "string") {
+        includes.push(this.registry.get(req.query.include));
+      } else {
+        const includesParam: string[] = req.query.include;
+        includesParam.forEach((i) => includes.push(this.registry.get(i)));
+      }
+    }
+    return includes;
   }
 }
