@@ -1,6 +1,7 @@
 import * as express from "express";
 import {Logger} from "log4js";
 import {Model} from "sequelize-typescript";
+import {IBeforeUpdate} from "./IBeforeInterface";
 import {IController} from "./IController";
 import {ModelRegistry} from "./ModelRegistry";
 import log4js = require("log4js");
@@ -11,9 +12,8 @@ export class GenericController<T extends Model<T>> implements IController {
 
   private registry = new ModelRegistry();
 
-  constructor(private model: typeof Model) {
+  constructor(private model: typeof Model, private beforeUpdate: IBeforeUpdate<T> = null) {
     LOGGER = log4js.getLogger(`GenericController-${model.name}`);
-
   }
 
   public add(req: express.Request, res: express.Response): void {
@@ -77,6 +77,9 @@ export class GenericController<T extends Model<T>> implements IController {
   public update(req: express.Request, res: express.Response): void {
     const inputItme: T = req.body;
     LOGGER.debug(`update ${this.model.name}: ${JSON.stringify(inputItme)}`);
+    if (this.beforeUpdate) {
+      this.beforeUpdate.beforeUpdate(inputItme);
+    }
     this.model.update(inputItme, {where: {id: inputItme.id}})
       .then((result) => {
         if (result[0] === 1) {

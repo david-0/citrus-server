@@ -16,6 +16,9 @@ import {PickupLocation} from "./models/PickupLocation";
 import {Role} from "./models/Role";
 import {User} from "./models/User";
 import {VendorOrder} from "./models/VendorOrder";
+import {AddressProjector} from "./projector/AddressProjector";
+import {ArticleProjector} from "./projector/ArticleProjector";
+import {UserProjector} from "./projector/UserProjector";
 import {GenericRouter} from "./routes/GenericRouter";
 import {DBService} from "./services/DBService";
 import {SocketService} from "./socket/SocketService";
@@ -145,13 +148,13 @@ class Server {
     this.app.use("/", this.appendHeaders);
 
 //    this.app.use(getAuthenticationRoute(this.jwtConfig));
-    this.app.use("/api/address", GenericRouter.all(new GenericController(Address)));
-    this.app.use("/api/article", GenericRouter.all(new GenericController(Article)));
+    this.app.use("/api/address", GenericRouter.all(new GenericController(Address, new AddressProjector())));
+    this.app.use("/api/article", GenericRouter.all(new GenericController(Article, new ArticleProjector())));
     this.app.use("/api/order", GenericRouter.all(new GenericController(CustomerOrder)));
     this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController(PickupLocation)));
     this.app.use("/api/role", GenericRouter.all(new GenericController(Role)));
     this.app.use("/api/shipment", GenericRouter.all(new GenericController(VendorOrder)));
-    this.app.use("/api/user", GenericRouter.all(new GenericController(User)));
+    this.app.use("/api/user", GenericRouter.all(new GenericController(User, new UserProjector())));
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);
