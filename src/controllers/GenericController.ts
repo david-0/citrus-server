@@ -95,12 +95,24 @@ export class GenericController<T extends Model<T>> implements IController {
   }
 
   private createFilterCondition(req: express.Request): any {
+    let filterCondition: any;
     if (req.query && req.query.filter && req.query.filterColumns && req.query.filterColumns.length > 0) {
-      const or = {};
+      filterCondition = {};
       this.getStringArray(req.query.filterColumns).forEach((columnName) => {
-        or[columnName] = {$like: `%${req.query.filter}%`};
+        filterCondition[columnName] = {$like: `%${req.query.filter}%`};
       });
-      return {$or: or};
+    }
+    let whereCondition: any;
+    if (req.query && req.query.whereColumn && req.query.whereId) {
+      whereCondition = {};
+      whereCondition[req.query.whereColumn] = {$eq: `${req.query.whereId}`};
+    }
+    if (!!filterCondition && !!whereCondition) {
+      return {$and: [whereCondition, filterCondition]};
+    } else if (!!filterCondition) {
+      return {$or: filterCondition};
+    } else if (!!whereCondition) {
+      return whereCondition;
     }
     return {};
   }
