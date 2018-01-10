@@ -9,6 +9,7 @@ import * as log4js from "log4js";
 import {Logger} from "log4js";
 import * as path from "path";
 import {GenericController} from "./controllers/GenericController";
+import {RequestController} from "./controllers/RequestController";
 import {Address} from "./models/Address";
 import {Article} from "./models/Article";
 import {CustomerOrder} from "./models/CustomerOrder";
@@ -20,6 +21,7 @@ import {AddressProjector} from "./projector/AddressProjector";
 import {ArticleProjector} from "./projector/ArticleProjector";
 import {UserProjector} from "./projector/UserProjector";
 import {GenericRouter} from "./routes/GenericRouter";
+import {RequestRouter} from "./routes/RequestRouter";
 import {DBService} from "./services/DBService";
 import {SocketService} from "./socket/SocketService";
 
@@ -155,6 +157,11 @@ class Server {
     this.app.use("/api/role", GenericRouter.all(new GenericController(Role)));
     this.app.use("/api/shipment", GenericRouter.all(new GenericController(VendorOrder)));
     this.app.use("/api/user", GenericRouter.all(new GenericController(User, new UserProjector())));
+    this.app.use("/api/request", RequestRouter.all(new RequestController()));
+//    this.app.post("/api/request", (req, res) => {
+//      console.info(req.body);
+//      res.send({state: "OK"});
+//    });
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);
