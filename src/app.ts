@@ -22,6 +22,7 @@ import {ArticleProjector} from "./projector/ArticleProjector";
 import {UserProjector} from "./projector/UserProjector";
 import {GenericRouter} from "./routes/GenericRouter";
 import {RequestRouter} from "./routes/RequestRouter";
+import {SecurityRoutes} from "./routes/SecurityRoutes";
 import {DBService} from "./services/DBService";
 import {SocketService} from "./socket/SocketService";
 
@@ -148,8 +149,8 @@ class Server {
     this.app.use(this.inputLogger);
 
     this.app.use("/", this.appendHeaders);
-
-//    this.app.use(getAuthenticationRoute(this.jwtConfig));
+    this.app.options("/api/*", this.setStatus200);
+    this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
     this.app.use("/api/address", GenericRouter.all(new GenericController(Address, new AddressProjector())));
     this.app.use("/api/article", GenericRouter.all(new GenericController(Article, new ArticleProjector())));
     this.app.use("/api/order", GenericRouter.all(new GenericController(CustomerOrder)));
@@ -158,10 +159,6 @@ class Server {
     this.app.use("/api/shipment", GenericRouter.all(new GenericController(VendorOrder)));
     this.app.use("/api/user", GenericRouter.all(new GenericController(User, new UserProjector())));
     this.app.use("/api/request", RequestRouter.all(new RequestController()));
-//    this.app.post("/api/request", (req, res) => {
-//      console.info(req.body);
-//      res.send({state: "OK"});
-//    });
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);
@@ -170,9 +167,13 @@ class Server {
     this.app.use(this.errorHandler);
   }
 
+  private setStatus200(req: express.Request, res: express.Response, next: express.NextFunction) {
+    res.sendStatus(200);
+  }
+
   private appendHeaders(req: express.Request, res: express.Response, next: express.NextFunction) {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
     res.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE, PUT");
     next();
   }
