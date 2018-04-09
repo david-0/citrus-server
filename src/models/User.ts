@@ -1,5 +1,5 @@
 import {IAddress, ICustomerOrder, IUser} from "citrus-common";
-import {BelongsToMany, Column, HasMany, Model, Table} from "sequelize-typescript";
+import {BelongsToMany, Column, HasMany, Model, Table, Unique} from "sequelize-typescript";
 import {Address} from "./Address";
 import {CustomerOrder} from "./CustomerOrder";
 import {Role} from "./Role";
@@ -7,9 +7,11 @@ import {UserRole} from "./UserRole";
 
 @Table
 export class User extends Model<User> implements IUser {
+  @Unique
   @Column
   public number: number;
 
+  @Unique
   @Column
   public email: string;
 
