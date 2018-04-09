@@ -75,12 +75,12 @@ export class GenericController<T extends Model<T>> implements IController {
   }
 
   public update(req: express.Request, res: express.Response): void {
-    const inputItme: T = req.body;
-    LOGGER.debug(`update ${this.model.name}: ${JSON.stringify(inputItme)}`);
+    const inputItem: T = req.body;
+    LOGGER.debug(`update ${this.model.name}: ${JSON.stringify(inputItem)}`);
     if (this.beforeUpdate) {
-      this.beforeUpdate.beforeUpdate(inputItme);
+      this.beforeUpdate.beforeUpdate(inputItem);
     }
-    this.model.update(inputItme, {where: {id: inputItme.id}})
+    this.model.update(inputItem, {where: {id: inputItem.id}})
       .then((result) => {
         if (result[0] === 1) {
           res.json(1);
