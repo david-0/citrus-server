@@ -24,7 +24,7 @@ export class SecurityRoutes {
   private addChangePasswordEndpoint(router: Router) {
     router.route("/api/user/:id([0-9]+)/changepassword")
       .post(this.requiresAdmin, (req, res, next) => {
-        this.updatePasswordById(req.params.id, req.body.password, (user) => {
+        this.updatePasswordById(+req.params.id, req.body.password, (user) => {
           res.json(1);
         }, (msg) => {
           res.status(404).json(
@@ -38,7 +38,7 @@ export class SecurityRoutes {
       .post((req, res, next) => {
         this.updatePasswordByEmail(req.user.email, req.body.password, (user) => {
           res.status(200);
-          res.json(this.createToken(user));
+          res.json({token: this.createToken(user)});
         }, (msg) => {
           res.status(500);
           res.json({error: `error update paswword failed, (${msg})`});
@@ -134,11 +134,13 @@ export class SecurityRoutes {
       .post((req, res) => {
         const email: string = req.body.email;
         const password: string = req.body.password;
-        User.findOne({where: {and: {email: {$eq: email}}, password: {$eq: password}}})
+        User.findOne({where: {$and: {email: {$eq: email}}, password: {$eq: password}}})
           .then((user: User) => {
+            console.info(`login successfull, password correct ${JSON.stringify(user)}`)
             res.json({token: this.createToken(user)});
           })
           .catch((err) => {
+            console.info("login NOT successfull --> fake admin user")
             res.json({token: this.createToken(this.createTestingAdminUser())});
 //            res.status(500).json({error: `error creating token for user: ${email}. ${err}`});
           });
