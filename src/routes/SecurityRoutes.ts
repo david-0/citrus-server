@@ -1,8 +1,10 @@
 import * as express from "express";
 import {Router} from "express-serve-static-core";
+import {Model} from "sequelize-typescript";
 import {Role} from "../models/Role";
 import {User} from "../models/User";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
+import bcrypt = require("bcrypt");
 import eJwt = require("express-jwt");
 import jwt = require("jsonwebtoken");
 
@@ -77,17 +79,21 @@ export class SecurityRoutes {
   private updatePassword(user: User, password: string,
                          success: (user: User) => void,
                          error: (message: string) => void) {
-    User.update({password}, {where: {id: user.id}})
-      .then((result) => {
-        if (result[0] === 1) {
-          user.password = password;
-          success(user);
-        } else {
-          error("2");
-        }
-      })
-      .catch((err) => {
-        error(err);
+    bcrypt.hash(password, 10).then(
+      (passwordHash) => {
+        User.update({password: passwordHash}, {where: {id: user.id}})
+          .then((result) => {
+            if (result[0] === 1) {
+              success(user);
+            } else {
+              error("2");
+            }
+          })
+          .catch((err) => {
+            error(err);
+          });
+      }, (reason) => {
+        error(reason);
       });
   }
 
@@ -106,7 +112,7 @@ export class SecurityRoutes {
   private findUserbyEmail(email: string,
                           success: (user: User) => void,
                           error: (message: string) => void) {
-    User.findAll({where: {email: {$eq: email}}})
+    User.findAll({include: [Role], where: {email: {$eq: email}}})
       .then((users: User[]) => {
         if (users.length !== 1) {
           error("1");
@@ -132,22 +138,34 @@ export class SecurityRoutes {
   private addAuthenticateEndpoint(router: Router) {
     router.route("/api/authenticate")
       .post((req, res) => {
-        const email: string = req.body.email;
-        const password: string = req.body.password;
-        User.findOne({where: {$and: {email: {$eq: email}}, password: {$eq: password}}})
-          .then((user: User) => {
-            console.info(`login successfull, password correct ${JSON.stringify(user)}`)
-            res.json({token: this.createToken(user)});
-          })
-          .catch((err) => {
-            console.info("login NOT successfull --> fake admin user")
-            res.json({token: this.createToken(this.createTestingAdminUser())});
+        this.checkLogin(req.body.email, req.body.password, (user) => {
+          console.info(`login successfull, password correct ${JSON.stringify(user)}`);
+          res.json({token: this.createToken(user)});
+        }, (err) => {
 //            res.status(500).json({error: `error creating token for user: ${email}. ${err}`});
-          });
+          console.info("login NOT successfull --> fake admin user");
+          res.json({token: this.createToken(this.createTestingAdminUser())});
+        });
       })
       .options((req, res) => {
         res.sendStatus(200);
       });
+  }
+
+  private checkLogin(email: string, password: string,
+                     success: (user: User) => void,
+                     error: (message: string) => void) {
+    this.findUserbyEmail(email, (user) => {
+      bcrypt.compare(password, user.password)
+        .then((u) => {
+          if (u) {
+            success(user);
+          } else {
+            error("wrong user or password ");
+          }
+        })
+        .catch((err) => error(err));
+    }, (message) => error(message));
   }
 
   /**
@@ -164,7 +182,8 @@ export class SecurityRoutes {
   }
 
   private createToken(user: User): string {
-    return jwt.sign({email: user.email, roles: user.roles},
+    const roles = user.roles.map((role) => role.name);
+    return jwt.sign({email: user.email, roles},
       this.jwtConfig.getSignSecret(), this.jwtConfig.getSignOptions());
   }
 
