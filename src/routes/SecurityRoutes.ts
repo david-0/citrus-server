@@ -112,7 +112,9 @@ export class SecurityRoutes {
   private findUserbyEmail(email: string,
                           success: (user: User) => void,
                           error: (message: string) => void) {
-    User.findAll({include: [Role], where: {email: {$eq: email}}})
+    const whereCondition =  {};
+    whereCondition[email] = {$eq: email};
+    User.findAll({include: [Role], where: whereCondition})
       .then((users: User[]) => {
         if (users.length !== 1) {
           error("1");
