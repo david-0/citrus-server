@@ -1,9 +1,8 @@
-import {IVendorOrder, IVendorOrderItem} from "citrus-common";
 import {Column, HasMany, Model, Table} from "sequelize-typescript";
 import {VendorOrderItem} from "./VendorOrderItem";
 
 @Table
-export class VendorOrder extends Model<VendorOrder> implements IVendorOrder {
+export class VendorOrder extends Model<VendorOrder> implements VendorOrder {
 
   @Column
   public number: number;
@@ -18,5 +17,5 @@ export class VendorOrder extends Model<VendorOrder> implements IVendorOrder {
   public saleDate: Date;
 
   @HasMany(() => VendorOrderItem)
-  public vendorOrderItems: IVendorOrderItem[];
+  public vendorOrderItems: VendorOrderItem[];
 }

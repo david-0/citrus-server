@@ -3,9 +3,9 @@ import * as express from "express";
 import {Logger} from "log4js";
 import {Model} from "sequelize-typescript";
 import {ModelRegistry} from "./ModelRegistry";
-import log4js = require("log4js");
 
-let LOGGER: Logger = log4js.getLogger("GenericController");
+const LOGGER: Logger = log4js.getLogger("GenericController");
+import log4js = require("log4js");
 
 export class RequestController  {
 

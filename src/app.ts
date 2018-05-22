@@ -19,6 +19,7 @@ import {User} from "./models/User";
 import {VendorOrder} from "./models/VendorOrder";
 import {AddressProjector} from "./projector/AddressProjector";
 import {ArticleProjector} from "./projector/ArticleProjector";
+import {PickupLocationProjector} from "./projector/PickupLocationProjector";
 import {UserProjector} from "./projector/UserProjector";
 import {GenericRouter} from "./routes/GenericRouter";
 import {RequestRouter} from "./routes/RequestRouter";
@@ -154,7 +155,7 @@ class Server {
     this.app.use("/api/address", GenericRouter.all(new GenericController(Address, new AddressProjector())));
     this.app.use("/api/article", GenericRouter.all(new GenericController(Article, new ArticleProjector())));
     this.app.use("/api/order", GenericRouter.all(new GenericController(CustomerOrder)));
-    this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController(PickupLocation)));
+    this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController(PickupLocation, new PickupLocationProjector())));
     this.app.use("/api/role", GenericRouter.all(new GenericController(Role)));
     this.app.use("/api/shipment", GenericRouter.all(new GenericController(VendorOrder)));
     this.app.use("/api/user", GenericRouter.all(new GenericController(User, new UserProjector())));

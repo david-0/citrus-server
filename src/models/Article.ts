@@ -1,22 +1,13 @@
-import {
-  EArticleStatus,
-  IArticle,
-  IPickupLocation,
-  IPricedArticle,
-  IUnitOfMeasurement,
-  IVendorOrderItem
-} from "citrus-common";
 import {BelongsTo, BelongsToMany, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {ArticlePickupLocation} from "./ArticlePickupLocation";
+import {EArticleStatus} from "./e-article-status";
 import {PickupLocation} from "./PickupLocation";
 import {PricedArticle} from "./PricedArticle";
-import {Role} from "./Role";
 import {UnitOfMeasurement} from "./UnitOfMeasurement";
-import {UserRole} from "./UserRole";
 import {VendorOrderItem} from "./VendorOrderItem";
 
 @Table
-export class Article extends Model<Article> implements IArticle {
+export class Article extends Model<Article> {
   @Column
   public number: number;
 
@@ -31,7 +22,7 @@ export class Article extends Model<Article> implements IArticle {
   public unitOfMeasurementId: number;
 
   @BelongsTo(() => UnitOfMeasurement)
-  public unitOfMeasurement: IUnitOfMeasurement;
+  public unitOfMeasurement: UnitOfMeasurement;
 
   @Column
   public status: EArticleStatus;
@@ -40,11 +31,11 @@ export class Article extends Model<Article> implements IArticle {
   public visibleFrom: Date;
 
   @HasMany(() => VendorOrderItem)
-  public vendorOrderItems: IVendorOrderItem[];
+  public vendorOrderItems: VendorOrderItem[];
 
   @HasMany(() => PricedArticle)
-  public pricedArticles: IPricedArticle[];
+  public pricedArticles: PricedArticle[];
 
   @BelongsToMany(() => PickupLocation, () => ArticlePickupLocation)
-  public pickupLocations: IPickupLocation[];
+  public pickupLocations: PickupLocation[];
 }

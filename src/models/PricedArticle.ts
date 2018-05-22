@@ -1,16 +1,15 @@
-import {IArticle, ICustomerOrderItem, IPricedArticle} from "citrus-common";
 import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {Article} from "./Article";
 import {CustomerOrderItem} from "./CustomerOrderItem";
 
 @Table
-export class PricedArticle extends Model<PricedArticle> implements IPricedArticle {
+export class PricedArticle extends Model<PricedArticle> {
   @ForeignKey(() => Article)
   @Column
   public articleId: number;
 
   @BelongsTo(() => Article)
-  public article: IArticle;
+  public article: Article;
 
   @Column
   public price: number;
@@ -22,5 +21,5 @@ export class PricedArticle extends Model<PricedArticle> implements IPricedArticl
   public validTo: Date;
 
   @HasMany(() => CustomerOrderItem)
-  public customOrderItems: ICustomerOrderItem[];
+  public customOrderItems: CustomerOrderItem[];
 }

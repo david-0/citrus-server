@@ -1,23 +1,22 @@
-import {IArticle, IVendorOrder, IVendorOrderItem} from "citrus-common";
 import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {Article} from "./Article";
 import {VendorOrder} from "./VendorOrder";
 
 @Table
-export class VendorOrderItem extends Model<VendorOrderItem> implements IVendorOrderItem {
+export class VendorOrderItem extends Model<VendorOrderItem> {
   @ForeignKey(() => VendorOrder)
   @Column
   public vendorOrderId: number;
 
   @BelongsTo(() => VendorOrder)
-  public vendorOrder: IVendorOrder;
+  public vendorOrder: VendorOrder;
 
   @ForeignKey(() => Article)
   @Column
   public ArticleId: number;
 
   @BelongsTo(() => Article)
-  public article: IArticle;
+  public article: Article;
 
   @Column
   public orderedQuantity: number;

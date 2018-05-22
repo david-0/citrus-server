@@ -1,12 +1,10 @@
-import {IBulkOrder, ICustomerOrder, ICustomerOrderItem, IUnitOfMeasurement, IUser} from "citrus-common";
 import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {BulkOrder} from "./BulkOrder";
 import {CustomerOrderItem} from "./CustomerOrderItem";
-import {UnitOfMeasurement} from "./UnitOfMeasurement";
 import {User} from "./User";
 
 @Table
-export class CustomerOrder extends Model<CustomerOrder> implements ICustomerOrder {
+export class CustomerOrder extends Model<CustomerOrder> {
   @Column
   public number: number;
 
@@ -24,16 +22,16 @@ export class CustomerOrder extends Model<CustomerOrder> implements ICustomerOrde
   public userId: number;
 
   @BelongsTo(() => User)
-  public user: IUser;
+  public user: User;
 
   @HasMany(() => CustomerOrderItem)
-  public customOrderItems: ICustomerOrderItem[];
+  public customOrderItems: CustomerOrderItem[];
 
   @ForeignKey(() => BulkOrder)
   @Column
   public bulkOrderId: number;
 
   @BelongsTo(() => BulkOrder)
-  public bulkOrder: IBulkOrder;
+  public bulkOrder: BulkOrder;
 
 }

@@ -1,9 +1,8 @@
-import {IAddress, IGpsLocation} from "citrus-common";
 import {Column, HasOne, Model, Table} from "sequelize-typescript";
 import {Address} from "./Address";
 
 @Table
-export class GpsLocation extends Model<GpsLocation> implements IGpsLocation {
+export class GpsLocation extends Model<GpsLocation> {
 
   @Column
   public latitude: number;
@@ -12,5 +11,5 @@ export class GpsLocation extends Model<GpsLocation> implements IGpsLocation {
   public longitude: number;
 
   @HasOne(() => Address)
-  public address: IAddress;
+  public address: Address;
 }

@@ -1,10 +1,8 @@
-import {IGpsLocation, IOpeningHours, IPickupLocation} from "citrus-common";
-import {BelongsTo, Column, ForeignKey, HasOne, Model, Table} from "sequelize-typescript";
-import {GpsLocation} from "./GpsLocation";
+import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {PickupLocation} from "./PickupLocation";
 
 @Table
-export class OpeningHours extends Model<OpeningHours> implements IOpeningHours {
+export class OpeningHours extends Model<OpeningHours> {
   @Column
   public fromDate: Date;
 
@@ -16,6 +14,6 @@ export class OpeningHours extends Model<OpeningHours> implements IOpeningHours {
   public pickupLocationId: number;
 
   @BelongsTo(() => PickupLocation)
-  public pickupLocation: IPickupLocation;
+  public pickupLocation: PickupLocation;
 
 }
