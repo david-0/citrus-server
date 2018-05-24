@@ -14,15 +14,15 @@ export class RoleModelWrapper implements IModelWrapper<Role> {
     return Role.create(values, options);
   }
 
-  public findAll(options?: IFindOptions): Promise<Role[]> {
+  public findAll(options?: IFindOptions<Role>): Promise<Role[]> {
     return Role.findAll(options);
   }
 
-  public findAndCountAll(options?: IFindOptions): Promise<{ rows: Role[]; count: number; }> {
+  public findAndCountAll(options?: IFindOptions<Role>): Promise<{ rows: Role[]; count: number; }> {
     return Role.findAndCountAll();
   }
 
-  public findById(identifier?: string | number, options?: IFindOptions): Promise<Role> {
+  public findById(identifier?: string | number, options?: IFindOptions<Role>): Promise<Role> {
     return Role.findById(identifier, options);
   }
 

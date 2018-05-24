@@ -14,15 +14,15 @@ export class PickupLocationModelWrapper implements IModelWrapper<PickupLocation>
     return PickupLocation.create(values, options);
   }
 
-  public findAll(options?: IFindOptions): Promise<PickupLocation[]> {
+  public findAll(options?: IFindOptions<PickupLocation>): Promise<PickupLocation[]> {
     return PickupLocation.findAll(options);
   }
 
-  public findAndCountAll(options?: IFindOptions): Promise<{ rows: PickupLocation[]; count: number; }> {
+  public findAndCountAll(options?: IFindOptions<PickupLocation>): Promise<{ rows: PickupLocation[]; count: number; }> {
     return PickupLocation.findAndCountAll();
   }
 
-  public findById(identifier?: string | number, options?: IFindOptions): Promise<PickupLocation> {
+  public findById(identifier?: string | number, options?: IFindOptions<PickupLocation>): Promise<PickupLocation> {
     return PickupLocation.findById(identifier, options);
   }
 

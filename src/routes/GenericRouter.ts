@@ -14,9 +14,6 @@ export class GenericRouter {
       .put((req, res) => controller.update(req, res))
       .delete((req, res) => controller.del(req, res));
 
-    router.route("/:offset([0-9]+)/:limit([0-9]+)")
-      .get((req, res) => controller.getRange(req, res));
-
     return router;
   }
 
@@ -36,12 +33,6 @@ export class GenericRouter {
   public static getAll(controller: IController): Router {
     const router = express.Router();
     router.route("/").get((req, res) => controller.getAll(req, res));
-    return router;
-  }
-
-  public static getRange(controller: IController): Router {
-    const router = express.Router();
-    router.route("/:offset([0-9]+)/:limit([0-9]+)").get((req, res) => controller.getRange(req, res));
     return router;
   }
 

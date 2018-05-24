@@ -1,6 +1,6 @@
-import {BelongsTo, BelongsToMany, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {BelongsTo, BelongsToMany, Column, ForeignKey, HasMany, Model, Table,} from "sequelize-typescript";
 import {ArticlePickupLocation} from "./ArticlePickupLocation";
-import {EArticleStatus} from "./e-article-status";
+import {EArticleStatus} from "../EArticleStatus";
 import {PickupLocation} from "./PickupLocation";
 import {PricedArticle} from "./PricedArticle";
 import {UnitOfMeasurement} from "./UnitOfMeasurement";
@@ -21,11 +21,11 @@ export class Article extends Model<Article> {
   @Column
   public unitOfMeasurementId: number;
 
-  @BelongsTo(() => UnitOfMeasurement)
-  public unitOfMeasurement: UnitOfMeasurement;
-
   @Column
   public status: EArticleStatus;
+
+  @BelongsTo(() => UnitOfMeasurement)
+  public unitOfMeasurement: UnitOfMeasurement;
 
   @Column
   public visibleFrom: Date;

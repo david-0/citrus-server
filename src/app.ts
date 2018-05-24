@@ -1,4 +1,5 @@
 import * as bodyParser from "body-parser";
+import {AddressDto, UserInfoDto} from "citrus-common";
 import * as compression from "compression";
 import * as express from "express";
 import * as fs from "fs";
@@ -8,21 +9,14 @@ import * as https from "https";
 import * as log4js from "log4js";
 import {Logger} from "log4js";
 import * as path from "path";
+import {AddressModelWrapper} from "./controllers/AddressModelWrapper";
 import {GenericController} from "./controllers/GenericController";
-import {RequestController} from "./controllers/RequestController";
+import {UserModelWrapper} from "./controllers/UserModelWrapper";
 import {Address} from "./models/Address";
-import {Article} from "./models/Article";
-import {CustomerOrder} from "./models/CustomerOrder";
-import {PickupLocation} from "./models/PickupLocation";
-import {Role} from "./models/Role";
 import {User} from "./models/User";
-import {VendorOrder} from "./models/VendorOrder";
-import {AddressProjector} from "./projector/AddressProjector";
-import {ArticleProjector} from "./projector/ArticleProjector";
-import {PickupLocationProjector} from "./projector/PickupLocationProjector";
-import {UserProjector} from "./projector/UserProjector";
+import {AddressDtoToAddressProjector} from "./projectors/AddressDtoToAddressProjector";
+import {UserInfoDtoToUserProjector} from "./projectors/UserInfoDtoToUserProjector";
 import {GenericRouter} from "./routes/GenericRouter";
-import {RequestRouter} from "./routes/RequestRouter";
 import {SecurityRoutes} from "./routes/SecurityRoutes";
 import {DBService} from "./services/DBService";
 import {SocketService} from "./socket/SocketService";
@@ -152,14 +146,10 @@ class Server {
     this.app.use("/", this.appendHeaders);
     this.app.options("/api/*", this.setStatus200);
     this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
-    this.app.use("/api/address", GenericRouter.all(new GenericController(Address, new AddressProjector())));
-    this.app.use("/api/article", GenericRouter.all(new GenericController(Article, new ArticleProjector())));
-    this.app.use("/api/order", GenericRouter.all(new GenericController(CustomerOrder)));
-    this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController(PickupLocation, new PickupLocationProjector())));
-    this.app.use("/api/role", GenericRouter.all(new GenericController(Role)));
-    this.app.use("/api/shipment", GenericRouter.all(new GenericController(VendorOrder)));
-    this.app.use("/api/user", GenericRouter.all(new GenericController(User, new UserProjector())));
-    this.app.use("/api/request", RequestRouter.all(new RequestController()));
+    this.app.use("/api/address", GenericRouter.all(new GenericController<AddressDto, Address>(new AddressModelWrapper(),
+      new AddressDtoToAddressProjector())));
+    this.app.use("/api/userInfo", GenericRouter.all(new GenericController<UserInfoDto, User>(new UserModelWrapper(),
+      new UserInfoDtoToUserProjector())));
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);
