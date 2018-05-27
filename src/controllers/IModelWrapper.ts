@@ -1,18 +1,17 @@
 import * as Promise from "bluebird";
-import {UpdateOptions} from "sequelize";
-import {ICreateOptions, IFindOptions, Model} from "sequelize-typescript";
+import {Model} from "sequelize-typescript";
 
 export interface IModelWrapper<T extends Model<T>> {
 
   name(): string;
 
-  create(values?: any, options?: ICreateOptions): Promise<T>;
+  create(values: T): Promise<T>;
 
-  findAll(options?: IFindOptions<T>): Promise<T[]>;
+  findAll(): Promise<T[]>;
 
-  findAndCountAll(options?: IFindOptions<T>): Promise<{ rows: T[], count: number }>;
+  findAndCountAll(): Promise<{ rows: T[], count: number }>;
 
-  findById(identifier?: number | string, options?: IFindOptions<T>): Promise<T | null>;
+  findById(identifier?: number | string): Promise<T | null>;
 
-  update(values: any, options: UpdateOptions): Promise<[number, Array<T>]>;
+  update(value: T): Promise<[number, Array<T>]>;
 }

@@ -9,13 +9,11 @@ import * as https from "https";
 import * as log4js from "log4js";
 import {Logger} from "log4js";
 import * as path from "path";
-import {AddressModelWrapper} from "./controllers/AddressModelWrapper";
+import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {GenericController} from "./controllers/GenericController";
-import {UserModelWrapper} from "./controllers/UserModelWrapper";
+import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {Address} from "./models/Address";
 import {User} from "./models/User";
-import {AddressDtoToAddressProjector} from "./projectors/AddressDtoToAddressProjector";
-import {UserInfoDtoToUserProjector} from "./projectors/UserInfoDtoToUserProjector";
 import {GenericRouter} from "./routes/GenericRouter";
 import {SecurityRoutes} from "./routes/SecurityRoutes";
 import {DBService} from "./services/DBService";
@@ -146,10 +144,8 @@ class Server {
     this.app.use("/", this.appendHeaders);
     this.app.options("/api/*", this.setStatus200);
     this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
-    this.app.use("/api/address", GenericRouter.all(new GenericController<AddressDto, Address>(new AddressModelWrapper(),
-      new AddressDtoToAddressProjector())));
-    this.app.use("/api/userInfo", GenericRouter.all(new GenericController<UserInfoDto, User>(new UserModelWrapper(),
-      new UserInfoDtoToUserProjector())));
+    this.app.use("/api/address", GenericRouter.all(new GenericController<AddressDto, Address>(new AddressWithUserInfoModelWrapper())));
+    this.app.use("/api/userInfo", GenericRouter.all(new GenericController<UserInfoDto, User>(new UserInfoModelWrapper())));
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);

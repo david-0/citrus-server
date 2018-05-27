@@ -1,6 +1,4 @@
 import * as Promise from "bluebird";
-import {UpdateOptions} from "sequelize";
-import {ICreateOptions, IFindOptions} from "sequelize-typescript";
 import {Article} from "../models/Article";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -10,24 +8,24 @@ export class ArticleModelWrapper implements IModelWrapper<Article> {
     return "Article";
   }
 
-  public create(values?: any, options?: ICreateOptions): Promise<Article> {
-    return Article.create(values, options);
+  public create(value: Article): Promise<Article> {
+    return Article.create(value);
   }
 
-  public findAll(options?: IFindOptions<Article>): Promise<Article[]> {
-    return Article.findAll(options);
+  public findAll(): Promise<Article[]> {
+    return Article.findAll();
   }
 
-  public findAndCountAll(options?: IFindOptions<Article>): Promise<{ rows: Article[]; count: number; }> {
+  public findAndCountAll(): Promise<{ rows: Article[]; count: number; }> {
     return Article.findAndCountAll();
   }
 
-  public findById(identifier?: string | number, options?: IFindOptions<Article>): Promise<Article> {
-    return Article.findById(identifier, options);
+  public findById(identifier?: string | number): Promise<Article> {
+    return Article.findById(identifier);
   }
 
-  public update(values: any, options: UpdateOptions): Promise<[number, Article[]]> {
-    return Article.update(values, options);
+  public update(value: Article): Promise<[number, Article[]]> {
+    return Article.update(value, {where: {id: value.id}});
   }
 
 }

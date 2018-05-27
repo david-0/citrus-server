@@ -1,7 +1,6 @@
 import * as Promise from "bluebird";
-import {UpdateOptions} from "sequelize";
-import {ICreateOptions, IFindOptions} from "sequelize-typescript";
 import {Address} from "../models/Address";
+import {User} from "../models/User";
 import {IModelWrapper} from "./IModelWrapper";
 
 export class AddressModelWrapper implements IModelWrapper<Address> {
@@ -10,24 +9,24 @@ export class AddressModelWrapper implements IModelWrapper<Address> {
     return "Address";
   }
 
-  public create(values?: any, options?: ICreateOptions): Promise<Address> {
-    return Address.create(values, options);
+  public create(values: Address): Promise<Address> {
+    return Address.create(values);
   }
 
-  public findAll(options?: IFindOptions<Address>): Promise<Address[]> {
-    return Address.findAll(options);
+  public findAll(): Promise<Address[]> {
+    return Address.findAll();
   }
 
-  public findAndCountAll(options?: IFindOptions<Address>): Promise<{ rows: Address[]; count: number; }> {
+  public findAndCountAll(): Promise<{ rows: Address[]; count: number; }> {
     return Address.findAndCountAll();
   }
 
-  public findById(identifier?: string | number, options?: IFindOptions<Address>): Promise<Address> {
-    return Address.findById(identifier, options);
+  public findById(identifier?: string | number): Promise<Address> {
+    return Address.findById(identifier);
   }
 
-  public update(values: any, options: UpdateOptions): Promise<[number, Address[]]> {
-    return Address.update(values, options);
+  public update(value: Address): Promise<[number, Address[]]> {
+    return Address.update(value, {where: {id: value.id}});
   }
 
 }

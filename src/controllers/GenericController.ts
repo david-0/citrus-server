@@ -1,36 +1,31 @@
 import {DtoId} from "citrus-common/lib/dto/dto-id";
 import * as express from "express";
-import log4js = require("log4js");
 import {Logger} from "log4js";
 import {Model} from "sequelize-typescript";
-import {IProjector} from "../projectors/IProjector";
 import {IController} from "./IController";
 import {IModelWrapper} from "./IModelWrapper";
+import log4js = require("log4js");
 
 let LOGGER: Logger = log4js.getLogger("GenericController");
 
 export class GenericController<DTO extends DtoId, T extends Model<T>> implements IController {
 
-  constructor(private wrapper: IModelWrapper<T>, private projector: IProjector<DTO, T>) {
-    LOGGER  = log4js.getLogger(`GenericController-${wrapper.name}`);
+  constructor(private wrapper: IModelWrapper<T>) {
+    LOGGER = log4js.getLogger(`GenericController-${wrapper.name}`);
   }
 
   public add(req: express.Request, res: express.Response): void {
-    const dto: DTO = req.body;
-    this.projector.project(dto).then((instance) => {
-      LOGGER.debug(`create ${this.wrapper.name()}: ${JSON.stringify(instance)}`);
-      this.wrapper.create(instance)
-        .then((created: T) => {
-          LOGGER.debug(`created ${this.wrapper.name()}. successfully, id: ${created.id}`);
-          res.status(201).json(created);
-        })
-        .catch((err) => {
-          res.status(500).json({error: `error creating ${this.wrapper.name()} ${instance.id}. ${err}`});
-          LOGGER.error("Unable to connect to the database:", err);
-        });
-    }).catch((err) => {
-      res.status(500).json(`Projector error: ${err}`);
-    });
+    const instance = req.body;
+    LOGGER.debug(`create ${this.wrapper.name()}: ${JSON.stringify(instance)}`);
+    this.wrapper.create(instance)
+      .then((created: T) => {
+        LOGGER.debug(`created ${this.wrapper.name()}. successfully, id: ${created.id}`);
+        res.status(201).json(created);
+      })
+      .catch((err) => {
+        res.status(500).json({error: `error creating ${this.wrapper.name()} ${instance.id}. ${err}`});
+        LOGGER.error("Unable to connect to the database:", err);
+      });
   }
 
   public getAll(req: express.Request, res: express.Response): void {
@@ -64,23 +59,19 @@ export class GenericController<DTO extends DtoId, T extends Model<T>> implements
   }
 
   public update(req: express.Request, res: express.Response): void {
-    const dto: DTO = req.body;
-    this.projector.project(dto).then((instance) => {
-      LOGGER.debug(`update ${this.wrapper.name()}: ${JSON.stringify(instance)}`);
-      this.wrapper.update(instance, {where: {id: instance.id}})
-        .then((result) => {
-          if (result[0] === 1) {
-            res.json(1);
-          } else {
-            res.status(404).json(
-              {error: `error update ${this.wrapper.name()} failed (update count is not 1 (${result[0]})`});
-          }
-        })
-        .catch((err) => {
-          res.status(404).json({error: `error update ${this.wrapper.name()} failed. ${err}`});
-        });
-    }).catch((err) => {
-      res.status(500).json(`Projector error: ${err}`);
-    });
+    const instance = req.body;
+    LOGGER.debug(`update ${this.wrapper.name()}: ${JSON.stringify(instance)}`);
+    this.wrapper.update(instance)
+      .then((result) => {
+        if (result[0] === 1) {
+          res.json(1);
+        } else {
+          res.status(404).json(
+            {error: `error update ${this.wrapper.name()} failed (update count is not 1 (${result[0]})`});
+        }
+      })
+      .catch((err) => {
+        res.status(404).json({error: `error update ${this.wrapper.name()} failed. ${err}`});
+      });
   }
 }
