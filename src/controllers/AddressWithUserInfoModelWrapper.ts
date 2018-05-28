@@ -32,13 +32,17 @@ export class AddressWithUserInfoModelWrapper implements IModelWrapper<Address> {
   }
 
   public findById(identifier?: string | number): Promise<Address> {
-    return Address.findById(identifier);
+    return Address.findById(identifier, {
+      include: [{
+        attributes: {exclude: ["password"]},
+        model: User,
+      }],
+    });
   }
 
   public update(value: Address): Promise<[number, Address[]]> {
     return Address.update(value, {
       where: {id: value.id},
-      fields: ["name", "prename", "street", "number", "addition", "zipcode", "city", "userId", "description", "gpsLocationId"],
     });
   }
 }
