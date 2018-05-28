@@ -20,5 +20,8 @@ export class CustomerOrderItem extends Model<CustomerOrderItem> {
   public pricedArticle: PricedArticle;
 
   @Column
+  public copiedPrice: number;
+
+  @Column
   public quantity: number;
 }

@@ -27,9 +27,6 @@ export class Article extends Model<Article> {
   @BelongsTo(() => UnitOfMeasurement)
   public unitOfMeasurement: UnitOfMeasurement;
 
-  @Column
-  public visibleFrom: Date;
-
   @HasMany(() => VendorOrderItem)
   public vendorOrderItems: VendorOrderItem[];
 
