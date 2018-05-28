@@ -8,7 +8,7 @@ import log4js = require("log4js");
 
 let LOGGER: Logger = log4js.getLogger("GenericController");
 
-export class GenericController<DTO extends DtoId, T extends Model<T>> implements IController {
+export class GenericController<T extends Model<T>> implements IController {
 
   constructor(private wrapper: IModelWrapper<T>) {
     LOGGER = log4js.getLogger(`GenericController-${wrapper.name}`);

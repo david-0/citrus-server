@@ -1,5 +1,4 @@
 import * as bodyParser from "body-parser";
-import {AddressDto, UserInfoDto} from "citrus-common";
 import * as compression from "compression";
 import * as express from "express";
 import * as fs from "fs";
@@ -10,9 +9,13 @@ import * as log4js from "log4js";
 import {Logger} from "log4js";
 import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
+import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
 import {GenericController} from "./controllers/GenericController";
+import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {Address} from "./models/Address";
+import {Article} from "./models/Article";
+import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
 import {User} from "./models/User";
 import {GenericRouter} from "./routes/GenericRouter";
 import {SecurityRoutes} from "./routes/SecurityRoutes";
@@ -144,8 +147,10 @@ class Server {
     this.app.use("/", this.appendHeaders);
     this.app.options("/api/*", this.setStatus200);
     this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
-    this.app.use("/api/address", GenericRouter.all(new GenericController<AddressDto, Address>(new AddressWithUserInfoModelWrapper())));
-    this.app.use("/api/userInfo", GenericRouter.all(new GenericController<UserInfoDto, User>(new UserInfoModelWrapper())));
+    this.app.use("/api/address", GenericRouter.all(new GenericController<Address>(new AddressWithUserInfoModelWrapper())));
+    this.app.use("/api/userInfo", GenericRouter.all(new GenericController< User>(new UserInfoModelWrapper())));
+    this.app.use("/api/unitOfMeasurement", GenericRouter.all(new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper())));
+    this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);
