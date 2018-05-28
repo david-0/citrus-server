@@ -34,7 +34,7 @@
     "@types/uuid": "^3.4.3",
     "bcrypt": "^2.0.0",
     "body-parser": "^1.18.2",
-    "citrus-common": "file:../citrus-common/citrus-common-0.2.3.tgz",
+    "citrus-common": "file:../citrus-common/citrus-common-0.2.4.tgz",
     "compression": "^1.7.1",
     "express": "^4.16.2",
     "express-jwt": "^5.3.0",
