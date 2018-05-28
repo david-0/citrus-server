@@ -1,5 +1,7 @@
 import * as Promise from "bluebird";
 import {Article} from "../models/Article";
+import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
+import {User} from "../models/User";
 import {IModelWrapper} from "./IModelWrapper";
 
 export class ArticleModelWrapper implements IModelWrapper<Article> {
@@ -13,15 +15,21 @@ export class ArticleModelWrapper implements IModelWrapper<Article> {
   }
 
   public findAll(): Promise<Article[]> {
-    return Article.findAll();
+    return Article.findAll({
+      include: [UnitOfMeasurement],
+    });
   }
 
   public findAndCountAll(): Promise<{ rows: Article[]; count: number; }> {
-    return Article.findAndCountAll();
+    return Article.findAndCountAll({
+      include: [UnitOfMeasurement],
+    });
   }
 
   public findById(identifier?: string | number): Promise<Article> {
-    return Article.findById(identifier);
+    return Article.findById(identifier, {
+      include: [UnitOfMeasurement],
+    });
   }
 
   public update(value: Article): Promise<[number, Article[]]> {

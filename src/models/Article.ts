@@ -17,12 +17,12 @@ export class Article extends Model<Article> {
   @Column
   public stock: number;
 
+  @Column
+  public status: EArticleStatus;
+
   @ForeignKey(() => UnitOfMeasurement)
   @Column
   public unitOfMeasurementId: number;
-
-  @Column
-  public status: EArticleStatus;
 
   @BelongsTo(() => UnitOfMeasurement)
   public unitOfMeasurement: UnitOfMeasurement;
