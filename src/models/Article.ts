@@ -1,10 +1,18 @@
-import {BelongsTo, BelongsToMany, Column, ForeignKey, HasMany, Model, Table,} from "sequelize-typescript";
-import {ArticlePickupLocation} from "./ArticlePickupLocation";
+import {BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {addAttributeOptions} from "sequelize-typescript/lib/services/models";
 import {EArticleStatus} from "../EArticleStatus";
+import {ArticlePickupLocation} from "./ArticlePickupLocation";
 import {PickupLocation} from "./PickupLocation";
-import {PricedArticle} from "./PricedArticle";
 import {UnitOfMeasurement} from "./UnitOfMeasurement";
 import {VendorOrderItem} from "./VendorOrderItem";
+
+function ToNumber(target: any, propertyKey: string): any {
+  addAttributeOptions(target, propertyKey, {
+    get(): any {
+      return +this.getDataValue(propertyKey);
+    },
+  });
+}
 
 @Table
 export class Article extends Model<Article> {
@@ -16,6 +24,10 @@ export class Article extends Model<Article> {
 
   @Column
   public stock: number;
+
+  @ToNumber
+  @Column({type: DataType.DECIMAL(10, 2)})
+  public price: number;
 
   @Column
   public status: EArticleStatus;
@@ -29,9 +41,6 @@ export class Article extends Model<Article> {
 
   @HasMany(() => VendorOrderItem)
   public vendorOrderItems: VendorOrderItem[];
-
-  @HasMany(() => PricedArticle)
-  public pricedArticles: PricedArticle[];
 
   @BelongsToMany(() => PickupLocation, () => ArticlePickupLocation)
   public pickupLocations: PickupLocation[];

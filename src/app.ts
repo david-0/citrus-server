@@ -10,15 +10,11 @@ import {Logger} from "log4js";
 import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
-import {ArticleWithPricesModelWrapper} from "./controllers/ArticleWithPricesModelWrapper";
 import {GenericController} from "./controllers/GenericController";
-import {PricedArticleModelWrapper} from "./controllers/PricedArticleModelWrapper";
 import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {Address} from "./models/Address";
 import {Article} from "./models/Article";
-import {ArticlePickupLocation} from "./models/ArticlePickupLocation";
-import {PricedArticle} from "./models/PricedArticle";
 import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
 import {User} from "./models/User";
 import {GenericRouter} from "./routes/GenericRouter";
@@ -155,8 +151,6 @@ class Server {
     this.app.use("/api/userInfo", GenericRouter.all(new GenericController< User>(new UserInfoModelWrapper())));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper())));
     this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
-    this.app.use("/api/articleWithPrices", GenericRouter.all(new GenericController<Article>(new ArticleWithPricesModelWrapper())));
-    this.app.use("/api/pricedArticle", GenericRouter.all(new GenericController<PricedArticle>(new PricedArticleModelWrapper())));
     this.app.use("/api", this.createError);
 
     this.app.use(this.sendFile);

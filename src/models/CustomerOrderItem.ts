@@ -1,6 +1,6 @@
-import {BelongsTo, Column, ForeignKey, HasOne, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
+import {Article} from "./Article";
 import {CustomerOrder} from "./CustomerOrder";
-import {PricedArticle} from "./PricedArticle";
 
 @Table
 export class CustomerOrderItem extends Model<CustomerOrderItem> {
@@ -12,12 +12,12 @@ export class CustomerOrderItem extends Model<CustomerOrderItem> {
   @BelongsTo(() => CustomerOrder)
   public customerOrder: CustomerOrder;
 
-  @ForeignKey(() => PricedArticle)
+  @ForeignKey(() => Article)
   @Column
-  public pricedArticleId: number;
+  public articleId: number;
 
-  @BelongsTo(() => PricedArticle)
-  public pricedArticle: PricedArticle;
+  @BelongsTo(() => Article)
+  public article: Article;
 
   @Column
   public copiedPrice: number;
