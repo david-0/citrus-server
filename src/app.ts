@@ -11,10 +11,12 @@ import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
 import {GenericController} from "./controllers/GenericController";
+import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
 import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {Address} from "./models/Address";
 import {Article} from "./models/Article";
+import {PickupLocation} from "./models/PickupLocation";
 import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
 import {User} from "./models/User";
 import {GenericRouter} from "./routes/GenericRouter";
@@ -151,7 +153,10 @@ class Server {
     this.app.use("/api/userInfo", GenericRouter.all(new GenericController< User>(new UserInfoModelWrapper())));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper())));
     this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
+    this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
     this.app.use("/api", this.createError);
+    this.app.use("/article", GenericRouter.get(new GenericController<Article>(new ArticleModelWrapper())));
+    this.app.use("/pickupLocation", GenericRouter.get(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
 
     this.app.use(this.sendFile);
 

@@ -14,11 +14,11 @@ export class PickupLocation extends Model<PickupLocation>{
   @BelongsTo(() => Address)
   public address: Address;
 
+  @Column
+  public description: string;
+
   @BelongsToMany(() => Article, () => ArticlePickupLocation)
   public availableArticles: Article[];
-
-  @Column
-  public allArticles: boolean;
 
   @HasMany(() => OpeningHours)
   public openingHours: OpeningHours[];
