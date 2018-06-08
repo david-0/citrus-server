@@ -2,7 +2,7 @@ import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript"
 import {PickupLocation} from "./PickupLocation";
 
 @Table
-export class OpeningHours extends Model<OpeningHours> {
+export class OpeningHour extends Model<OpeningHour> {
   @Column
   public fromDate: Date;
 

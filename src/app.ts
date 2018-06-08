@@ -12,6 +12,7 @@ import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfo
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
 import {GenericController} from "./controllers/GenericController";
 import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
+import {PickupLocationWithOpeningHoursModelWrapper} from "./controllers/PickupLocationWithOpeningHoursModelWrapper";
 import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {Address} from "./models/Address";
@@ -150,13 +151,15 @@ class Server {
     this.app.options("/api/*", this.setStatus200);
     this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
     this.app.use("/api/address", GenericRouter.all(new GenericController<Address>(new AddressWithUserInfoModelWrapper())));
-    this.app.use("/api/userInfo", GenericRouter.all(new GenericController< User>(new UserInfoModelWrapper())));
+    this.app.use("/api/userInfo", GenericRouter.all(new GenericController<User>(new UserInfoModelWrapper())));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper())));
     this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
     this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
     this.app.use("/api", this.createError);
     this.app.use("/article", GenericRouter.get(new GenericController<Article>(new ArticleModelWrapper())));
     this.app.use("/pickupLocation", GenericRouter.get(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
+    this.app.use("/pickupLocationWithOpeningHours", GenericRouter.get(
+      new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
 
     this.app.use(this.sendFile);
 

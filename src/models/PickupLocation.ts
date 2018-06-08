@@ -2,7 +2,7 @@ import {BelongsTo, BelongsToMany, Column, ForeignKey, HasMany, Model, Table} fro
 import {Address} from "./Address";
 import {Article} from "./Article";
 import {ArticlePickupLocation} from "./ArticlePickupLocation";
-import {OpeningHours} from "./OpeningHours";
+import {OpeningHour} from "./OpeningHour";
 
 @Table
 export class PickupLocation extends Model<PickupLocation>{
@@ -20,6 +20,6 @@ export class PickupLocation extends Model<PickupLocation>{
   @BelongsToMany(() => Article, () => ArticlePickupLocation)
   public availableArticles: Article[];
 
-  @HasMany(() => OpeningHours)
-  public openingHours: OpeningHours[];
+  @HasMany(() => OpeningHour)
+  public openingHours: OpeningHour[];
 }
