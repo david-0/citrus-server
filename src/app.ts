@@ -1,4 +1,5 @@
 import * as bodyParser from "body-parser";
+import {OpeningHourDto} from "citrus-common/lib/dto/opening-hour-dto";
 import * as compression from "compression";
 import * as express from "express";
 import * as fs from "fs";
@@ -11,12 +12,14 @@ import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
 import {GenericController} from "./controllers/GenericController";
+import {OpeningHourModelWrapper} from "./controllers/OpeningHourModelWrapper";
 import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
 import {PickupLocationWithOpeningHoursModelWrapper} from "./controllers/PickupLocationWithOpeningHoursModelWrapper";
 import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {Address} from "./models/Address";
 import {Article} from "./models/Article";
+import {OpeningHour} from "./models/OpeningHour";
 import {PickupLocation} from "./models/PickupLocation";
 import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
 import {User} from "./models/User";
@@ -157,6 +160,7 @@ class Server {
     this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
     this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(
       new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
+    this.app.use("/api/openingHour", GenericRouter.putPostDelete(new GenericController<OpeningHour>(new OpeningHourModelWrapper())));
     this.app.use("/api", this.createError);
     this.app.use("/article", GenericRouter.get(new GenericController<Article>(new ArticleModelWrapper())));
     this.app.use("/pickupLocation", GenericRouter.get(

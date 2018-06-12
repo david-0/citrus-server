@@ -13,7 +13,7 @@ export class OpeningHour extends Model<OpeningHour> {
   @Column
   public pickupLocationId: number;
 
-  @BelongsTo(() => PickupLocation)
+  @BelongsTo(() => PickupLocation, { onDelete: "cascade" })
   public pickupLocation: PickupLocation;
 
 }

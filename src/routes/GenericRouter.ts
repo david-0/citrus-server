@@ -17,6 +17,18 @@ export class GenericRouter {
     return router;
   }
 
+  public static putPostDelete(controller: IController) {
+    const router = express.Router();
+    router.route("/")
+      .post((req, res) => controller.add(req, res));
+
+    router.route("/:id([0-9]+)")
+      .put((req, res) => controller.update(req, res))
+      .delete((req, res) => controller.del(req, res));
+
+    return router;
+  }
+
   public static get(controller: IController): Router {
     const router = express.Router();
     router.route("/").get((req, res) => controller.getAll(req, res));
