@@ -6,12 +6,6 @@ import {User} from "./User";
 @Table
 export class CustomerOrder extends Model<CustomerOrder> {
   @Column
-  public number: number;
-
-  @Column
-  public description: string;
-
-  @Column
   public date: Date;
 
   @Column
