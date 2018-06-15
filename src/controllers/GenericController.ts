@@ -1,4 +1,3 @@
-import {DtoId} from "citrus-common/lib/dto/dto-id";
 import * as express from "express";
 import {Logger} from "log4js";
 import {Model} from "sequelize-typescript";
