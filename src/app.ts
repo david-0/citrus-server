@@ -11,6 +11,7 @@ import {Logger} from "log4js";
 import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
+import {CartController} from "./controllers/CartController";
 import {GenericController} from "./controllers/GenericController";
 import {OpeningHourModelWrapper} from "./controllers/OpeningHourModelWrapper";
 import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
@@ -157,6 +158,7 @@ class Server {
     this.app.use("/api/userInfo", GenericRouter.all(new GenericController<User>(new UserInfoModelWrapper())));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper())));
     this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
+    this.app.use("/api/cart", GenericRouter.post(new CartController()));
     this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
     this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(
       new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
