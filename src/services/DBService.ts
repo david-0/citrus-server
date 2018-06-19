@@ -39,6 +39,10 @@ export class DBService {
     return DBService.instance;
   }
 
+  public static get sequelize() {
+    return DBService.db;
+  }
+
   private static instance: DBService = new DBService();
   private static db: Sequelize;
 
