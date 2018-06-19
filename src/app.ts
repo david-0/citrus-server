@@ -158,7 +158,7 @@ class Server {
     this.app.use("/api/userInfo", GenericRouter.all(new GenericController<User>(new UserInfoModelWrapper())));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper())));
     this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
-    this.app.use("/api/cart", GenericRouter.post(new CartController()));
+    this.app.use("/api/cart", GenericRouter.post(new CartController(DBService.sequelize)));
     this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
     this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(
       new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
