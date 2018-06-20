@@ -1,6 +1,7 @@
-import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
 import {BulkOrder} from "./BulkOrder";
 import {CustomerOrderItem} from "./CustomerOrderItem";
+import {PickupLocation} from "./PickupLocation";
 import {User} from "./User";
 
 @Table
@@ -8,7 +9,7 @@ export class CustomerOrder extends Model<CustomerOrder> {
   @Column
   public date: Date;
 
-  @Column
+  @Column({type: DataType.DECIMAL(10, 2)})
   public totalPrice: number;
 
   @ForeignKey(() => User)
@@ -19,7 +20,7 @@ export class CustomerOrder extends Model<CustomerOrder> {
   public user: User;
 
   @HasMany(() => CustomerOrderItem)
-  public customOrderItems: CustomerOrderItem[];
+  public customerOrderItems: CustomerOrderItem[];
 
   @ForeignKey(() => BulkOrder)
   @Column
@@ -27,5 +28,13 @@ export class CustomerOrder extends Model<CustomerOrder> {
 
   @BelongsTo(() => BulkOrder)
   public bulkOrder: BulkOrder;
+
+  @ForeignKey(() => PickupLocation)
+  @Column
+  public pickupLocationId: number;
+
+  @BelongsTo(() => PickupLocation)
+  public pickupLocation: PickupLocation;
+
 
 }

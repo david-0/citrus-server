@@ -1,5 +1,4 @@
 import * as bodyParser from "body-parser";
-import {OpeningHourDto} from "citrus-common/lib/dto/opening-hour-dto";
 import * as compression from "compression";
 import * as express from "express";
 import * as fs from "fs";
@@ -12,6 +11,9 @@ import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
 import {CartController} from "./controllers/CartController";
+import {CustomerOrderItemModelWrapper} from "./controllers/CustomerOrderItemModelWrapper";
+import {CustomerOrderModelWrapper} from "./controllers/CustomerOrderModelWrapper";
+import {CustomerOrderWithItemsAndArticleModelWrapper} from "./controllers/CustomerOrderWithItemsAndArticleModelWrapper";
 import {GenericController} from "./controllers/GenericController";
 import {OpeningHourModelWrapper} from "./controllers/OpeningHourModelWrapper";
 import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
@@ -20,6 +22,8 @@ import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementMode
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {Address} from "./models/Address";
 import {Article} from "./models/Article";
+import {CustomerOrder} from "./models/CustomerOrder";
+import {CustomerOrderItem} from "./models/CustomerOrderItem";
 import {OpeningHour} from "./models/OpeningHour";
 import {PickupLocation} from "./models/PickupLocation";
 import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
@@ -160,9 +164,11 @@ class Server {
     this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
     this.app.use("/api/cart", GenericRouter.post(new CartController(DBService.sequelize)));
     this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
-    this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(
-      new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
+    this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
     this.app.use("/api/openingHour", GenericRouter.putPostDelete(new GenericController<OpeningHour>(new OpeningHourModelWrapper())));
+    this.app.use("/api/customerOrder", GenericRouter.all(new GenericController<CustomerOrder>(new CustomerOrderModelWrapper())));
+    this.app.use("/api/customerOrderWithItemsAndArticles", GenericRouter.all(new GenericController<CustomerOrder>(new CustomerOrderWithItemsAndArticleModelWrapper())));
+    this.app.use("/api/customerOrderItem", GenericRouter.putPostDelete(new GenericController<CustomerOrderItem>(new CustomerOrderItemModelWrapper())));
     this.app.use("/api", this.createError);
     this.app.use("/article", GenericRouter.get(new GenericController<Article>(new ArticleModelWrapper())));
     this.app.use("/pickupLocation", GenericRouter.get(

@@ -115,6 +115,7 @@ export class CartController implements IController {
     const customerOrder = new CustomerOrder();
     customerOrder.userId = userId;
     customerOrder.date = new Date();
+    customerOrder.pickupLocationId = cartDto.pickupLocationId;
     return customerOrder;
   }
   private createOrderItems(cartDto: CartDto, articles: Article[], orderId: number): CustomerOrderItem[] {
@@ -122,7 +123,7 @@ export class CartController implements IController {
   }
 
   private updateTotalPrice(order: CustomerOrder, items: CustomerOrderItem[]): CustomerOrder {
-    order.totalPrice = items.reduce((previous, x) => previous + x.copiedPrice, 0);
+    order.totalPrice = items.reduce((previous, x) => previous + +x.copiedPrice, 0.0);
     return order;
   }
 
