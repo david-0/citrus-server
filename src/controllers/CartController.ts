@@ -123,7 +123,7 @@ export class CartController implements IController {
   }
 
   private updateTotalPrice(order: CustomerOrder, items: CustomerOrderItem[]): CustomerOrder {
-    order.totalPrice = items.reduce((previous, x) => previous + +x.copiedPrice, 0.0);
+    order.totalPrice = items.reduce((previous, x) => previous + (+x.copiedPrice * +x.quantity), 0.0);
     return order;
   }
 
