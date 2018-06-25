@@ -4,8 +4,8 @@ import * as express from "express";
 import {Logger} from "log4js";
 import "rxjs/add/observable/fromPromise";
 import "rxjs/add/operator/map";
-import "rxjs/add/operator/reduce";
 import "rxjs/add/operator/mergeMap";
+import "rxjs/add/operator/reduce";
 import {Observable} from "rxjs/Observable";
 import {Subscriber} from "rxjs/src/Subscriber";
 import {Transaction} from "sequelize";
@@ -71,25 +71,9 @@ export class CartController implements IController {
             .then((articles: Article[]) => {
               const order = this.createCustomerOrder(user.id, cartDto);
               order.save({transaction})
-                .then((newOrder) => {
-                  Promise.all(this.createOrderItems(cartDto, articles, newOrder.id)
-                    .map((item) => item.save({transaction})))
-                    .then((savedItems) => {
-                      this.updateTotalPrice(newOrder, savedItems)
-                        .save({transaction})
-                        .then((savedOrder) => {
-                          transaction.commit();
-                          observer.next(savedOrder);
-                        })
-                        .catch((err) => {
-                          transaction.rollback();
-                          observer.error(err);
-                        });
-                    })
-                    .catch((err) => {
-                      transaction.rollback();
-                      observer.error(err);
-                    });
+                .then((newOrder: CustomerOrder) => {
+                  const items = this.createOrderItems(cartDto, articles, newOrder.id);
+                  this.saveItems(items, newOrder, transaction, observer);
                 })
                 .catch((err) => {
                   transaction.rollback();
@@ -107,6 +91,30 @@ export class CartController implements IController {
     });
   }
 
+  private saveItems(items: CustomerOrderItem[],
+                    newOrder: CustomerOrder,
+                    transaction: Transaction,
+                    observer: Subscriber<CustomerOrder>) {
+    Promise.all(items
+      .map((item) => item.save({transaction})))
+      .then((savedItems) => {
+        this.updateTotalPrice(newOrder, savedItems)
+          .save({transaction})
+          .then((savedOrder) => {
+            transaction.commit();
+            observer.next(savedOrder);
+          })
+          .catch((err) => {
+            transaction.rollback();
+            observer.error(err);
+          });
+      })
+      .catch((err) => {
+        transaction.rollback();
+        observer.error(err);
+      });
+  }
+
   private getAllArticles(t: Transaction): Promise<Article[]> {
     return Article.findAll({transaction: t});
   }
@@ -118,6 +126,7 @@ export class CartController implements IController {
     customerOrder.pickupLocationId = cartDto.pickupLocationId;
     return customerOrder;
   }
+
   private createOrderItems(cartDto: CartDto, articles: Article[], orderId: number): CustomerOrderItem[] {
     return cartDto.cartEntries.map((entry) => this.createOrderItem(entry, orderId, articles));
   }
