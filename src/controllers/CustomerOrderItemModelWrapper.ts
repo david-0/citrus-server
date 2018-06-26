@@ -40,12 +40,12 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
   }
 
   private updateOrder(order: CustomerOrder, priceDifference: number, transaction: Transaction): Promise<CustomerOrder> {
-    order.totalPrice += priceDifference;
+    order.totalPrice = +order.totalPrice + +priceDifference;
     return order.save({transaction});
   }
 
   private updateArticle(article: Article, count: number, transaction: Transaction): Promise<Article> {
-    article.reservedInOpenOrders += count;
+    article.reservedInOpenOrders = +article.reservedInOpenOrders + +count;
     return article.save({transaction});
   }
 
