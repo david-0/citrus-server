@@ -1,4 +1,5 @@
 import * as Promise from "bluebird";
+import {Transaction} from "sequelize";
 import {OpeningHour} from "../models/OpeningHour";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -8,24 +9,26 @@ export class OpeningHourModelWrapper implements IModelWrapper<OpeningHour> {
     return "OpeningHour";
   }
 
-  public create(values: OpeningHour): Promise<OpeningHour> {
-    return OpeningHour.create(values);
+  public create(values: OpeningHour, transaction: Transaction): Promise<OpeningHour> {
+    return OpeningHour.create(values, {transaction});
   }
 
-  public findAll(): Promise<OpeningHour[]> {
-    return OpeningHour.findAll();
+  public findAll(transaction: Transaction): Promise<OpeningHour[]> {
+    return OpeningHour.findAll({transaction});
   }
 
-  public findAndCountAll(): Promise<{ rows: OpeningHour[]; count: number; }> {
-    return OpeningHour.findAndCountAll();
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: OpeningHour[]; count: number; }> {
+    return OpeningHour.findAndCountAll({transaction});
   }
 
-  public findById(identifier?: string | number): Promise<OpeningHour> {
-    return OpeningHour.findById(identifier);
+  public findById(identifier: string | number, transaction: Transaction): Promise<OpeningHour> {
+    return OpeningHour.findById(identifier, {transaction});
   }
 
-  public update(value: OpeningHour): Promise<[number, OpeningHour[]]> {
-    return OpeningHour.update(value, {where: {id: value.id}});
+  public update(value: OpeningHour, transaction: Transaction): Promise<[number, OpeningHour[]]> {
+    return OpeningHour.update(value, {
+      where: {id: value.id},
+      transaction,
+    });
   }
-
 }

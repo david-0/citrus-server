@@ -10,33 +10,33 @@ export class ArticleModelWrapper implements IModelWrapper<Article> {
     return "Article";
   }
 
-  public create(value: Article, transaction?: Transaction): Promise<Article> {
-    return Article.create(value, {transaction});
+  public create(article: Article, transaction: Transaction): Promise<Article> {
+    return Article.create(article, {transaction});
   }
 
-  public findAll(transaction?: Transaction): Promise<Article[]> {
+  public findAll(transaction: Transaction): Promise<Article[]> {
     return Article.findAll({
       transaction,
       include: [UnitOfMeasurement],
     });
   }
 
-  public findAndCountAll(transaction?: Transaction): Promise<{ rows: Article[]; count: number; }> {
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: Article[]; count: number; }> {
     return Article.findAndCountAll({
       transaction,
       include: [UnitOfMeasurement],
     });
   }
 
-  public findById(identifier?: string | number, transaction?: Transaction): Promise<Article> {
+  public findById(identifier: string | number, transaction: Transaction): Promise<Article> {
     return Article.findById(identifier, {
       transaction,
       include: [UnitOfMeasurement],
     });
   }
 
-  public update(value: Article, transaction?: Transaction): Promise<[number, Article[]]> {
-    return Article.update(value, {transaction, where: {id: value.id}});
+  public update(article: Article, transaction: Transaction): Promise<[number, Article[]]> {
+    return Article.update(article, {transaction, where: {id: article.id}});
   }
 
 }

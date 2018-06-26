@@ -17,7 +17,7 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
     return "CustomerOrderItem";
   }
 
-  public create(item: CustomerOrderItem, transaction?: Transaction): Promise<CustomerOrderItem> {
+  public create(item: CustomerOrderItem, transaction: Transaction): Promise<CustomerOrderItem> {
     return new Promise<CustomerOrderItem>((resolve, reject) => {
       let orderPromise = this.orderWrapper.findById(item.customerOrderId, transaction);
       let articlePromise = this.articleWrapper.findById(item.articleId, transaction);
@@ -49,19 +49,19 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
     return article.save({transaction});
   }
 
-  public findAll(transaction?: Transaction): Promise<CustomerOrderItem[]> {
+  public findAll(transaction: Transaction): Promise<CustomerOrderItem[]> {
     return CustomerOrderItem.findAll({transaction});
   }
 
-  public findAndCountAll(transaction?: Transaction): Promise<{ rows: CustomerOrderItem[]; count: number; }> {
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: CustomerOrderItem[]; count: number; }> {
     return CustomerOrderItem.findAndCountAll({transaction});
   }
 
-  public findById(identifier?: string | number, transaction?: Transaction): Promise<CustomerOrderItem> {
+  public findById(identifier: string | number, transaction: Transaction): Promise<CustomerOrderItem> {
     return CustomerOrderItem.findById(identifier, {transaction});
   }
 
-  public update(item: CustomerOrderItem, transaction?: Transaction): Promise<[number, Array<CustomerOrderItem>]> {
+  public update(item: CustomerOrderItem, transaction: Transaction): Promise<[number, Array<CustomerOrderItem>]> {
     return new Promise<[number, Array<CustomerOrderItem>]>((resolve, reject) => {
       this.findById(item.id, transaction).then((oldItem) => {
         let orderPromise = this.orderWrapper.findById(item.customerOrderId, transaction);
@@ -69,7 +69,7 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
         let articlePromise = this.articleWrapper.findById(item.articleId, transaction);
         Promise.all([orderPromise, oldArticlePromise, articlePromise]).then((results) => {
           orderPromise = this.updateOrder(results[0], this.computePriceDifference(item, oldItem), transaction);
-          oldArticlePromise = this.updateArticle(results[1], -1 * +item.quantity, transaction);
+          oldArticlePromise = this.updateArticle(results[1], -1 * +oldItem.quantity, transaction);
           articlePromise = this.updateArticle(results[2], +item.quantity, transaction);
           const updateItemPromise = CustomerOrderItem.update(item, {where: {id: item.id}, transaction});
           Promise.all([orderPromise, oldArticlePromise, articlePromise, updateItemPromise])

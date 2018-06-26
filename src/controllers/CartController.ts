@@ -7,64 +7,50 @@ import "rxjs/add/operator/map";
 import "rxjs/add/operator/mergeMap";
 import "rxjs/add/operator/reduce";
 import {Transaction} from "sequelize";
-import {Sequelize} from "sequelize-typescript";
 import {Article} from "../models/Article";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
 import {User} from "../models/User";
 import {CustomerOrderItemModelWrapper} from "./CustomerOrderItemModelWrapper";
-import {IController} from "./IController";
-import Promise = require("bluebird");
+import {ITransactionController} from "./ITransactionController";
 import log4js = require("log4js");
 
 const LOGGER: Logger = log4js.getLogger("CartController");
 
-export class CartController implements IController {
+export class CartController implements ITransactionController {
 
-  constructor(private sequelize: Sequelize,
-              private itemWrapper: CustomerOrderItemModelWrapper) {
+  constructor(private itemWrapper: CustomerOrderItemModelWrapper) {
   }
 
-  public add(req: express.Request, res: express.Response): void {
-    const cartDto = req.body;
-    this.saveOrderInTransaction(req.user.email, cartDto).then((orderId) => {
-      cartDto.id = orderId;
-      LOGGER.debug(JSON.stringify(cartDto));
-      res.json(cartDto);
-    }).catch((error) => {
-      res.status(500).json({error: `could not create order: ${error.error}`});
+  public add(req: express.Request, res: express.Response, transaction: Transaction): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const cartDto = req.body;
+      this.saveOrder(req.user.email, cartDto, transaction).then((orderId) => {
+        cartDto.id = orderId;
+        LOGGER.debug(JSON.stringify(cartDto));
+        res.json(cartDto);
+        resolve();
+      }).catch((error) => {
+        res.status(500).json({error: `could not create order: ${error.error}`});
+        reject(error);
+      });
     });
   }
 
-
-  public getAll(req: express.Request, res: express.Response): void {
-    // empty
+  public getAll(req: express.Request, res: express.Response, transaction: Transaction): Promise<void> {
+    return new Promise<void>((resolve, reject) => reject());
   }
 
-  public get(req: express.Request, res: express.Response): void {
-    // empty
+  public get(req: express.Request, res: express.Response, transaction: Transaction): Promise<void> {
+    return new Promise<void>((resolve, reject) => reject());
   }
 
-  public del(req: express.Request, res: express.Response): void {
-    // empty
+  public del(req: express.Request, res: express.Response, transaction: Transaction): Promise<void> {
+    return new Promise<void>((resolve, reject) => reject());
   }
 
-  public update(req: express.Request, res: express.Response): void {
-    // empty
-  }
-
-  private saveOrderInTransaction(email: string, cart: CartDto): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      this.sequelize.transaction().then((transaction) => {
-        this.saveOrder(email, cart, transaction).then((orderId) => {
-          transaction.commit();
-          resolve(orderId);
-        }).catch((error) => {
-          transaction.rollback();
-          reject(error);
-        });
-      }).catch((error) => reject(error));
-    });
+  public update(req: express.Request, res: express.Response, transaction: Transaction): Promise<void> {
+    return new Promise<void>((resolve, reject) => reject());
   }
 
   private saveOrder(email: string, cart: CartDto, transaction: Transaction): Promise<number> {

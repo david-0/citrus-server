@@ -1,5 +1,5 @@
 import * as Promise from "bluebird";
-import {PickupLocationDto} from "citrus-common/lib/dto/pickup-location-dto";
+import {Transaction} from "sequelize";
 import {Address} from "../models/Address";
 import {Article} from "../models/Article";
 import {CustomerOrder} from "../models/CustomerOrder";
@@ -15,11 +15,11 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
     return "CustomerOrder";
   }
 
-  public create(value: CustomerOrder): Promise<CustomerOrder> {
-    return CustomerOrder.create(value);
+  public create(value: CustomerOrder, transaction: Transaction): Promise<CustomerOrder> {
+    return CustomerOrder.create(value, {transaction});
   }
 
-  public findAll(): Promise<CustomerOrder[]> {
+  public findAll(transaction: Transaction): Promise<CustomerOrder[]> {
     return CustomerOrder.findAll({
       include: [{
         model: CustomerOrderItem,
@@ -36,10 +36,11 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
           model: Address,
         }],
       }],
+      transaction,
     });
   }
 
-  public findAndCountAll(): Promise<{ rows: CustomerOrder[]; count: number; }> {
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: CustomerOrder[]; count: number; }> {
     return CustomerOrder.findAndCountAll({
       include: [{
         model: CustomerOrderItem,
@@ -56,11 +57,13 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
           model: Address,
         }],
       }],
+      transaction,
     });
   }
 
-  public findById(identifier?: string | number): Promise<CustomerOrder> {
+  public findById(identifier: string | number, transaction: Transaction): Promise<CustomerOrder> {
     return CustomerOrder.findById(identifier, {
+      transaction,
       include: [{
         model: CustomerOrderItem,
         include: [{
@@ -79,7 +82,10 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
     });
   }
 
-  public update(value: CustomerOrder): Promise<[number, Array<CustomerOrder>]> {
-    return CustomerOrder.update(value, {where: {id: value.id}});
+  public update(value: CustomerOrder, transaction: Transaction): Promise<[number, Array<CustomerOrder>]> {
+    return CustomerOrder.update(value, {
+      where: {id: value.id},
+      transaction,
+    });
   }
 }

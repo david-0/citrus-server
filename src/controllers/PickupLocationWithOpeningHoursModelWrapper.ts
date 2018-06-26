@@ -1,4 +1,5 @@
 import * as Promise from "bluebird";
+import {Transaction} from "sequelize";
 import {Address} from "../models/Address";
 import {OpeningHour} from "../models/OpeningHour";
 import {PickupLocation} from "../models/PickupLocation";
@@ -10,41 +11,47 @@ export class PickupLocationWithOpeningHoursModelWrapper implements IModelWrapper
     return "PickupLocation";
   }
 
-  public create(value: PickupLocation): Promise<PickupLocation> {
-    return PickupLocation.create(value);
+  public create(value: PickupLocation, transaction: Transaction): Promise<PickupLocation> {
+    return PickupLocation.create(value, {transaction});
   }
 
-  public findAll(): Promise<PickupLocation[]> {
+  public findAll(transaction: Transaction): Promise<PickupLocation[]> {
     return PickupLocation.findAll({
       include: [{
         model: Address,
       }, {
         model: OpeningHour,
       }],
+      transaction,
     });
   }
 
-  public findAndCountAll(): Promise<{ rows: PickupLocation[]; count: number; }> {
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: PickupLocation[]; count: number; }> {
     return PickupLocation.findAndCountAll({
       include: [{
         model: Address,
       }, {
         model: OpeningHour,
       }],
+      transaction,
     });
   }
 
-  public findById(identifier?: string | number): Promise<PickupLocation> {
+  public findById(identifier: string | number, transaction: Transaction): Promise<PickupLocation> {
     return PickupLocation.findById(identifier, {
       include: [{
         model: Address,
       }, {
         model: OpeningHour,
       }],
+      transaction,
     });
   }
 
-  public update(value: PickupLocation): Promise<[number, Array<PickupLocation>]> {
-    return PickupLocation.update(value, {where: {id: value.id}});
+  public update(value: PickupLocation, transaction: Transaction): Promise<[number, Array<PickupLocation>]> {
+    return PickupLocation.update(value, {
+      where: {id: value.id},
+      transaction,
+    });
   }
 }

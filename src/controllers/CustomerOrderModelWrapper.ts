@@ -11,11 +11,11 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
     return "CustomerOrder";
   }
 
-  public create(value: CustomerOrder, transaction?: Transaction): Promise<CustomerOrder> {
+  public create(value: CustomerOrder, transaction: Transaction): Promise<CustomerOrder> {
     return CustomerOrder.create(value, {transaction});
   }
 
-  public findAll(transaction?: Transaction): Promise<CustomerOrder[]> {
+  public findAll(transaction: Transaction): Promise<CustomerOrder[]> {
     return CustomerOrder.findAll({
       transaction,
       include: [{
@@ -27,7 +27,7 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
     });
   }
 
-  public findAndCountAll(transaction?: Transaction): Promise<{ rows: CustomerOrder[]; count: number; }> {
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: CustomerOrder[]; count: number; }> {
     return CustomerOrder.findAndCountAll({
       transaction,
       include: [{
@@ -39,7 +39,7 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
     });
   }
 
-  public findById(identifier?: string | number, transaction?: Transaction): Promise<CustomerOrder> {
+  public findById(identifier: string | number, transaction: Transaction): Promise<CustomerOrder> {
     return CustomerOrder.findById(identifier, {
       transaction,
       include: [{
@@ -51,7 +51,10 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
     });
   }
 
-  public update(value: CustomerOrder): Promise<[number, Array<CustomerOrder>]> {
-    return CustomerOrder.update(value, {where: {id: value.id}});
+  public update(value: CustomerOrder, transaction: Transaction): Promise<[number, Array<CustomerOrder>]> {
+    return CustomerOrder.update(value, {
+      where: {id: value.id},
+      transaction,
+    });
   }
 }

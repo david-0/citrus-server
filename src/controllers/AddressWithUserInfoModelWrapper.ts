@@ -1,4 +1,5 @@
 import * as Promise from "bluebird";
+import {Transaction} from "sequelize";
 import {Address} from "../models/Address";
 import {User} from "../models/User";
 import {IModelWrapper} from "./IModelWrapper";
@@ -6,43 +7,47 @@ import {IModelWrapper} from "./IModelWrapper";
 export class AddressWithUserInfoModelWrapper implements IModelWrapper<Address> {
 
   public name() {
-    return "Address";
+    return "AddressWithUserInfo";
   }
 
-  public create(values?: any): Promise<Address> {
-    return Address.create(values);
+  public create(value: Address, transaction: Transaction): Promise<Address> {
+    return Address.create(value, {transaction});
   }
 
-  public findAll(): Promise<Address[]> {
+  public findAll(transaction: Transaction): Promise<Address[]> {
     return Address.findAll({
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
       }],
+      transaction,
     });
   }
 
-  public findAndCountAll(): Promise<{ rows: Address[]; count: number; }> {
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: Address[]; count: number; }> {
     return Address.findAndCountAll({
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
       }],
+      transaction,
     });
   }
 
-  public findById(identifier?: string | number): Promise<Address> {
+  public findById(identifier: string | number, transaction: Transaction): Promise<Address> {
     return Address.findById(identifier, {
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
       }],
+      transaction,
     });
   }
 
-  public update(value: Address): Promise<[number, Address[]]> {
+  public update(value: Address, transaction: Transaction): Promise<[number, Address[]]> {
     return Address.update(value, {
       where: {id: value.id},
+      transaction,
     });
   }
 }

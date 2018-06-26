@@ -1,6 +1,6 @@
 import * as Promise from "bluebird";
+import {Transaction} from "sequelize";
 import {Address} from "../models/Address";
-import {User} from "../models/User";
 import {IModelWrapper} from "./IModelWrapper";
 
 export class AddressModelWrapper implements IModelWrapper<Address> {
@@ -9,24 +9,23 @@ export class AddressModelWrapper implements IModelWrapper<Address> {
     return "Address";
   }
 
-  public create(values: Address): Promise<Address> {
-    return Address.create(values);
+  public create(values: Address, transaction: Transaction): Promise<Address> {
+    return Address.create(values, {transaction});
   }
 
-  public findAll(): Promise<Address[]> {
-    return Address.findAll();
+  public findAll(transaction: Transaction): Promise<Address[]> {
+    return Address.findAll({transaction});
   }
 
-  public findAndCountAll(): Promise<{ rows: Address[]; count: number; }> {
-    return Address.findAndCountAll();
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: Address[]; count: number; }> {
+    return Address.findAndCountAll({transaction});
   }
 
-  public findById(identifier?: string | number): Promise<Address> {
-    return Address.findById(identifier);
+  public findById(identifier: string | number, transaction: Transaction): Promise<Address> {
+    return Address.findById(identifier, {transaction});
   }
 
   public update(value: Address): Promise<[number, Address[]]> {
     return Address.update(value, {where: {id: value.id}});
   }
-
 }

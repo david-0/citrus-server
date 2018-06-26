@@ -1,4 +1,5 @@
 import * as Promise from "bluebird";
+import {Transaction} from "sequelize";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -8,24 +9,26 @@ export class UnitOfMeasurementModelWrapper implements IModelWrapper<UnitOfMeasur
     return "UnitOfMeasurement";
   }
 
-  public create(value: UnitOfMeasurement): Promise<UnitOfMeasurement> {
-    return UnitOfMeasurement.create(value);
+  public create(value: UnitOfMeasurement, transaction: Transaction): Promise<UnitOfMeasurement> {
+    return UnitOfMeasurement.create(value, {transaction});
   }
 
-  public findAll(): Promise<UnitOfMeasurement[]> {
-    return UnitOfMeasurement.findAll();
+  public findAll(transaction: Transaction): Promise<UnitOfMeasurement[]> {
+    return UnitOfMeasurement.findAll({transaction});
   }
 
-  public findAndCountAll(): Promise<{ rows: UnitOfMeasurement[]; count: number; }> {
-    return UnitOfMeasurement.findAndCountAll();
+  public findAndCountAll(transaction: Transaction): Promise<{ rows: UnitOfMeasurement[]; count: number; }> {
+    return UnitOfMeasurement.findAndCountAll({transaction});
   }
 
-  public findById(identifier?: string | number): Promise<UnitOfMeasurement> {
-    return UnitOfMeasurement.findById(identifier);
+  public findById(identifier: string | number, transaction: Transaction): Promise<UnitOfMeasurement> {
+    return UnitOfMeasurement.findById(identifier, {transaction});
   }
 
-  public update(value: UnitOfMeasurement): Promise<[number, UnitOfMeasurement[]]> {
-    return UnitOfMeasurement.update(value, {where: {id: value.id}});
+  public update(value: UnitOfMeasurement, transaction: Transaction): Promise<[number, UnitOfMeasurement[]]> {
+    return UnitOfMeasurement.update(value, {
+      where: {id: value.id},
+      transaction,
+    });
   }
-
 }
