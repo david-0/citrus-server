@@ -155,22 +155,25 @@ class Server {
     this.app.use(bodyParser.urlencoded({extended: false}));
     this.app.use(this.inputLogger);
 
+    const articleModelWrapper = new ArticleModelWrapper();
+    const customerOrderModelWrapper = new CustomerOrderModelWrapper();
+    const customerOrderItemModelWrapper = new CustomerOrderItemModelWrapper(customerOrderModelWrapper, articleModelWrapper);
     this.app.use("/", this.appendHeaders);
     this.app.options("/api/*", this.setStatus200);
     this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
     this.app.use("/api/address", GenericRouter.all(new GenericController<Address>(new AddressWithUserInfoModelWrapper())));
     this.app.use("/api/userInfo", GenericRouter.all(new GenericController<User>(new UserInfoModelWrapper())));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper())));
-    this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(new ArticleModelWrapper())));
-    this.app.use("/api/cart", GenericRouter.post(new CartController(DBService.sequelize)));
+    this.app.use("/api/article", GenericRouter.all(new GenericController<Article>(articleModelWrapper)));
+    this.app.use("/api/cart", GenericRouter.post(new CartController(DBService.sequelize, customerOrderItemModelWrapper)));
     this.app.use("/api/pickupLocation", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationModelWrapper())));
     this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
     this.app.use("/api/openingHour", GenericRouter.putPostDelete(new GenericController<OpeningHour>(new OpeningHourModelWrapper())));
-    this.app.use("/api/customerOrder", GenericRouter.all(new GenericController<CustomerOrder>(new CustomerOrderModelWrapper())));
+    this.app.use("/api/customerOrder", GenericRouter.all(new GenericController<CustomerOrder>(customerOrderModelWrapper)));
+    this.app.use("/api/customerOrderItem", GenericRouter.putPostDelete(new GenericController<CustomerOrderItem>(customerOrderItemModelWrapper)));
     this.app.use("/api/customerOrderWithItemsAndArticles", GenericRouter.all(new GenericController<CustomerOrder>(new CustomerOrderWithItemsAndArticleModelWrapper())));
-    this.app.use("/api/customerOrderItem", GenericRouter.putPostDelete(new GenericController<CustomerOrderItem>(new CustomerOrderItemModelWrapper())));
     this.app.use("/api", this.createError);
-    this.app.use("/article", GenericRouter.get(new GenericController<Article>(new ArticleModelWrapper())));
+    this.app.use("/article", GenericRouter.get(new GenericController<Article>(articleModelWrapper)));
     this.app.use("/pickupLocation", GenericRouter.get(
       new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper())));
 

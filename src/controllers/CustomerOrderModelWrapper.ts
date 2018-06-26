@@ -1,5 +1,5 @@
 import * as Promise from "bluebird";
-import {Address} from "../models/Address";
+import {Transaction} from "sequelize";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {PickupLocation} from "../models/PickupLocation";
 import {User} from "../models/User";
@@ -11,12 +11,13 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
     return "CustomerOrder";
   }
 
-  public create(value: CustomerOrder): Promise<CustomerOrder> {
-    return CustomerOrder.create(value);
+  public create(value: CustomerOrder, transaction?: Transaction): Promise<CustomerOrder> {
+    return CustomerOrder.create(value, {transaction});
   }
 
-  public findAll(): Promise<CustomerOrder[]> {
+  public findAll(transaction?: Transaction): Promise<CustomerOrder[]> {
     return CustomerOrder.findAll({
+      transaction,
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
@@ -26,8 +27,9 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
     });
   }
 
-  public findAndCountAll(): Promise<{ rows: CustomerOrder[]; count: number; }> {
+  public findAndCountAll(transaction?: Transaction): Promise<{ rows: CustomerOrder[]; count: number; }> {
     return CustomerOrder.findAndCountAll({
+      transaction,
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
@@ -37,8 +39,9 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
     });
   }
 
-  public findById(identifier?: string | number): Promise<CustomerOrder> {
+  public findById(identifier?: string | number, transaction?: Transaction): Promise<CustomerOrder> {
     return CustomerOrder.findById(identifier, {
+      transaction,
       include: [{
         attributes: {exclude: ["password"]},
         model: User,

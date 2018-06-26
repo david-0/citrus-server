@@ -25,6 +25,9 @@ export class Article extends Model<Article> {
   @Column
   public stock: number;
 
+  @Column
+  public reservedInOpenOrders: number;
+
   @ToNumber
   @Column({type: DataType.DECIMAL(10, 2)})
   public price: number;

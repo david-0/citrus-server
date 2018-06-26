@@ -6,14 +6,13 @@ import "rxjs/add/observable/fromPromise";
 import "rxjs/add/operator/map";
 import "rxjs/add/operator/mergeMap";
 import "rxjs/add/operator/reduce";
-import {Observable} from "rxjs/Observable";
-import {Subscriber} from "rxjs/src/Subscriber";
 import {Transaction} from "sequelize";
 import {Sequelize} from "sequelize-typescript";
 import {Article} from "../models/Article";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
 import {User} from "../models/User";
+import {CustomerOrderItemModelWrapper} from "./CustomerOrderItemModelWrapper";
 import {IController} from "./IController";
 import Promise = require("bluebird");
 import log4js = require("log4js");
@@ -22,22 +21,21 @@ const LOGGER: Logger = log4js.getLogger("CartController");
 
 export class CartController implements IController {
 
-  constructor(private sequelize: Sequelize) {
-
+  constructor(private sequelize: Sequelize,
+              private itemWrapper: CustomerOrderItemModelWrapper) {
   }
 
   public add(req: express.Request, res: express.Response): void {
     const cartDto = req.body;
-    this.findUserByEmail(req.user.email)
-      .mergeMap((user) => this.createOrder(cartDto, user))
-      .subscribe((customerOrder) => {
-        cartDto.id = customerOrder.id;
-        LOGGER.debug(JSON.stringify(cartDto));
-        res.json(cartDto);
-      }, (err) => {
-        res.status(500).json({error: `could not create order: ${err.error}`});
-      });
+    this.saveOrderInTransaction(req.user.email, cartDto).then((orderId) => {
+      cartDto.id = orderId;
+      LOGGER.debug(JSON.stringify(cartDto));
+      res.json(cartDto);
+    }).catch((error) => {
+      res.status(500).json({error: `could not create order: ${error.error}`});
+    });
   }
+
 
   public getAll(req: express.Request, res: express.Response): void {
     // empty
@@ -55,68 +53,36 @@ export class CartController implements IController {
     // empty
   }
 
-  private findUserByEmail(email: string): Observable<User> {
-    return Observable.fromPromise(User.findOne({where: {email}}));
-  }
-
-  // private createOrder(cartDto: CartDto, user: User): Observable<CustomerOrder> {
-  //   return Observable.fromPromise(this.createOrderPromise(cartDto, user));
-  // }
-
-  private createOrder(cartDto: CartDto, user: User): Observable<CustomerOrder> {
-    return Observable.create((observer: Subscriber<CustomerOrder>) => {
-      this.sequelize.transaction()
-        .then((transaction) => {
-          this.getAllArticles(transaction)
-            .then((articles: Article[]) => {
-              const order = this.createCustomerOrder(user.id, cartDto);
-              order.save({transaction})
-                .then((newOrder: CustomerOrder) => {
-                  const items = this.createOrderItems(cartDto, articles, newOrder.id);
-                  this.saveItems(items, newOrder, transaction, observer);
-                })
-                .catch((err) => {
-                  transaction.rollback();
-                  observer.error(err);
-                });
-            })
-            .catch((err) => {
-              transaction.rollback();
-              observer.error(err);
-            });
-        })
-        .catch((err) => {
-          observer.error(err);
+  private saveOrderInTransaction(email: string, cart: CartDto): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      this.sequelize.transaction().then((transaction) => {
+        this.saveOrder(email, cart, transaction).then((orderId) => {
+          transaction.commit();
+          resolve(orderId);
+        }).catch((error) => {
+          transaction.rollback();
+          reject(error);
         });
+      }).catch((error) => reject(error));
     });
   }
 
-  private saveItems(items: CustomerOrderItem[],
-                    newOrder: CustomerOrder,
-                    transaction: Transaction,
-                    observer: Subscriber<CustomerOrder>) {
-    Promise.all(items
-      .map((item) => item.save({transaction})))
-      .then((savedItems) => {
-        this.updateTotalPrice(newOrder, savedItems)
-          .save({transaction})
-          .then((savedOrder) => {
-            transaction.commit();
-            observer.next(savedOrder);
-          })
-          .catch((err) => {
-            transaction.rollback();
-            observer.error(err);
-          });
-      })
-      .catch((err) => {
-        transaction.rollback();
-        observer.error(err);
-      });
-  }
-
-  private getAllArticles(t: Transaction): Promise<Article[]> {
-    return Article.findAll({transaction: t});
+  private saveOrder(email: string, cart: CartDto, transaction: Transaction): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      const userPromise = User.findOne({where: {email}, transaction});
+      const articlePromise = Article.findAll({transaction});
+      Promise.all([userPromise, articlePromise]).then((results) => {
+        const user = results[0];
+        const articles = results[1];
+        const order = this.createCustomerOrder(user.id, cart);
+        order.save({transaction}).then((newOrder: CustomerOrder) => {
+          const items = this.createOrderItems(cart, articles, newOrder.id);
+          this.saveItems(items, transaction)
+            .then(() => resolve(newOrder.id))
+            .catch((error) => reject(error));
+        }).catch((error) => reject(error));
+      }).catch((error) => reject(error));
+    });
   }
 
   private createCustomerOrder(userId: number, cartDto: CartDto): CustomerOrder {
@@ -131,18 +97,16 @@ export class CartController implements IController {
     return cartDto.cartEntries.map((entry) => this.createOrderItem(entry, orderId, articles));
   }
 
-  private updateTotalPrice(order: CustomerOrder, items: CustomerOrderItem[]): CustomerOrder {
-    order.totalPrice = items.reduce((previous, x) => previous + (+x.copiedPrice * +x.quantity), 0.0);
-    return order;
-  }
-
-  private createOrderItem(entry: CartEntryDto, customerOrderId: number, articles: Article[]): CustomerOrderItem {
+  private createOrderItem(entry: CartEntryDto, orderId: number, articles: Article[]): CustomerOrderItem {
     const item = new CustomerOrderItem();
-    item.customerOrderId = customerOrderId;
+    item.customerOrderId = orderId;
     item.articleId = entry.articleId;
     item.copiedPrice = entry.price;
     item.quantity = entry.quantity;
     return item;
   }
 
+  private saveItems(items: CustomerOrderItem[], transaction: Transaction): Promise<CustomerOrderItem[]> {
+    return Promise.all(items.map((item) => this.itemWrapper.create(item, transaction)));
+  }
 }
