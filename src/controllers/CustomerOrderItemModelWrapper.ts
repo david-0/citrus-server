@@ -33,10 +33,10 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
   }
 
   private updateItem(item: CustomerOrderItem, transaction: Transaction): Promise<CustomerOrderItem> {
-//    if (typeof (any)item === "CustomerOrderItem") {
-    return item.save({transaction});
-    // }
-    // return CustomerOrderItem.create(item, {transaction});
+    if (item instanceof CustomerOrderItem) {
+      return item.save({transaction});
+    }
+    return CustomerOrderItem.create(item, {transaction});
   }
 
   private updateOrder(order: CustomerOrder, priceDifference: number, transaction: Transaction): Promise<CustomerOrder> {
@@ -66,15 +66,18 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
       this.findById(item.id, transaction).then((oldItem) => {
         let orderPromise = this.orderWrapper.findById(item.customerOrderId, transaction);
         let oldArticlePromise = this.articleWrapper.findById(oldItem.articleId, transaction);
-        let articlePromise = this.articleWrapper.findById(item.articleId, transaction);
-        Promise.all([orderPromise, oldArticlePromise, articlePromise]).then((results) => {
+        Promise.all([orderPromise, oldArticlePromise]).then((results) => {
           orderPromise = this.updateOrder(results[0], this.computePriceDifference(item, oldItem), transaction);
           oldArticlePromise = this.updateArticle(results[1], -1 * +oldItem.quantity, transaction);
-          articlePromise = this.updateArticle(results[2], +item.quantity, transaction);
-          const updateItemPromise = CustomerOrderItem.update(item, {where: {id: item.id}, transaction});
-          Promise.all([orderPromise, oldArticlePromise, articlePromise, updateItemPromise])
-            .then((results) => resolve(results[3]))
-            .catch((error) => reject(error));
+          Promise.all([orderPromise, oldArticlePromise]).then((results) => {
+            this.articleWrapper.findById(item.articleId, transaction).then((article) => {
+              const articlePromise = this.updateArticle(article, +item.quantity, transaction);
+              const updateItemPromise = CustomerOrderItem.update(item, {where: {id: item.id}, transaction});
+              Promise.all([orderPromise, oldArticlePromise, articlePromise, updateItemPromise])
+                .then((results) => resolve(results[3]))
+                .catch((error) => reject(error));
+            }).catch((error) => reject(error));
+          }).catch((error) => reject(error));
         }).catch((error) => reject(error));
       }).catch((error) => reject(error));
     });
