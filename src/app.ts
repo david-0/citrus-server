@@ -9,6 +9,7 @@ import * as log4js from "log4js";
 import {Logger} from "log4js";
 import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
+import {ArticleInSaleModelWrapper} from "./controllers/ArticleInSaleModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
 import {CartController} from "./controllers/CartController";
 import {CustomerOrderItemModelWrapper} from "./controllers/CustomerOrderItemModelWrapper";
@@ -188,6 +189,8 @@ class Server {
     this.app.use("/api", this.createError);
     this.app.use("/article", GenericRouter.get(
       new TransactionController(db, new GenericController<Article>(articleModelWrapper))));
+    this.app.use("/articleInSale", GenericRouter.get(
+      new TransactionController(db, new GenericController<Article>(new ArticleInSaleModelWrapper()))));
     this.app.use("/pickupLocation", GenericRouter.get(
       new TransactionController(db, new GenericController<PickupLocation>(new PickupLocationWithOpeningHoursModelWrapper()))));
 
