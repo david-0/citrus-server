@@ -28,4 +28,8 @@ export class AddressModelWrapper implements IModelWrapper<Address> {
   public update(value: Address): Promise<[number, Address[]]> {
     return Address.update(value, {where: {id: value.id}});
   }
+
+  public delete(value: Address, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

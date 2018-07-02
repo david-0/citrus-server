@@ -1,5 +1,6 @@
 import * as Promise from "bluebird";
 import {Transaction} from "sequelize";
+import {Address} from "../models/Address";
 import {OpeningHour} from "../models/OpeningHour";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -30,5 +31,9 @@ export class OpeningHourModelWrapper implements IModelWrapper<OpeningHour> {
       where: {id: value.id},
       transaction,
     });
+  }
+
+  public delete(value: OpeningHour, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
   }
 }

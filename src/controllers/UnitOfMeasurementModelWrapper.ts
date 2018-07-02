@@ -1,5 +1,6 @@
 import * as Promise from "bluebird";
 import {Transaction} from "sequelize";
+import {Address} from "../models/Address";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -30,5 +31,9 @@ export class UnitOfMeasurementModelWrapper implements IModelWrapper<UnitOfMeasur
       where: {id: value.id},
       transaction,
     });
+  }
+
+  public delete(value: UnitOfMeasurement, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
   }
 }

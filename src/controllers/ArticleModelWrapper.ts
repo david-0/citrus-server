@@ -1,5 +1,6 @@
 import * as Promise from "bluebird";
 import {Transaction} from "sequelize";
+import {Address} from "../models/Address";
 import {Article} from "../models/Article";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
 import {IModelWrapper} from "./IModelWrapper";
@@ -37,6 +38,10 @@ export class ArticleModelWrapper implements IModelWrapper<Article> {
 
   public update(article: Article, transaction: Transaction): Promise<[number, Article[]]> {
     return Article.update(article, {transaction, where: {id: article.id}});
+  }
+
+  public delete(value: Article, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
   }
 
 }

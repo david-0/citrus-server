@@ -88,4 +88,8 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
       transaction,
     });
   }
+
+  public delete(value: CustomerOrder, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

@@ -1,5 +1,6 @@
 import * as Promise from "bluebird";
 import {Transaction} from "sequelize";
+import {Address} from "../models/Address";
 import {Role} from "../models/Role";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -32,4 +33,7 @@ export class RoleModelWrapper implements IModelWrapper<Role> {
     });
   }
 
+  public delete(value: Role, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

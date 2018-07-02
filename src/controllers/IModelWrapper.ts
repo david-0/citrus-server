@@ -15,4 +15,6 @@ export interface IModelWrapper<T extends Model<T>> {
   findById(identifier: number | string, transaction: Transaction): Promise<T | null>;
 
   update(value: T, transaction: Transaction): Promise<[number, Array<T>]>;
+
+  delete(value: T, transaction: Transaction): Promise<void>;
 }

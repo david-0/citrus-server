@@ -50,4 +50,8 @@ export class AddressWithUserInfoModelWrapper implements IModelWrapper<Address> {
       transaction,
     });
   }
+
+  public delete(value: Address, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

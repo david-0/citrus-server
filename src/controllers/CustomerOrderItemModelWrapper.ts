@@ -83,6 +83,10 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
     });
   }
 
+  public delete(value: CustomerOrderItem, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
+
   private computePriceDifference(item: CustomerOrderItem, oldItem: CustomerOrderItem): number {
     const priceNewItems = +item.copiedPrice * +item.quantity;
     const priceOldItems = +oldItem.copiedPrice * +oldItem.quantity;

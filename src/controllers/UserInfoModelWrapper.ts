@@ -41,4 +41,8 @@ export class UserInfoModelWrapper implements IModelWrapper<User> {
       transaction,
     });
   }
+
+  public delete(value: User, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

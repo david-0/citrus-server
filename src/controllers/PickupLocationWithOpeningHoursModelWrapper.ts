@@ -54,4 +54,8 @@ export class PickupLocationWithOpeningHoursModelWrapper implements IModelWrapper
       transaction,
     });
   }
+
+  public delete(value: PickupLocation, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

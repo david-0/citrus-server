@@ -57,4 +57,8 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
       transaction,
     });
   }
+
+  public delete(value: CustomerOrder, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

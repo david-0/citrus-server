@@ -59,7 +59,7 @@ export class GenericController<T extends Model<T>> implements ITransactionContro
   public del(req: express.Request, res: express.Response, transaction: Transaction): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.wrapper.findById(req.params.id, transaction).then((item) => {
-        item.destroy().then(() => {
+        this.wrapper.delete(item, transaction).then(() => {
           res.json(true);
           resolve();
         }).catch((err) => {

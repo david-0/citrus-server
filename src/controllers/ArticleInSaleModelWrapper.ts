@@ -38,4 +38,7 @@ export class ArticleInSaleModelWrapper implements IModelWrapper<Article> {
     throw new Error("Operation not permitted");
   }
 
+  public delete(value: Article, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }

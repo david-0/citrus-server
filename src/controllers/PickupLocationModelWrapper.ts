@@ -47,4 +47,8 @@ export class PickupLocationModelWrapper implements IModelWrapper<PickupLocation>
       transaction,
     });
   }
+
+  public delete(value: PickupLocation, transaction: Transaction): Promise<void> {
+    return value.destroy({transaction});
+  }
 }
