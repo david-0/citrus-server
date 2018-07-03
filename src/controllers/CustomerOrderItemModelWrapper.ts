@@ -9,18 +9,14 @@ import {IModelWrapper} from "./IModelWrapper";
 
 export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrderItem> {
 
-  constructor(private orderWrapper: CustomerOrderModelWrapper,
-              private articleWrapper: ArticleModelWrapper) {
-  }
-
   public name() {
     return "CustomerOrderItem";
   }
 
   public create(item: CustomerOrderItem, transaction: Transaction): Promise<CustomerOrderItem> {
     return new Promise<CustomerOrderItem>((resolve, reject) => {
-      let orderPromise = this.orderWrapper.findById(item.customerOrderId, transaction);
-      let articlePromise = this.articleWrapper.findById(item.articleId, transaction);
+      let orderPromise = CustomerOrder.findById(item.customerOrderId, {transaction});
+      let articlePromise = Article.findById(item.articleId, {transaction});
       Promise.all([orderPromise, articlePromise]).then((results) => {
         orderPromise = this.updateOrder(results[0], +item.copiedPrice * +item.quantity, transaction);
         articlePromise = this.updateArticle(results[1], +item.quantity, transaction);
@@ -64,17 +60,17 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
   public update(item: CustomerOrderItem, transaction: Transaction): Promise<[number, Array<CustomerOrderItem>]> {
     return new Promise<[number, Array<CustomerOrderItem>]>((resolve, reject) => {
       this.findById(item.id, transaction).then((oldItem) => {
-        let orderPromise = this.orderWrapper.findById(item.customerOrderId, transaction);
-        let oldArticlePromise = this.articleWrapper.findById(oldItem.articleId, transaction);
+        let orderPromise = CustomerOrder.findById(item.customerOrderId, {transaction});
+        let oldArticlePromise = Article.findById(oldItem.articleId, {transaction});
         Promise.all([orderPromise, oldArticlePromise]).then((results) => {
           orderPromise = this.updateOrder(results[0], this.computePriceDifference(item, oldItem), transaction);
           oldArticlePromise = this.updateArticle(results[1], -1 * +oldItem.quantity, transaction);
           Promise.all([orderPromise, oldArticlePromise]).then((results) => {
-            this.articleWrapper.findById(item.articleId, transaction).then((article) => {
+            Article.findById(item.articleId, {transaction}).then((article) => {
               const articlePromise = this.updateArticle(article, +item.quantity, transaction);
               const updateItemPromise = CustomerOrderItem.update(item, {where: {id: item.id}, transaction});
-              Promise.all([orderPromise, oldArticlePromise, articlePromise, updateItemPromise])
-                .then((results) => resolve(results[3]))
+              Promise.all([articlePromise, updateItemPromise])
+                .then((results) => resolve(results[1]))
                 .catch((error) => reject(error));
             }).catch((error) => reject(error));
           }).catch((error) => reject(error));
@@ -83,13 +79,25 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
     });
   }
 
-  public delete(value: CustomerOrderItem, transaction: Transaction): Promise<void> {
-    return value.destroy({transaction});
+  public delete(item: CustomerOrderItem, transaction: Transaction): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      let orderPromise = CustomerOrder.findById(item.customerOrderId, {transaction});
+      let articlePromise = Article.findById(item.articleId, {transaction});
+      Promise.all([orderPromise, articlePromise]).then((results) => {
+        orderPromise = this.updateOrder(results[0], -1 * this.computePrice(item), transaction);
+        articlePromise = this.updateArticle(results[1], -1 * +item.quantity, transaction);
+        Promise.all([orderPromise, articlePromise]).then((results) => {
+          item.destroy({transaction}).then(() => resolve()).catch((error) => reject(error));
+        }).catch((error) => reject(error));
+      }).catch((error) => reject(error));
+    });
   }
 
   private computePriceDifference(item: CustomerOrderItem, oldItem: CustomerOrderItem): number {
-    const priceNewItems = +item.copiedPrice * +item.quantity;
-    const priceOldItems = +oldItem.copiedPrice * +oldItem.quantity;
-    return priceNewItems - priceOldItems;
+    return this.computePrice(item) - this.computePrice(oldItem);
+  }
+
+  private computePrice(item: CustomerOrderItem) {
+    return +item.copiedPrice * +item.quantity;
   }
 }

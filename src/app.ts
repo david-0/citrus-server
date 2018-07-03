@@ -158,8 +158,8 @@ class Server {
     this.app.use(this.inputLogger);
 
     const articleModelWrapper = new ArticleModelWrapper();
-    const customerOrderModelWrapper = new CustomerOrderModelWrapper();
-    const customerOrderItemModelWrapper = new CustomerOrderItemModelWrapper(customerOrderModelWrapper, articleModelWrapper);
+    const customerOrderItemModelWrapper = new CustomerOrderItemModelWrapper();
+    const customerOrderModelWrapper = new CustomerOrderModelWrapper(customerOrderItemModelWrapper);
     this.app.use("/", this.appendHeaders);
     this.app.options("/api/*", this.setStatus200);
     this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());

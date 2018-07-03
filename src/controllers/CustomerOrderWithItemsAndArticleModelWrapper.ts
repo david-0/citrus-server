@@ -16,7 +16,10 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
   }
 
   public create(value: CustomerOrder, transaction: Transaction): Promise<CustomerOrder> {
-    return CustomerOrder.create(value, {transaction});
+    return CustomerOrder.create(value, {
+      fields: ["userId", "pickupLocationId", "bulkOrderId", "date"],
+      transaction
+    });
   }
 
   public findAll(transaction: Transaction): Promise<CustomerOrder[]> {
@@ -84,6 +87,7 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
 
   public update(value: CustomerOrder, transaction: Transaction): Promise<[number, Array<CustomerOrder>]> {
     return CustomerOrder.update(value, {
+      fields: ["userId", "pickupLocationId", "bulkOrderId"],
       where: {id: value.id},
       transaction,
     });

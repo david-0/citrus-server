@@ -63,12 +63,27 @@ export class CartController implements ITransactionController {
         const order = this.createCustomerOrder(user.id, cart);
         order.save({transaction}).then((newOrder: CustomerOrder) => {
           const items = this.createOrderItems(cart, articles, newOrder.id);
-          this.saveItems(items, transaction)
-            .then(() => resolve(newOrder.id))
-            .catch((error) => reject(error));
+          this.saveItems(items, transaction).then((items) => {
+            this.updateTotalPrice(newOrder, items, transaction)
+              .then(() => resolve(newOrder.id))
+              .catch((error) => reject(error));
+          }).catch((error) => reject(error));
         }).catch((error) => reject(error));
       }).catch((error) => reject(error));
     });
+  }
+
+  private updateTotalPrice(order: CustomerOrder, items: CustomerOrderItem[], transaction: Transaction): Promise<CustomerOrder> {
+    order.totalPrice = items.map((item) => this.computePrice(item)).reduce((p, c) => p + c, 0);
+    return new Promise<CustomerOrder>((resolve, reject) => {
+      order.save({transaction})
+        .then((updatedOrder) => resolve(updatedOrder))
+        .catch((error) => reject(error));
+    });
+  }
+
+  private computePrice(item: CustomerOrderItem) {
+    return +item.copiedPrice * +item.quantity;
   }
 
   private createCustomerOrder(userId: number, cartDto: CartDto): CustomerOrder {

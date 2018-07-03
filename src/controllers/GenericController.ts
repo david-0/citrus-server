@@ -67,9 +67,9 @@ export class GenericController<T extends Model<T>> implements ITransactionContro
           reject(err);
         });
       }).catch((err) => {
-          res.status(404).json({error: `error could not find fruit. ${err}`});
-          reject(err);
-        });
+        res.status(404).json({error: `error could not find fruit. ${err}`});
+        reject(err);
+      });
     });
   }
 
@@ -79,18 +79,18 @@ export class GenericController<T extends Model<T>> implements ITransactionContro
       const instance = req.body;
       LOGGER.debug(`update ${this.wrapper.name()}: ${JSON.stringify(instance)}`);
       this.wrapper.update(instance, transaction).then((result) => {
-          if (result[0] === 1) {
-            res.json(1);
-            resolve();
-          } else {
-            res.status(404).json(
-              {error: `error update ${this.wrapper.name()} failed (update count is not 1 (${result[0]})`});
-            reject("Update with wrong id elements found.");
-          }
-        }).catch((err) => {
-          res.status(404).json({error: `error update ${this.wrapper.name()} failed. ${err}`});
-          reject(err);
-        });
+        if (result[0] === 1) {
+          res.json(1);
+          resolve();
+        } else {
+          res.status(404).json(
+            {error: `error update ${this.wrapper.name()} failed (update count is not 1 (${result[0]})`});
+          reject("Update with wrong id elements found.");
+        }
+      }).catch((err) => {
+        res.status(404).json({error: `error update ${this.wrapper.name()} failed. ${err}`});
+        reject(err);
+      });
     });
   }
 }
