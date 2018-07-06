@@ -23,6 +23,9 @@ export class Article extends Model<Article> {
   public description: string;
 
   @Column
+  public pictureId: string;
+
+  @Column
   public stock: number;
 
   @Column

@@ -50,7 +50,7 @@ export class GenericController<T extends Model<T>> implements ITransactionContro
         res.json(item);
         resolve();
       }).catch((err) => {
-        res.status(404).json({error: `error retrieving all ${this.wrapper.name()}s. ${err}`});
+        res.status(404).json({error: `error retrieving ${this.wrapper.name()}. ${err}`});
         reject(err);
       });
     });
@@ -67,7 +67,7 @@ export class GenericController<T extends Model<T>> implements ITransactionContro
           reject(err);
         });
       }).catch((err) => {
-        res.status(404).json({error: `error could not find fruit. ${err}`});
+        res.status(404).json({error: `error could not find ${this.wrapper.name()}. ${err}`});
         reject(err);
       });
     });
