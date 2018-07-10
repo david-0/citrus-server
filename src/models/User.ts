@@ -5,7 +5,7 @@ import {Role} from "./Role";
 import {UserRole} from "./UserRole";
 
 @Table
-export class User extends Model<User>{
+export class User extends Model<User> {
   @Unique
   @Column
   public number: number;

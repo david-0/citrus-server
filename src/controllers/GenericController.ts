@@ -88,7 +88,7 @@ export class GenericController<T extends Model<T>> implements ITransactionContro
           reject("Update with wrong id elements found.");
         }
       }).catch((err) => {
-        res.status(404).json({error: `error update ${this.wrapper.name()} failed. ${err}`});
+        res.status(404).json({error: `error update ${this.wrapper.name()} failed. ${err.message}`});
         reject(err);
       });
     });

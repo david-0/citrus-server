@@ -20,15 +20,19 @@ import {OpeningHourModelWrapper} from "./controllers/OpeningHourModelWrapper";
 import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
 import {PickupLocationWithOpeningHoursModelWrapper} from "./controllers/PickupLocationWithOpeningHoursModelWrapper";
 import {PictureController} from "./controllers/PictureController";
+import {RoleModelWrapper} from "./controllers/RoleModelWrapper";
+import {RoleWithUserInfosModelWrapper} from "./controllers/RoleWithUserInfosModelWrapper";
 import {TransactionController} from "./controllers/TransactionController";
 import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
+import {UserInfoWithRolesModelWrapper} from "./controllers/UserInfoWithRolesModelWrapper";
 import {Address} from "./models/Address";
 import {Article} from "./models/Article";
 import {CustomerOrder} from "./models/CustomerOrder";
 import {CustomerOrderItem} from "./models/CustomerOrderItem";
 import {OpeningHour} from "./models/OpeningHour";
 import {PickupLocation} from "./models/PickupLocation";
+import {Role} from "./models/Role";
 import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
 import {User} from "./models/User";
 import {GenericRouter} from "./routes/GenericRouter";
@@ -165,10 +169,16 @@ class Server {
     this.app.options("/api/*", this.setStatus200);
     this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
     const db = DBService.sequelize;
+    this.app.use("/api/role", GenericRouter.all(
+      new TransactionController(db, new GenericController<Role>(new RoleModelWrapper()))));
+    this.app.use("/api/roleWithUserInfos", GenericRouter.all(
+      new TransactionController(db, new GenericController<Role>(new RoleWithUserInfosModelWrapper()))));
     this.app.use("/api/address", GenericRouter.all(
       new TransactionController(db, new GenericController<Address>(new AddressWithUserInfoModelWrapper()))));
     this.app.use("/api/userInfo", GenericRouter.all(
       new TransactionController(db, new GenericController<User>(new UserInfoModelWrapper()))));
+    this.app.use("/api/userInfoWithRoles", GenericRouter.all(
+      new TransactionController(db, new GenericController<User>(new UserInfoWithRolesModelWrapper()))));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(
       new TransactionController(db, new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper()))));
     this.app.use("/api/article", GenericRouter.all(

@@ -9,6 +9,6 @@ export class Role extends Model<Role> {
   public name: string;
 
   @BelongsToMany(() => User, () => UserRole)
-  public roles: User[];
+  public users: User[];
 
 }
