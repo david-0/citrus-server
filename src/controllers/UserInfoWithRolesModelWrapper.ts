@@ -13,12 +13,12 @@ export class UserInfoWithRolesModelWrapper implements IModelWrapper<User> {
 
   public create(user: User, transaction: Transaction): Promise<User> {
     return new Promise<User>((resolve, reject) => {
-      User.create(user, {transaction}).then((user) => {
+      User.create(user, {transaction}).then((createdUser) => {
         UserRole.bulkCreate(user.roles.map((role) => ({
-          userId: user.id,
+          userId: createdUser.id,
           roleId: role.id,
-        })))
-          .then((userRoles) => resolve(user))
+        })), {transaction})
+          .then((userRoles) => resolve(createdUser))
           .catch((error) => reject(error));
       }).catch((error) => reject(error));
     });
