@@ -1,5 +1,7 @@
-import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
+import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {Article} from "./Article";
 import {GpsLocation} from "./GpsLocation";
+import {PickupLocation} from "./PickupLocation";
 import {User} from "./User";
 
 @Table
@@ -41,4 +43,7 @@ export class Address extends Model<Address> {
 
   @Column
   public city: string;
+
+  @HasMany(() => PickupLocation)
+  public pickupLocations: PickupLocation[];
 }

@@ -8,6 +8,7 @@ import * as https from "https";
 import * as log4js from "log4js";
 import {Logger} from "log4js";
 import * as path from "path";
+import {AddressWithAllModelWrapper} from "./controllers/AddressWithAllModelWrapper";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {ArticleInSaleModelWrapper} from "./controllers/ArticleInSaleModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
@@ -178,6 +179,8 @@ class Server {
       new TransactionController(db, new GenericController<Role>(new RoleWithUserInfosModelWrapper()))));
     this.app.use("/api/address", GenericRouter.all(
       new TransactionController(db, new GenericController<Address>(new AddressWithUserInfoModelWrapper()))));
+    this.app.use("/api/addressWithAll", GenericRouter.all(
+      new TransactionController(db, new GenericController<Address>(new AddressWithAllModelWrapper()))));
     this.app.use("/api/userInfo", GenericRouter.all(
       new TransactionController(db, new GenericController<User>(new UserInfoModelWrapper()))));
     this.app.use("/api/userInfoWithRoles", GenericRouter.all(
