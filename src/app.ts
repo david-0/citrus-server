@@ -25,6 +25,7 @@ import {RoleModelWrapper} from "./controllers/RoleModelWrapper";
 import {RoleWithUserInfosModelWrapper} from "./controllers/RoleWithUserInfosModelWrapper";
 import {TransactionController} from "./controllers/TransactionController";
 import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
+import {UnitOfMeasurementWithArticlesModelWrapper} from "./controllers/UnitOfMeasurementWithArticlesModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
 import {UserInfoWithAllModelWrapper} from "./controllers/UserInfoWithAllModelWrapper";
 import {UserInfoWithRolesModelWrapper} from "./controllers/UserInfoWithRolesModelWrapper";
@@ -185,6 +186,8 @@ class Server {
       new TransactionController(db, new GenericController<User>(new UserInfoWithAllModelWrapper()))));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(
       new TransactionController(db, new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper()))));
+    this.app.use("/api/unitOfMeasurementWithArticles", GenericRouter.all(
+      new TransactionController(db, new GenericController<UnitOfMeasurement>(new UnitOfMeasurementWithArticlesModelWrapper()))));
     this.app.use("/api/article", GenericRouter.all(
       new TransactionController(db, new GenericController<Article>(articleModelWrapper))));
     this.app.use("/api/articleWithAll", GenericRouter.all(
