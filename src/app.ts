@@ -11,6 +11,7 @@ import * as path from "path";
 import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
 import {ArticleInSaleModelWrapper} from "./controllers/ArticleInSaleModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
+import {ArticleWithAllModelWrapper} from "./controllers/ArticleWithAllModelWrapper";
 import {CartController} from "./controllers/CartController";
 import {CustomerOrderItemModelWrapper} from "./controllers/CustomerOrderItemModelWrapper";
 import {CustomerOrderModelWrapper} from "./controllers/CustomerOrderModelWrapper";
@@ -25,6 +26,7 @@ import {RoleWithUserInfosModelWrapper} from "./controllers/RoleWithUserInfosMode
 import {TransactionController} from "./controllers/TransactionController";
 import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
 import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
+import {UserInfoWithAllModelWrapper} from "./controllers/UserInfoWithAllModelWrapper";
 import {UserInfoWithRolesModelWrapper} from "./controllers/UserInfoWithRolesModelWrapper";
 import {Address} from "./models/Address";
 import {Article} from "./models/Article";
@@ -179,10 +181,14 @@ class Server {
       new TransactionController(db, new GenericController<User>(new UserInfoModelWrapper()))));
     this.app.use("/api/userInfoWithRoles", GenericRouter.all(
       new TransactionController(db, new GenericController<User>(new UserInfoWithRolesModelWrapper()))));
+    this.app.use("/api/userInfoWithAll", GenericRouter.all(
+      new TransactionController(db, new GenericController<User>(new UserInfoWithAllModelWrapper()))));
     this.app.use("/api/unitOfMeasurement", GenericRouter.all(
       new TransactionController(db, new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper()))));
     this.app.use("/api/article", GenericRouter.all(
       new TransactionController(db, new GenericController<Article>(articleModelWrapper))));
+    this.app.use("/api/articleWithAll", GenericRouter.all(
+      new TransactionController(db, new GenericController<Article>(new ArticleWithAllModelWrapper()))));
     this.app.use("/api/cart", GenericRouter.post(
       new TransactionController(db, new CartController(customerOrderItemModelWrapper))));
     this.app.use("/api/pickupLocation", GenericRouter.all(

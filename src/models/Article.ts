@@ -2,6 +2,7 @@ import {BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model, 
 import {addAttributeOptions} from "sequelize-typescript/lib/services/models";
 import {EArticleStatus} from "../EArticleStatus";
 import {ArticlePickupLocation} from "./ArticlePickupLocation";
+import {CustomerOrderItem} from "./CustomerOrderItem";
 import {PickupLocation} from "./PickupLocation";
 import {UnitOfMeasurement} from "./UnitOfMeasurement";
 import {VendorOrderItem} from "./VendorOrderItem";
@@ -47,6 +48,9 @@ export class Article extends Model<Article> {
 
   @HasMany(() => VendorOrderItem)
   public vendorOrderItems: VendorOrderItem[];
+
+  @HasMany(() => CustomerOrderItem)
+  public customerOrderItems: CustomerOrderItem[];
 
   @BelongsToMany(() => PickupLocation, () => ArticlePickupLocation)
   public pickupLocations: PickupLocation[];
