@@ -1,6 +1,5 @@
 import * as express from "express";
 import {Router} from "express-serve-static-core";
-import {Model} from "sequelize-typescript";
 import {Role} from "../models/Role";
 import {User} from "../models/User";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
