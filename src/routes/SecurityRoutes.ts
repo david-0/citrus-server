@@ -176,9 +176,11 @@ export class SecurityRoutes {
   private createTestingAdminUser(): User {
     const role = new Role();
     role.name = "admin";
+    const saleRole = new Role();
+    saleRole.name = "sale";
     const user = new User();
     user.email = "a@b";
-    user.roles = [role];
+    user.roles = [role, saleRole];
     return user;
   }
 
