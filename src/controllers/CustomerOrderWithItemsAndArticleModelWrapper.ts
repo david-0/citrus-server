@@ -4,7 +4,7 @@ import {Address} from "../models/Address";
 import {Article} from "../models/Article";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
-import {PickupLocation} from "../models/PickupLocation";
+import {Location} from "../models/Location";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
 import {User} from "../models/User";
 import {IModelWrapper} from "./IModelWrapper";
@@ -34,7 +34,7 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: PickupLocation,
+        model: Location,
         include: [{
           model: Address,
         }],
@@ -55,7 +55,7 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: PickupLocation,
+        model: Location,
         include: [{
           model: Address,
         }],
@@ -77,7 +77,7 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: PickupLocation,
+        model: Location,
         include: [{
           model: Address,
         }],

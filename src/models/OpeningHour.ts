@@ -1,5 +1,5 @@
 import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
-import {PickupLocation} from "./PickupLocation";
+import {Location} from "./Location";
 
 @Table
 export class OpeningHour extends Model<OpeningHour> {
@@ -9,11 +9,11 @@ export class OpeningHour extends Model<OpeningHour> {
   @Column
   public toDate: Date;
 
-  @ForeignKey(() => PickupLocation)
+  @ForeignKey(() => Location)
   @Column
-  public pickupLocationId: number;
+  public locationId: number;
 
-  @BelongsTo(() => PickupLocation, { onDelete: "cascade" })
-  public pickupLocation: PickupLocation;
+  @BelongsTo(() => Location, { onDelete: "cascade" })
+  public location: Location;
 
 }

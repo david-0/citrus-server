@@ -2,7 +2,7 @@ import * as Promise from "bluebird";
 import {Transaction} from "sequelize";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
-import {PickupLocation} from "../models/PickupLocation";
+import {Location} from "../models/Location";
 import {User} from "../models/User";
 import {CustomerOrderItemModelWrapper} from "./CustomerOrderItemModelWrapper";
 import {IModelWrapper} from "./IModelWrapper";
@@ -30,7 +30,7 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: PickupLocation,
+        model: Location,
       }],
     });
   }
@@ -42,7 +42,7 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: PickupLocation,
+        model: Location,
       }],
     });
   }
@@ -54,7 +54,7 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: PickupLocation,
+        model: Location,
       }],
     });
   }

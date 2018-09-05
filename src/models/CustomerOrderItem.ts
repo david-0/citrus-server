@@ -1,5 +1,5 @@
 import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
-import {Article} from "./Article";
+import {ArticleStock} from "./ArticleStock";
 import {CustomerOrder} from "./CustomerOrder";
 
 @Table
@@ -12,16 +12,19 @@ export class CustomerOrderItem extends Model<CustomerOrderItem> {
   @BelongsTo(() => CustomerOrder)
   public customerOrder: CustomerOrder;
 
-  @ForeignKey(() => Article)
+  @ForeignKey(() => ArticleStock)
   @Column
-  public articleId: number;
+  public articleStockId: number;
 
-  @BelongsTo(() => Article)
-  public article: Article;
+  @BelongsTo(() => ArticleStock)
+  public articleStock: ArticleStock;
 
   @Column({type: DataType.DECIMAL(10, 2)})
   public copiedPrice: number;
 
   @Column
   public quantity: number;
+
+  @Column
+  public checkedOut: boolean;
 }

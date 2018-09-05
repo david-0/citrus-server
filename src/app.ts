@@ -13,14 +13,15 @@ import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfo
 import {ArticleInSaleModelWrapper} from "./controllers/ArticleInSaleModelWrapper";
 import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
 import {ArticleWithAllModelWrapper} from "./controllers/ArticleWithAllModelWrapper";
+import {ArticleWithStockModelWrapper} from "./controllers/ArticleWithStockModelWrapper";
 import {CartController} from "./controllers/CartController";
 import {CustomerOrderItemModelWrapper} from "./controllers/CustomerOrderItemModelWrapper";
 import {CustomerOrderModelWrapper} from "./controllers/CustomerOrderModelWrapper";
 import {CustomerOrderWithItemsAndArticleModelWrapper} from "./controllers/CustomerOrderWithItemsAndArticleModelWrapper";
 import {GenericController} from "./controllers/GenericController";
 import {OpeningHourModelWrapper} from "./controllers/OpeningHourModelWrapper";
-import {PickupLocationModelWrapper} from "./controllers/PickupLocationModelWrapper";
-import {PickupLocationWithOpeningHoursModelWrapper} from "./controllers/PickupLocationWithOpeningHoursModelWrapper";
+import {LocationModelWrapper} from "./controllers/LocationModelWrapper";
+import {LocationWithOpeningHoursModelWrapper} from "./controllers/LocationWithOpeningHoursModelWrapper";
 import {PictureController} from "./controllers/PictureController";
 import {RoleModelWrapper} from "./controllers/RoleModelWrapper";
 import {RoleWithUserInfosModelWrapper} from "./controllers/RoleWithUserInfosModelWrapper";
@@ -35,7 +36,7 @@ import {Article} from "./models/Article";
 import {CustomerOrder} from "./models/CustomerOrder";
 import {CustomerOrderItem} from "./models/CustomerOrderItem";
 import {OpeningHour} from "./models/OpeningHour";
-import {PickupLocation} from "./models/PickupLocation";
+import {Location} from "./models/Location";
 import {Role} from "./models/Role";
 import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
 import {User} from "./models/User";
@@ -193,15 +194,17 @@ class Server {
       new TransactionController(db, new GenericController<UnitOfMeasurement>(new UnitOfMeasurementWithArticlesModelWrapper()))));
     this.app.use("/api/article", GenericRouter.all(
       new TransactionController(db, new GenericController<Article>(articleModelWrapper))));
+    this.app.use("/api/articleWithStock", GenericRouter.all(
+      new TransactionController(db, new GenericController<Article>(new ArticleWithStockModelWrapper()))));
     this.app.use("/api/articleWithAll", GenericRouter.all(
       new TransactionController(db, new GenericController<Article>(new ArticleWithAllModelWrapper()))));
     this.app.use("/api/cart", GenericRouter.post(
       new TransactionController(db, new CartController(customerOrderItemModelWrapper))));
-    this.app.use("/api/pickupLocation", GenericRouter.all(
-      new TransactionController(db, new GenericController<PickupLocation>(new PickupLocationModelWrapper()))));
+    this.app.use("/api/location", GenericRouter.all(
+      new TransactionController(db, new GenericController<Location>(new LocationModelWrapper()))));
     this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(
-      new TransactionController(db, new GenericController<PickupLocation>(
-        new PickupLocationWithOpeningHoursModelWrapper()))));
+      new TransactionController(db, new GenericController<Location>(
+        new LocationWithOpeningHoursModelWrapper()))));
     this.app.use("/api/openingHour", GenericRouter.putPostDelete(
       new TransactionController(db, new GenericController<OpeningHour>(new OpeningHourModelWrapper()))));
     this.app.use("/api/customerOrder", GenericRouter.all(
@@ -218,9 +221,9 @@ class Server {
       new TransactionController(db, new GenericController<Article>(articleModelWrapper))));
     this.app.use("/articleInSale", GenericRouter.get(
       new TransactionController(db, new GenericController<Article>(new ArticleInSaleModelWrapper()))));
-    this.app.use("/pickupLocation", GenericRouter.get(
-      new TransactionController(db, new GenericController<PickupLocation>(
-        new PickupLocationWithOpeningHoursModelWrapper()))));
+    this.app.use("/location", GenericRouter.get(
+      new TransactionController(db, new GenericController<Location>(
+        new LocationWithOpeningHoursModelWrapper()))));
     this.app.use("/picture", GenericRouter.get(new TransactionController(db, new PictureController())));
 
     this.app.use(this.sendFile);

@@ -1,5 +1,7 @@
 import {BelongsToMany, Column, HasMany, Model, Table, Unique} from "sequelize-typescript";
 import {Address} from "./Address";
+import {ArticleCheckIn} from "./ArticleCheckIn";
+import {ArticleCheckOut} from "./ArticleCheckOut";
 import {CustomerOrder} from "./CustomerOrder";
 import {Role} from "./Role";
 import {UserRole} from "./UserRole";
@@ -34,6 +36,12 @@ export class User extends Model<User> {
 
   @HasMany(() => CustomerOrder)
   public customerOrders: CustomerOrder[];
+
+  @HasMany(() => ArticleCheckIn)
+  public articleCheckIns: ArticleCheckIn[];
+
+  @HasMany(() => ArticleCheckOut)
+  public articleCheckOuts: ArticleCheckOut[];
 
   @HasMany(() => Address)
   public addresses: Address[];

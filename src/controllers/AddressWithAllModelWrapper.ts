@@ -1,7 +1,7 @@
 import * as Promise from "bluebird";
 import {Transaction} from "sequelize";
 import {Address} from "../models/Address";
-import {PickupLocation} from "../models/PickupLocation";
+import {Location} from "../models/Location";
 import {User} from "../models/User";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -20,7 +20,7 @@ export class AddressWithAllModelWrapper implements IModelWrapper<Address> {
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
-      }, PickupLocation],
+      }, Location],
       transaction,
     });
   }
@@ -30,7 +30,7 @@ export class AddressWithAllModelWrapper implements IModelWrapper<Address> {
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
-      }, PickupLocation],
+      }, Location],
       transaction,
     });
   }
@@ -40,7 +40,7 @@ export class AddressWithAllModelWrapper implements IModelWrapper<Address> {
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
-      }, PickupLocation],
+      }, Location],
       transaction,
     });
   }
