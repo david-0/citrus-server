@@ -1,5 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
 import {Location} from "../models/Location";
@@ -25,55 +25,55 @@ export class CustomerOrderModelWrapper implements IModelWrapper<CustomerOrder> {
 
   public findAll(transaction: Transaction): Promise<CustomerOrder[]> {
     return CustomerOrder.findAll({
-      transaction,
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
       }, {
         model: Location,
       }],
+      transaction,
     });
   }
 
   public findAndCountAll(transaction: Transaction): Promise<{ rows: CustomerOrder[]; count: number; }> {
     return CustomerOrder.findAndCountAll({
-      transaction,
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
       }, {
         model: Location,
       }],
+      transaction,
     });
   }
 
   public findById(identifier: string | number, transaction: Transaction): Promise<CustomerOrder> {
     return CustomerOrder.findById(identifier, {
-      transaction,
       include: [{
         attributes: {exclude: ["password"]},
         model: User,
       }, {
         model: Location,
       }],
+      transaction,
     });
   }
 
   public update(value: CustomerOrder, transaction: Transaction): Promise<[number, Array<CustomerOrder>]> {
     return CustomerOrder.update(value, {
       fields: ["userId", "pickupLocationId", "bulkOrderId"],
-      where: {id: value.id},
       transaction,
+      where: {id: value.id},
     });
   }
 
   public delete(order: CustomerOrder, transaction: Transaction): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       CustomerOrderItem.findAll({where: {customerOrderId: order.id}, transaction}).then((items) => {
-        let deletePromises = items.map((item) => this.itemWrapper.delete(item, transaction));
+        const deletePromises = items.map((item) => this.itemWrapper.delete(item, transaction));
         Promise.all(deletePromises).then((results) => {
           order.destroy({transaction})
-            .then((results) => resolve())
+            .then((destroyed) => resolve())
             .catch((error) => reject(error));
         }).catch((error) => reject(error));
       }).catch((error) => reject(error));

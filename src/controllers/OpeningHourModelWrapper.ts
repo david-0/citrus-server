@@ -1,6 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
-import {Address} from "../models/Address";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {OpeningHour} from "../models/OpeningHour";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -28,8 +27,8 @@ export class OpeningHourModelWrapper implements IModelWrapper<OpeningHour> {
 
   public update(value: OpeningHour, transaction: Transaction): Promise<[number, OpeningHour[]]> {
     return OpeningHour.update(value, {
-      where: {id: value.id},
       transaction,
+      where: {id: value.id},
     });
   }
 

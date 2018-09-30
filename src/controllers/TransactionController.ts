@@ -1,6 +1,7 @@
 import * as express from "express";
-import {Transaction} from "sequelize";
 import {Model, Sequelize} from "sequelize-typescript";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {IController} from "./IController";
 import {ITransactionController} from "./ITransactionController";
 

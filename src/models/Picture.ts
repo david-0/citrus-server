@@ -1,4 +1,4 @@
-import {Column, IsUUID, Model, PrimaryKey, Table} from "sequelize-typescript";
+import {Column, Model, PrimaryKey, Table} from "sequelize-typescript";
 
 @Table
 export class Picture extends Model<Picture> {

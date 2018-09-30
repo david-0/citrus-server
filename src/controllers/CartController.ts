@@ -2,7 +2,9 @@ import {CartDto} from "citrus-common/lib/dto/cart-dto";
 import {CartEntryDto} from "citrus-common/lib/dto/cart-entry-dto";
 import * as express from "express";
 import {Logger} from "log4js";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
+
 import {Article} from "../models/Article";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
@@ -56,11 +58,11 @@ export class CartController implements ITransactionController {
       Promise.all([userPromise, articlePromise]).then((results) => {
         const user = results[0];
         const articles = results[1];
-        const order = this.createCustomerOrder(user.id, cart);
+        const order = this.createCustomerOrder(user.id);
         order.save({transaction}).then((newOrder: CustomerOrder) => {
           const items = this.createOrderItems(cart, articles, newOrder.id);
-          this.saveItems(items, transaction).then((items) => {
-            this.updateTotalPrice(newOrder, items, transaction)
+          this.saveItems(items, transaction).then((savedItems) => {
+            this.updateTotalPrice(newOrder, savedItems, transaction)
               .then(() => resolve(newOrder.id))
               .catch((error) => reject(error));
           }).catch((error) => reject(error));
@@ -82,11 +84,10 @@ export class CartController implements ITransactionController {
     return +item.copiedPrice * +item.quantity;
   }
 
-  private createCustomerOrder(userId: number, cartDto: CartDto): CustomerOrder {
+  private createCustomerOrder(userId: number): CustomerOrder {
     const customerOrder = new CustomerOrder();
     customerOrder.userId = userId;
     customerOrder.date = new Date();
-    customerOrder.pickupLocationId = cartDto.pickupLocationId;
     return customerOrder;
   }
 
@@ -97,7 +98,7 @@ export class CartController implements ITransactionController {
   private createOrderItem(entry: CartEntryDto, orderId: number, articles: Article[]): CustomerOrderItem {
     const item = new CustomerOrderItem();
     item.customerOrderId = orderId;
-    item.articleId = entry.articleId;
+    item.articleStockId = entry.articleStockId;
     item.copiedPrice = entry.price;
     item.quantity = entry.quantity;
     return item;

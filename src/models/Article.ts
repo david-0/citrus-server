@@ -16,8 +16,8 @@ function ToNumber(target: any, propertyKey: string): any {
  */
 @Table
 export class Article extends Model<Article> {
-  @Column
   @Unique
+  @Column
   public number: number;
 
   @Column

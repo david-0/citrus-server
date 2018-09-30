@@ -1,5 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {Address} from "../models/Address";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {Role} from "../models/Role";
@@ -15,12 +15,12 @@ export class UserInfoWithAllModelWrapper implements IModelWrapper<User> {
 
   public create(user: User, transaction: Transaction): Promise<User> {
     return new Promise<User>((resolve, reject) => {
-      User.create(user, {transaction}).then((user) => {
-        UserRole.bulkCreate(user.roles.map((role) => ({
-          userId: user.id,
+      User.create(user, {transaction}).then((createdUser) => {
+        UserRole.bulkCreate(createdUser.roles.map((role) => ({
           roleId: role.id,
+          userId: createdUser.id,
         })))
-          .then((userRoles) => resolve(user))
+          .then((userRoles) => resolve(createdUser))
           .catch((error) => reject(error));
       }).catch((error) => reject(error));
     });
@@ -41,9 +41,9 @@ export class UserInfoWithAllModelWrapper implements IModelWrapper<User> {
       attributes: {exclude: ["password"]},
       include: [{
         model: Role,
-      },{
+      }, {
         model: CustomerOrder,
-      },{
+      }, {
         model: Address,
       }],
       transaction,
@@ -55,9 +55,9 @@ export class UserInfoWithAllModelWrapper implements IModelWrapper<User> {
       attributes: {exclude: ["password"]},
       include: [{
         model: Role,
-      },{
+      }, {
         model: CustomerOrder,
-      },{
+      }, {
         model: Address,
       }],
       transaction,

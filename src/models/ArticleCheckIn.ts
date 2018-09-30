@@ -1,8 +1,5 @@
-import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
-import {Article} from "./Article";
+import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
 import {ArticleStock} from "./ArticleStock";
-import {CustomerOrderItem} from "./CustomerOrderItem";
-import {Location} from "./Location";
 import {User} from "./User";
 
 /**

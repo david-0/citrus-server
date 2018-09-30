@@ -1,6 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
-import {Address} from "../models/Address";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {Article} from "../models/Article";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
 import {IModelWrapper} from "./IModelWrapper";
@@ -17,22 +16,22 @@ export class ArticleModelWrapper implements IModelWrapper<Article> {
 
   public findAll(transaction: Transaction): Promise<Article[]> {
     return Article.findAll({
-      transaction,
       include: [UnitOfMeasurement],
+      transaction,
     });
   }
 
   public findAndCountAll(transaction: Transaction): Promise<{ rows: Article[]; count: number; }> {
     return Article.findAndCountAll({
-      transaction,
       include: [UnitOfMeasurement],
+      transaction,
     });
   }
 
   public findById(identifier: string | number, transaction: Transaction): Promise<Article> {
     return Article.findById(identifier, {
-      transaction,
       include: [UnitOfMeasurement],
+      transaction,
     });
   }
 

@@ -1,10 +1,8 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
-import {Article} from "../models/Article";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
+import {ArticleStock} from "../models/ArticleStock";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
-import {ArticleModelWrapper} from "./ArticleModelWrapper";
-import {CustomerOrderModelWrapper} from "./CustomerOrderModelWrapper";
 import {IModelWrapper} from "./IModelWrapper";
 
 export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrderItem> {
@@ -16,33 +14,16 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
   public create(item: CustomerOrderItem, transaction: Transaction): Promise<CustomerOrderItem> {
     return new Promise<CustomerOrderItem>((resolve, reject) => {
       let orderPromise = CustomerOrder.findById(item.customerOrderId, {transaction});
-      let articlePromise = Article.findById(item.articleId, {transaction});
-      Promise.all([orderPromise, articlePromise]).then((results) => {
+      let articleStockPromise = ArticleStock.findById(item.articleStockId, {transaction});
+      Promise.all([orderPromise, articleStockPromise]).then((results) => {
         orderPromise = this.updateOrder(results[0], +item.copiedPrice * +item.quantity, transaction);
-        articlePromise = this.updateArticle(results[1], +item.quantity, transaction);
+        articleStockPromise = this.updateArticleStock(results[1], +item.quantity, transaction);
         const itemPromise = this.updateItem(item, transaction);
-        Promise.all([orderPromise, articlePromise, itemPromise])
-          .then((results) => resolve(results[2]))
+        Promise.all([orderPromise, articleStockPromise, itemPromise])
+          .then((res) => resolve(res[2]))
           .catch((error) => reject(error));
       }).catch((error) => reject(error));
     });
-  }
-
-  private updateItem(item: CustomerOrderItem, transaction: Transaction): Promise<CustomerOrderItem> {
-    if (item instanceof CustomerOrderItem) {
-      return item.save({transaction});
-    }
-    return CustomerOrderItem.create(item, {transaction});
-  }
-
-  private updateOrder(order: CustomerOrder, priceDifference: number, transaction: Transaction): Promise<CustomerOrder> {
-    order.totalPrice = +order.totalPrice + +priceDifference;
-    return order.save({transaction});
-  }
-
-  private updateArticle(article: Article, count: number, transaction: Transaction): Promise<Article> {
-    article.reservedInOpenOrders = +article.reservedInOpenOrders + +count;
-    return article.save({transaction});
   }
 
   public findAll(transaction: Transaction): Promise<CustomerOrderItem[]> {
@@ -61,16 +42,16 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
     return new Promise<[number, Array<CustomerOrderItem>]>((resolve, reject) => {
       this.findById(item.id, transaction).then((oldItem) => {
         let orderPromise = CustomerOrder.findById(item.customerOrderId, {transaction});
-        let oldArticlePromise = Article.findById(oldItem.articleId, {transaction});
-        Promise.all([orderPromise, oldArticlePromise]).then((results) => {
+        let oldArticleStockPromise = ArticleStock.findById(oldItem.articleStockId, {transaction});
+        Promise.all([orderPromise, oldArticleStockPromise]).then((results) => {
           orderPromise = this.updateOrder(results[0], this.computePriceDifference(item, oldItem), transaction);
-          oldArticlePromise = this.updateArticle(results[1], -1 * +oldItem.quantity, transaction);
-          Promise.all([orderPromise, oldArticlePromise]).then((results) => {
-            Article.findById(item.articleId, {transaction}).then((article) => {
-              const articlePromise = this.updateArticle(article, +item.quantity, transaction);
+          oldArticleStockPromise = this.updateArticleStock(results[1], -1 * +oldItem.quantity, transaction);
+          Promise.all([orderPromise, oldArticleStockPromise]).then((res) => {
+            ArticleStock.findById(item.articleStockId, {transaction}).then((article) => {
+              const articleStockPromise = this.updateArticleStock(article, +item.quantity, transaction);
               const updateItemPromise = CustomerOrderItem.update(item, {where: {id: item.id}, transaction});
-              Promise.all([articlePromise, updateItemPromise])
-                .then((results) => resolve(results[1]))
+              Promise.all([articleStockPromise, updateItemPromise])
+                .then((res2) => resolve(res2[1]))
                 .catch((error) => reject(error));
             }).catch((error) => reject(error));
           }).catch((error) => reject(error));
@@ -82,15 +63,32 @@ export class CustomerOrderItemModelWrapper implements IModelWrapper<CustomerOrde
   public delete(item: CustomerOrderItem, transaction: Transaction): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       let orderPromise = CustomerOrder.findById(item.customerOrderId, {transaction});
-      let articlePromise = Article.findById(item.articleId, {transaction});
-      Promise.all([orderPromise, articlePromise]).then((results) => {
+      let articleStockPromise = ArticleStock.findById(item.articleStockId, {transaction});
+      Promise.all([orderPromise, articleStockPromise]).then((results) => {
         orderPromise = this.updateOrder(results[0], -1 * this.computePrice(item), transaction);
-        articlePromise = this.updateArticle(results[1], -1 * +item.quantity, transaction);
-        Promise.all([orderPromise, articlePromise]).then((results) => {
+        articleStockPromise = this.updateArticleStock(results[1], -1 * +item.quantity, transaction);
+        Promise.all([orderPromise, articleStockPromise]).then((res) => {
           item.destroy({transaction}).then(() => resolve()).catch((error) => reject(error));
         }).catch((error) => reject(error));
       }).catch((error) => reject(error));
     });
+  }
+
+  private updateItem(item: CustomerOrderItem, transaction: Transaction): Promise<CustomerOrderItem> {
+    if (item instanceof CustomerOrderItem) {
+      return item.save({transaction});
+    }
+    return CustomerOrderItem.create(item, {transaction});
+  }
+
+  private updateOrder(order: CustomerOrder, priceDifference: number, transaction: Transaction): Promise<CustomerOrder> {
+    order.totalPrice = +order.totalPrice + +priceDifference;
+    return order.save({transaction});
+  }
+
+  private updateArticleStock(articleStock: ArticleStock, count: number, transaction: Transaction): Promise<ArticleStock> {
+    articleStock.reservedQuantity = +articleStock.reservedQuantity + +count;
+    return articleStock.save({transaction});
   }
 
   private computePriceDifference(item: CustomerOrderItem, oldItem: CustomerOrderItem): number {

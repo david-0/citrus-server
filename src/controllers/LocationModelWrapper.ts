@@ -1,5 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {Address} from "../models/Address";
 import {Location} from "../models/Location";
 import {IModelWrapper} from "./IModelWrapper";
@@ -43,8 +43,8 @@ export class LocationModelWrapper implements IModelWrapper<Location> {
 
   public update(value: Location, transaction: Transaction): Promise<[number, Array<Location>]> {
     return Location.update(value, {
-      where: {id: value.id},
       transaction,
+      where: {id: value.id},
     });
   }
 

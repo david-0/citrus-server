@@ -26,23 +26,23 @@ export class ArticleStock extends Model<ArticleStock> {
    * </ul>
    */
   @Column
-  public stock: number;
+  public quantity: number;
 
   /**
    * Reserved is a computed(redundant) column with the following formula:
    * <ul>
    *     <li>plus all CustomerOrderItem[checkedOut=false] quantities</li>
-   *     <li>minus all Checkout quantities(in the future</li>
+   *     <li>plus all Checkout quantities(in the future)</li>
    * </ul>
    */
   @Column
-  public reserved: number;
+  public reservedQuantity: number;
 
   @HasMany(() => ArticleCheckIn)
-  public checkins: ArticleCheckIn[];
+  public checkIns: ArticleCheckIn[];
 
   @HasMany(() => ArticleCheckOut)
-  public checkouts: ArticleCheckOut[];
+  public checkOuts: ArticleCheckOut[];
 
   @HasMany(() => CustomerOrderItem)
   public customerOrderItems: CustomerOrderItem[];

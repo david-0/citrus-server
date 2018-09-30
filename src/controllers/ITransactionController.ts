@@ -1,5 +1,6 @@
 import express = require("express");
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 
 export interface ITransactionController {
   add(req: express.Request, res: express.Response, transaction: Transaction): Promise<void>;

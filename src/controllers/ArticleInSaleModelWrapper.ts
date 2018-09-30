@@ -1,5 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {Article} from "../models/Article";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
 import {IModelWrapper} from "./IModelWrapper";
@@ -18,7 +18,7 @@ export class ArticleInSaleModelWrapper implements IModelWrapper<Article> {
     return Article.findAll({
       include: [UnitOfMeasurement],
       transaction,
-      where: {status: 1},
+      where: {inSale: true},
     });
   }
 
@@ -26,7 +26,7 @@ export class ArticleInSaleModelWrapper implements IModelWrapper<Article> {
     return Article.findAndCountAll({
       include: [UnitOfMeasurement],
       transaction,
-      where: {status: 1},
+      where: {inSale: true},
     });
   }
 

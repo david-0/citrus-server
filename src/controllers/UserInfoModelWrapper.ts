@@ -1,5 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {User} from "../models/User";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -36,9 +36,9 @@ export class UserInfoModelWrapper implements IModelWrapper<User> {
 
   public update(value: User, transaction: Transaction): Promise<[number, User[]]> {
     return User.update(value, {
-      where: {id: value.id},
       fields: ["number", "email", "name", "prename", "phone", "mobile"],
       transaction,
+      where: {id: value.id},
     });
   }
 

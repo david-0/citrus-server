@@ -1,5 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {Address} from "../models/Address";
 import {Article} from "../models/Article";
 import {CustomerOrder} from "../models/CustomerOrder";
@@ -25,19 +25,19 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
   public findAll(transaction: Transaction): Promise<CustomerOrder[]> {
     return CustomerOrder.findAll({
       include: [{
-        model: CustomerOrderItem,
         include: [{
-          model: Article,
           include: [UnitOfMeasurement],
+          model: Article,
         }],
+        model: CustomerOrderItem,
       }, {
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: Location,
         include: [{
           model: Address,
         }],
+        model: Location,
       }],
       transaction,
     });
@@ -46,19 +46,19 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
   public findAndCountAll(transaction: Transaction): Promise<{ rows: CustomerOrder[]; count: number; }> {
     return CustomerOrder.findAndCountAll({
       include: [{
-        model: CustomerOrderItem,
         include: [{
-          model: Article,
           include: [UnitOfMeasurement],
+          model: Article,
         }],
+        model: CustomerOrderItem,
       }, {
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: Location,
         include: [{
           model: Address,
         }],
+        model: Location,
       }],
       transaction,
     });
@@ -66,30 +66,30 @@ export class CustomerOrderWithItemsAndArticleModelWrapper implements IModelWrapp
 
   public findById(identifier: string | number, transaction: Transaction): Promise<CustomerOrder> {
     return CustomerOrder.findById(identifier, {
-      transaction,
       include: [{
-        model: CustomerOrderItem,
         include: [{
-          model: Article,
           include: [UnitOfMeasurement],
+          model: Article,
         }],
+        model: CustomerOrderItem,
       }, {
         attributes: {exclude: ["password"]},
         model: User,
       }, {
-        model: Location,
         include: [{
           model: Address,
         }],
+        model: Location,
       }],
+      transaction,
     });
   }
 
   public update(value: CustomerOrder, transaction: Transaction): Promise<[number, Array<CustomerOrder>]> {
     return CustomerOrder.update(value, {
       fields: ["userId", "pickupLocationId", "bulkOrderId"],
-      where: {id: value.id},
       transaction,
+      where: {id: value.id},
     });
   }
 

@@ -1,5 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {Article} from "../models/Article";
 import {ArticleStock} from "../models/ArticleStock";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
@@ -17,28 +17,28 @@ export class ArticleWithStockModelWrapper implements IModelWrapper<Article> {
 
   public findAll(transaction: Transaction): Promise<Article[]> {
     return Article.findAll({
-      transaction,
       include: [UnitOfMeasurement,
         ArticleStock,
       ],
+      transaction,
     });
   }
 
   public findAndCountAll(transaction: Transaction): Promise<{ rows: Article[]; count: number; }> {
     return Article.findAndCountAll({
-      transaction,
       include: [UnitOfMeasurement,
         ArticleStock,
       ],
+      transaction,
     });
   }
 
   public findById(identifier: string | number, transaction: Transaction): Promise<Article> {
     return Article.findById(identifier, {
-      transaction,
       include: [UnitOfMeasurement,
         ArticleStock,
       ],
+      transaction,
     });
   }
 

@@ -1,6 +1,5 @@
-import * as Promise from "bluebird";
-import {Transaction} from "sequelize";
-import {Address} from "../models/Address";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {UnitOfMeasurement} from "../models/UnitOfMeasurement";
 import {IModelWrapper} from "./IModelWrapper";
 
@@ -28,8 +27,8 @@ export class UnitOfMeasurementModelWrapper implements IModelWrapper<UnitOfMeasur
 
   public update(value: UnitOfMeasurement, transaction: Transaction): Promise<[number, UnitOfMeasurement[]]> {
     return UnitOfMeasurement.update(value, {
-      where: {id: value.id},
       transaction,
+      where: {id: value.id},
     });
   }
 

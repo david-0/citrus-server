@@ -1,6 +1,7 @@
 import * as express from "express";
 import {Logger} from "log4js";
-import {Transaction} from "sequelize";
+import * as Promise from "sequelize-typescript/node_modules/@types/bluebird";
+import {Transaction} from "sequelize-typescript/node_modules/@types/sequelize";
 import {Picture} from "../models/Picture";
 import {ITransactionController} from "./ITransactionController";
 import log4js = require("log4js");
