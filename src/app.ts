@@ -140,7 +140,12 @@ class Server {
   private routes(): void {
     useExpressServer(this.app, {
       authorizationChecker: async (action: Action, roles: string[]) => {
-        const user: User = await this.verifyToken(action.request.headers.get("authorization"), this.jwtConfig.getVerifySecret());
+        const header = action.request.headers["authorization"];
+        if (!header) {
+          return false;
+        }
+        const token = header.substring(7); // remove "Bearer " prefix
+        const user: User = await this.verifyToken(token, this.jwtConfig.getVerifySecret());
         return (user && (!roles.length || !!roles.find(role => user.roles.map(r => r.name).indexOf(role) !== -1)));
       },
       controllers: [

@@ -1,9 +1,9 @@
-import {UserInfoDto} from "citrus-common";
+import {UserDto} from "citrus-common";
 import {User} from "../models/User";
 import {IProjector} from "./IProjector";
 
-export class UserInfoDtoToUserProjector implements IProjector<UserInfoDto, User> {
-  public project(dto: UserInfoDto): Promise<User> {
+export class UserInfoDtoToUserProjector implements IProjector<UserDto, User> {
+  public project(dto: UserDto): Promise<User> {
     return new Promise<User>(resolve => {
       const user = new User();
       if (dto.id == null) {
