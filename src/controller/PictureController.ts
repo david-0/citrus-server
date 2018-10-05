@@ -1,5 +1,5 @@
 import {Request, Response} from "express";
-import {Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
+import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {getConnectionManager, Repository} from "typeorm";
 import {EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Picture} from "../models/Picture";
@@ -19,11 +19,13 @@ export class PictureController {
     response.status(200).send(picture.image);
   }
 
+  @Authorized()
   @Get()
   public getAll() {
     return this.pictureRepository.find();
   }
 
+  @Authorized()
   @Post()
   public async save(@Body() image: Buffer,@Req() request: Request) {
     const picture = new Picture();
@@ -32,6 +34,7 @@ export class PictureController {
     return this.pictureRepository.save(picture);
   }
 
+  @Authorized()
   @Put("/:id([0-9]+)")
   public async update(@Body() image: Buffer, @Param("id") id: number, @Req() request: Request) {
     const picture = await this.pictureRepository.findOne(id);
@@ -40,6 +43,7 @@ export class PictureController {
     return this.pictureRepository.save(picture);
   }
 
+  @Authorized()
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") picture: Picture) {
     return this.pictureRepository.remove(picture);

@@ -2,7 +2,7 @@ import * as bcrypt from "bcryptjs";
 import * as express from "express";
 import {Response} from "express";
 import {sign} from "jsonwebtoken";
-import {Body, CurrentUser, JsonController, Param, Post, Res} from "routing-controllers";
+import {Authorized, Body, CurrentUser, JsonController, Param, Post, Res} from "routing-controllers";
 import {getManager} from "typeorm";
 import {Role} from "../models/Role";
 import {User} from "../models/User";
@@ -29,7 +29,7 @@ export class SecurityController {
     return {token: this.createToken(this.createTestingAdminUser())};
   }
 
-  // TODO Require Admin
+  @Authorized("admin")
   @Post("/api/user/:id([0-9]+)/changepassword")
   public addChangePasswordEndpoint(@Param("id") userId: number, @Body() body: any, @Res() res: Response) {
     return this.changePassword(userId, body.password);

@@ -1,12 +1,13 @@
 import {CartDto} from "citrus-common";
 import {Request} from "express";
-import {Body, JsonController, Post, Req} from "routing-controllers";
+import {Authorized, Body, JsonController, Post, Req} from "routing-controllers";
 import {EntityManager, Transaction, TransactionManager} from "typeorm";
 import {ArticleStock} from "../models/ArticleStock";
 import {CustomerOrder} from "../models/CustomerOrder";
 import {CustomerOrderItem} from "../models/CustomerOrderItem";
 import {User} from "../models/User";
 
+@Authorized()
 @JsonController("/api/cart")
 export class CartController {
 

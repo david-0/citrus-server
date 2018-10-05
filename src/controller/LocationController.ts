@@ -1,4 +1,4 @@
-import {Delete, Get, JsonController, Param, Post} from "routing-controllers";
+import {Authorized, Delete, Get, JsonController, Param, Post} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Location} from "../models/Location";
@@ -11,11 +11,13 @@ export class LocationController {
     this.locationRepository = getManager().getRepository(Location);
   }
 
+  @Authorized()
   @Get("/:id([0-9]+)")
   public get(@EntityFromParam("id") location: Location) {
     return location;
   }
 
+  @Authorized()
   @Get()
   public getAll() {
     return this.locationRepository.find();
@@ -31,21 +33,25 @@ export class LocationController {
     return this.locationRepository.find({relations: ["openingHours"]});
   }
 
+  @Authorized()
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
     return this.locationRepository.findOne(id, {relations: ["articleStocks", "openingHours"]});
   }
 
+  @Authorized()
   @Get("/withAll")
   public getAllWithAll() {
     return this.locationRepository.find({relations: ["articleStocks", "openingHours"]});
   }
 
+  @Authorized()
   @Post()
   public save(@EntityFromBody() location: Location) {
     return this.locationRepository.save(location);
   }
 
+  @Authorized()
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") location: Location) {
     return this.locationRepository.remove(location);

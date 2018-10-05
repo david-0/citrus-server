@@ -1,4 +1,4 @@
-import {Delete, Get, JsonController, Param, Post} from "routing-controllers";
+import {Authorized, Delete, Get, JsonController, Param, Post} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Address} from "../models/Address";
@@ -27,31 +27,37 @@ export class ArticleController {
     return this.articleRepository.find({where: {inSale: true}, relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
+  @Authorized()
   @Get("/withStock/:id([0-9]+)")
   public getWithStock(@Param("id") id: number) {
     return this.articleRepository.findOne(id, {relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
+  @Authorized()
   @Get("/withStock")
   public getAllWithStock() {
     return this.articleRepository.find({relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
+  @Authorized()
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
     return this.articleRepository.findOne(id, {relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
+  @Authorized()
   @Get("/withAll")
   public getAllWithAll() {
     return this.articleRepository.find({relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
+  @Authorized()
   @Post()
   public save(@EntityFromBody() article: Article) {
     return this.articleRepository.save(article);
   }
 
+  @Authorized()
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") article: Article) {
     return this.articleRepository.remove(article);

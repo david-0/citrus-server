@@ -137,17 +137,20 @@ class Server {
     }
   }
 
+  private async authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
+    const authHeaderName = "authorization";
+    const header = action.request.headers[authHeaderName];
+    if (!header) {
+      return false;
+    }
+    const token = header.substring(7); // remove "Bearer " prefix
+    const user: any = await this.verifyToken(token, this.jwtConfig.getVerifySecret());
+    return user && (!roles.length || roles.filter(role => user.roles.indexOf(role) !== -1).length > 0);
+  }
+
   private routes(): void {
     useExpressServer(this.app, {
-      authorizationChecker: async (action: Action, roles: string[]) => {
-        const header = action.request.headers["authorization"];
-        if (!header) {
-          return false;
-        }
-        const token = header.substring(7); // remove "Bearer " prefix
-        const user: User = await this.verifyToken(token, this.jwtConfig.getVerifySecret());
-        return (user && (!roles.length || !!roles.find(role => user.roles.map(r => r.name).indexOf(role) !== -1)));
-      },
+      authorizationChecker: async (action: Action, roles: string[]) => this.authorizationChecker(action, roles),
       controllers: [
         AddressController,
         ArticleController,
