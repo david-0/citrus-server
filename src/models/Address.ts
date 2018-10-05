@@ -1,37 +1,36 @@
-import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
-import {Location} from "./Location";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import {User} from "./User";
 
-@Table
-export class Address extends Model<Address> {
-  @ForeignKey(() => User)
-  @Column
-  public userId: number;
+@Entity()
+export class Address {
 
-  @BelongsTo(() => User)
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @ManyToOne(type => User, user => user.addresses, {cascade: true})
   public user: User;
 
-  @Column
+  @Column()
   public description: string;
 
-  @Column
+  @Column()
   public name: string;
 
-  @Column
+  @Column()
   public prename: string;
 
-  @Column
+  @Column()
   public street: string;
 
-  @Column
+  @Column()
   public number: string;
 
-  @Column
+  @Column()
   public addition: string;
 
-  @Column
+  @Column()
   public zipcode: string;
 
-  @Column
+  @Column()
   public city: string;
 }

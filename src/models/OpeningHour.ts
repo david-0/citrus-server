@@ -1,19 +1,19 @@
-import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import {Location} from "./Location";
 
-@Table
-export class OpeningHour extends Model<OpeningHour> {
-  @Column
+@Entity()
+export class OpeningHour {
+
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @Column()
   public fromDate: Date;
 
-  @Column
+  @Column()
   public toDate: Date;
 
-  @ForeignKey(() => Location)
-  @Column
-  public locationId: number;
-
-  @BelongsTo(() => Location, { onDelete: "cascade" })
+  @ManyToOne(type => Location, location => location.openingHours, {onDelete: "CASCADE"})
   public location: Location;
 
 }

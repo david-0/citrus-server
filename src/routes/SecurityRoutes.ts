@@ -1,9 +1,10 @@
 import * as express from "express";
 import {Router} from "express-serve-static-core";
+import {getManager} from "typeorm";
 import {Role} from "../models/Role";
 import {User} from "../models/User";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
-import bcrypt = require("bcrypt");
+import bcrypt = require("bcryptjs");
 import eJwt = require("express-jwt");
 import jwt = require("jsonwebtoken");
 
@@ -25,9 +26,9 @@ export class SecurityRoutes {
   private addChangePasswordEndpoint(router: Router) {
     router.route("/api/user/:id([0-9]+)/changepassword")
       .post(this.requiresAdmin, (req, res, next) => {
-        this.updatePasswordById(+req.params.id, req.body.password, (user) => {
+        this.updatePasswordById(+req.params.id, req.body.password, user => {
           res.json(1);
-        }, (msg) => {
+        }, msg => {
           res.status(404).json(
             {error: `error update User paswword failed`});
         });
@@ -37,10 +38,10 @@ export class SecurityRoutes {
   private addChangeMyPasswordEndpoint(router: Router) {
     router.route("/api/user/changemypassword")
       .post((req, res, next) => {
-        this.updatePasswordByEmail(req.user.email, req.body.password, (user) => {
+        this.updatePasswordByEmail(req.user.email, req.body.password, user => {
           res.status(200);
           res.json({token: this.createToken(user)});
-        }, (msg) => {
+        }, msg => {
           res.status(500);
           res.json({error: `error update paswword failed, (${msg})`});
         });
@@ -50,13 +51,13 @@ export class SecurityRoutes {
   private updatePasswordByEmail(email: string, password: string,
                                 success: (user: User) => void,
                                 error: (message: string) => void) {
-    this.findUserbyEmail(email, (user) => {
-      this.updatePassword(user, password, (user1) => {
+    this.findUserbyEmail(email, user => {
+      this.updatePassword(user, password, user1 => {
         success(user1);
-      }, (message) => {
+      }, message => {
         error(message);
       });
-    }, (message) => {
+    }, message => {
       error(message);
     });
   }
@@ -64,13 +65,13 @@ export class SecurityRoutes {
   private updatePasswordById(id: number, password: string,
                              success: (user: User) => void,
                              error: (message: string) => void) {
-    this.findUserbyId(id, (user) => {
-      this.updatePassword(user, password, (user1) => {
+    this.findUserbyId(id, user => {
+      this.updatePassword(user, password, user1 => {
         success(user1);
-      }, (message) => {
+      }, message => {
         error(message);
       });
-    }, (message) => {
+    }, message => {
       error(message);
     });
   }
@@ -79,19 +80,15 @@ export class SecurityRoutes {
                          success: (user: User) => void,
                          error: (message: string) => void) {
     bcrypt.hash(password, 10).then(
-      (passwordHash) => {
-        User.update({password: passwordHash}, {where: {id: user.id}})
-          .then((result) => {
-            if (result[0] === 1) {
-              success(user);
-            } else {
-              error("2");
-            }
+      passwordHash => {
+        getManager().getRepository(User).update({id: user.id}, {password: passwordHash})
+          .then(result => {
+            success(user);
           })
-          .catch((err) => {
+          .catch(err => {
             error(err);
           });
-      }, (reason) => {
+      }, reason => {
         error(reason);
       });
   }
@@ -99,21 +96,24 @@ export class SecurityRoutes {
   private findUserbyId(id: number,
                        success: (user: User) => void,
                        error: (message: string) => void) {
-    User.findOne({where: {id: {$eq: id}}})
-      .then((user: User) => {
+    getManager().getRepository(User).findOne({id})
+      .then(user => {
         success(user);
       })
-      .catch((err) => {
+      .catch(err => {
         error(err);
       });
   }
 
-  private findUserbyEmail(email: string,
+  private findUserbyEmail(emailAddress: string,
                           success: (user: User) => void,
                           error: (message: string) => void) {
-    const whereCondition =  {};
-    whereCondition[email] = {$eq: email};
-    User.findAll({include: [Role], where: whereCondition})
+    getManager().getRepository(User)
+      .createQueryBuilder("user")
+      .addSelect("user.password")
+      .leftJoinAndSelect("user.roles", "roles")
+      .where("user.email = :email", { email: emailAddress })
+      .getMany()
       .then((users: User[]) => {
         if (users.length !== 1) {
           error("1");
@@ -121,7 +121,7 @@ export class SecurityRoutes {
           success(users[0]);
         }
       })
-      .catch((err) => {
+      .catch(err => {
         error(err);
       });
   }
@@ -139,12 +139,12 @@ export class SecurityRoutes {
   private addAuthenticateEndpoint(router: Router) {
     router.route("/api/authenticate")
       .post((req, res) => {
-        this.checkLogin(req.body.email, req.body.password, (user) => {
-          console.info(`login successfull, password correct ${JSON.stringify(user)}`);
+        this.checkLogin(req.body.email, req.body.password, user => {
+//          console.info(`login successfull, password correct ${JSON.stringify(user)}`);
           res.json({token: this.createToken(user)});
-        }, (err) => {
+        }, err => {
 //            res.status(500).json({error: `error creating token for user: ${email}. ${err}`});
-          console.info("login NOT successfull --> fake admin user");
+//          console.info("login NOT successfull --> fake admin user");
           res.json({token: this.createToken(this.createTestingAdminUser())});
         });
       })
@@ -156,17 +156,17 @@ export class SecurityRoutes {
   private checkLogin(email: string, password: string,
                      success: (user: User) => void,
                      error: (message: string) => void) {
-    this.findUserbyEmail(email, (user) => {
+    this.findUserbyEmail(email, user => {
       bcrypt.compare(password, user.password)
-        .then((u) => {
+        .then(u => {
           if (u) {
             success(user);
           } else {
             error("wrong user or password ");
           }
         })
-        .catch((err) => error(err));
-    }, (message) => error(message));
+        .catch(err => error(err));
+    }, message => error(message));
   }
 
   /**
@@ -179,14 +179,14 @@ export class SecurityRoutes {
     const saleRole = new Role();
     saleRole.name = "sale";
     const user = new User();
-    user.email = "a@b";
+    user.id = 111;
     user.roles = [role, saleRole];
     return user;
   }
 
   private createToken(user: User): string {
-    const roles = user.roles.map((role) => role.name);
-    return jwt.sign({email: user.email, roles},
+    const roles = user.roles.map(role => role.name);
+    return jwt.sign({id: user.id, roles},
       this.jwtConfig.getSignSecret(), this.jwtConfig.getSignOptions());
   }
 

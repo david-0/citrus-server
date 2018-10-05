@@ -1,34 +1,37 @@
-import {Column, HasMany, Model, Table} from "sequelize-typescript";
+import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {ArticleStock} from "./ArticleStock";
 import {OpeningHour} from "./OpeningHour";
 
-@Table
-export class Location extends Model<Location> {
+@Entity()
+export class Location {
 
-  @Column
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @Column()
   public comment: string;
 
-  @Column
+  @Column()
   public street: string;
 
-  @Column
+  @Column()
   public number: string;
 
-  @Column
+  @Column()
   public addition: string;
 
-  @Column
+  @Column()
   public zipcode: string;
 
-  @Column
+  @Column()
   public city: string;
 
-  @Column
+  @Column()
   public description: string;
 
-  @HasMany(() => ArticleStock)
+  @OneToMany(type => ArticleStock, stock => stock.location)
   public articleStocks: ArticleStock[];
 
-  @HasMany(() => OpeningHour)
+  @OneToMany(type => OpeningHour, openingHour => openingHour.location)
   public openingHours: OpeningHour[];
 }

@@ -1,30 +1,25 @@
-import {BelongsTo, Column, DataType, ForeignKey, Model, Table} from "sequelize-typescript";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import {ArticleStock} from "./ArticleStock";
 import {CustomerOrder} from "./CustomerOrder";
 
-@Table
-export class CustomerOrderItem extends Model<CustomerOrderItem> {
+@Entity()
+export class CustomerOrderItem {
 
-  @ForeignKey(() => CustomerOrder)
-  @Column
-  public customerOrderId: number;
+  @PrimaryGeneratedColumn()
+  public id: number;
 
-  @BelongsTo(() => CustomerOrder)
+  @ManyToOne(type => CustomerOrder, order => order.customerOrderItems)
   public customerOrder: CustomerOrder;
 
-  @ForeignKey(() => ArticleStock)
-  @Column
-  public articleStockId: number;
-
-  @BelongsTo(() => ArticleStock)
+  @ManyToOne(type => ArticleStock, stock => stock.customerOrderItems)
   public articleStock: ArticleStock;
 
-  @Column({type: DataType.DECIMAL(10, 2)})
+  @Column("decimal", {precision: 10, scale: 2})
   public copiedPrice: number;
 
-  @Column
+  @Column()
   public quantity: number;
 
-  @Column
+  @Column()
   public checkedOut: boolean;
 }

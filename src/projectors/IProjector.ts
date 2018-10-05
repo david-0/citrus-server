@@ -1,4 +1,3 @@
-import * as Promise from "bluebird";
 import {DtoId} from "citrus-common/lib/dto/dto-id";
 
 export interface IProjector<DTO extends DtoId, T> {

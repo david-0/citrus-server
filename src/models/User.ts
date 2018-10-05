@@ -1,48 +1,47 @@
-import {BelongsToMany, Column, HasMany, Model, Table, Unique} from "sequelize-typescript";
+import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
 import {Address} from "./Address";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
 import {CustomerOrder} from "./CustomerOrder";
 import {Role} from "./Role";
-import {UserRole} from "./UserRole";
 
-@Table
-export class User extends Model<User> {
-  @Unique
-  @Column
-  public number: number;
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn()
+  public id: number;
 
-  @Unique
-  @Column
+  @Unique(["email"])
+  @Column()
   public email: string;
 
-  @Column
+  @Column({select: false, nullable: true})
   public password: string;
 
-  @BelongsToMany(() => Role, () => UserRole)
+  @ManyToMany(type => Role, role => role.users)
+  @JoinTable()
   public roles: Role[];
 
-  @Column
+  @Column()
   public name: string;
 
-  @Column
+  @Column()
   public prename: string;
 
-  @Column
+  @Column()
   public phone: string;
 
-  @Column
+  @Column()
   public mobile: string;
 
-  @HasMany(() => CustomerOrder)
+  @OneToMany(type => CustomerOrder, order => order.user)
   public customerOrders: CustomerOrder[];
 
-  @HasMany(() => ArticleCheckIn)
+  @OneToMany(type => ArticleCheckIn, checkIn => checkIn.user)
   public articleCheckIns: ArticleCheckIn[];
 
-  @HasMany(() => ArticleCheckOut)
+  @OneToMany(type => ArticleCheckOut, checkOut => checkOut.user)
   public articleCheckOuts: ArticleCheckOut[];
 
-  @HasMany(() => Address)
+  @OneToMany(type => Address, address => address.user)
   public addresses: Address[];
 }

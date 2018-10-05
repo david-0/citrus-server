@@ -1,22 +1,22 @@
-import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {CustomerOrderItem} from "./CustomerOrderItem";
 import {User} from "./User";
 
-@Table
-export class CustomerOrder extends Model<CustomerOrder> {
-  @Column
+@Entity()
+export class CustomerOrder {
+
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @Column()
   public date: Date;
 
-  @Column({type: DataType.DECIMAL(10, 2)})
+  @Column("decimal", {precision: 10, scale: 2})
   public totalPrice: number;
 
-  @ForeignKey(() => User)
-  @Column
-  public userId: number;
-
-  @BelongsTo(() => User)
+  @ManyToOne(type => User, user => user.customerOrders)
   public user: User;
 
-  @HasMany(() => CustomerOrderItem)
+  @OneToMany(type => CustomerOrderItem, item => item.customerOrder, {cascade: true})
   public customerOrderItems: CustomerOrderItem[];
 }

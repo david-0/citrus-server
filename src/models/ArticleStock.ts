@@ -1,4 +1,4 @@
-import {BelongsTo, Column, ForeignKey, HasMany, Model, Table} from "sequelize-typescript";
+import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Article} from "./Article";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
@@ -8,13 +8,13 @@ import {Location} from "./Location";
 /**
  * Lagerbestand pro Standort
  */
-@Table
-export class ArticleStock extends Model<ArticleStock> {
-  @ForeignKey(() => Article)
-  @Column
-  public articleId: number;
+@Entity()
+export class ArticleStock {
 
-  @BelongsTo(() => Article)
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @ManyToOne(type => Article, article => article.articleStocks)
   public article: Article;
 
   /**
@@ -25,7 +25,7 @@ export class ArticleStock extends Model<ArticleStock> {
    *     <li>minus all CustomerOrderItem[checkedOut=true] quantities</li>
    * </ul>
    */
-  @Column
+  @Column()
   public quantity: number;
 
   /**
@@ -35,22 +35,18 @@ export class ArticleStock extends Model<ArticleStock> {
    *     <li>plus all Checkout quantities(in the future)</li>
    * </ul>
    */
-  @Column
+  @Column()
   public reservedQuantity: number;
 
-  @HasMany(() => ArticleCheckIn)
+  @OneToMany(type => ArticleCheckIn, checkin => checkin.articleStock)
   public checkIns: ArticleCheckIn[];
 
-  @HasMany(() => ArticleCheckOut)
+  @OneToMany(type => ArticleCheckOut, checkout => checkout.articleStock)
   public checkOuts: ArticleCheckOut[];
 
-  @HasMany(() => CustomerOrderItem)
+  @ManyToOne(type => CustomerOrderItem, customerOrderItem => customerOrderItem.articleStock)
   public customerOrderItems: CustomerOrderItem[];
 
-  @ForeignKey(() => Location)
-  @Column
-  public locationId: number;
-
-  @BelongsTo(() => Location)
+  @OneToMany(type => Location, location => location.articleStocks)
   public location: Location;
 }

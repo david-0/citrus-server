@@ -1,32 +1,29 @@
-import {BelongsTo, Column, ForeignKey, Model, Table} from "sequelize-typescript";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
 import {ArticleStock} from "./ArticleStock";
 import {User} from "./User";
 
 /**
  * Artikel Ausbuchen
  */
-@Table
-export class ArticleCheckOut extends Model<ArticleCheckOut> {
-  @ForeignKey(() => ArticleStock)
-  @Column
-  public articleStockId: number;
 
-  @BelongsTo(() => ArticleStock)
+@Entity()
+export class ArticleCheckOut {
+
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @ManyToOne(type => ArticleStock, articleStock => articleStock.checkOuts)
   public articleStock: ArticleStock;
 
-  @Column
+  @Column()
   public quantity: number;
 
-  @Column
+  @Column()
   public date: Date;
 
-  @Column
+  @Column()
   public comment: string;
 
-  @ForeignKey(() => User)
-  @Column
-  public userId: number;
-
-  @BelongsTo(() => User)
+  @ManyToOne(type => User, user => user.articleCheckOuts)
   public user: User;
 }

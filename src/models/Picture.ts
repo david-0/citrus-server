@@ -1,14 +1,14 @@
-import {Column, Model, PrimaryKey, Table} from "sequelize-typescript";
+import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
-@Table
-export class Picture extends Model<Picture> {
-  @PrimaryKey
-  @Column
-  public id: string;
+@Entity()
+export class Picture {
 
-  @Column
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @Column()
   public contentType: string;
 
-  @Column
+  @Column("bytea")
   public image: Buffer;
 }

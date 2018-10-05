@@ -1,15 +1,18 @@
-import {Column, HasMany, Model, Table} from "sequelize-typescript";
+import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Article} from "./Article";
 
-@Table
-export class UnitOfMeasurement extends Model<UnitOfMeasurement>{
+@Entity()
+export class UnitOfMeasurement {
 
-  @Column
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @Column()
   public shortcut: string;
 
-  @Column
+  @Column()
   public description: string;
 
-  @HasMany(() => Article)
+  @OneToMany(type => Article, article => article.unitOfMeasurement)
   public articles: Article[];
 }

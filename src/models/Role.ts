@@ -1,14 +1,16 @@
-import {BelongsToMany, Column, Model, Table} from "sequelize-typescript";
+import {Column, Entity, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
 import {User} from "./User";
-import {UserRole} from "./UserRole";
 
-@Table
-export class Role extends Model<Role> {
+@Entity()
+export class Role {
 
-  @Column
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @Column()
   public name: string;
 
-  @BelongsToMany(() => User, () => UserRole)
+  @ManyToMany(() => User, user => user.roles)
   public users: User[];
 
 }

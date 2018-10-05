@@ -1,48 +1,29 @@
-import * as bodyParser from "body-parser";
 import * as compression from "compression";
 import * as express from "express";
 import * as fs from "fs";
 import * as http from "http";
-import * as createError from "http-errors";
 import * as https from "https";
+import {verify, VerifyErrors} from "jsonwebtoken";
 import * as log4js from "log4js";
 import {Logger} from "log4js";
 import * as path from "path";
-import {AddressWithAllModelWrapper} from "./controllers/AddressWithAllModelWrapper";
-import {AddressWithUserInfoModelWrapper} from "./controllers/AddressWithUserInfoModelWrapper";
-import {ArticleInSaleModelWrapper} from "./controllers/ArticleInSaleModelWrapper";
-import {ArticleModelWrapper} from "./controllers/ArticleModelWrapper";
-import {ArticleWithAllModelWrapper} from "./controllers/ArticleWithAllModelWrapper";
-import {ArticleWithStockModelWrapper} from "./controllers/ArticleWithStockModelWrapper";
-import {CartController} from "./controllers/CartController";
-import {CustomerOrderItemModelWrapper} from "./controllers/CustomerOrderItemModelWrapper";
-import {CustomerOrderModelWrapper} from "./controllers/CustomerOrderModelWrapper";
-import {CustomerOrderWithItemsAndArticleModelWrapper} from "./controllers/CustomerOrderWithItemsAndArticleModelWrapper";
-import {GenericController} from "./controllers/GenericController";
-import {OpeningHourModelWrapper} from "./controllers/OpeningHourModelWrapper";
-import {LocationModelWrapper} from "./controllers/LocationModelWrapper";
-import {LocationWithOpeningHoursModelWrapper} from "./controllers/LocationWithOpeningHoursModelWrapper";
-import {PictureController} from "./controllers/PictureController";
-import {RoleModelWrapper} from "./controllers/RoleModelWrapper";
-import {RoleWithUserInfosModelWrapper} from "./controllers/RoleWithUserInfosModelWrapper";
-import {TransactionController} from "./controllers/TransactionController";
-import {UnitOfMeasurementModelWrapper} from "./controllers/UnitOfMeasurementModelWrapper";
-import {UnitOfMeasurementWithArticlesModelWrapper} from "./controllers/UnitOfMeasurementWithArticlesModelWrapper";
-import {UserInfoModelWrapper} from "./controllers/UserInfoModelWrapper";
-import {UserInfoWithAllModelWrapper} from "./controllers/UserInfoWithAllModelWrapper";
-import {UserInfoWithRolesModelWrapper} from "./controllers/UserInfoWithRolesModelWrapper";
-import {Address} from "./models/Address";
-import {Article} from "./models/Article";
-import {CustomerOrder} from "./models/CustomerOrder";
-import {CustomerOrderItem} from "./models/CustomerOrderItem";
-import {OpeningHour} from "./models/OpeningHour";
-import {Location} from "./models/Location";
-import {Role} from "./models/Role";
-import {UnitOfMeasurement} from "./models/UnitOfMeasurement";
+import "reflect-metadata";
+import {Action, useExpressServer} from "routing-controllers";
+import {Container} from "typedi";
+import {createConnection, useContainer} from "typeorm";
+import {AddressController} from "./controller/AddressController";
+import {ArticleController} from "./controller/ArticleController";
+import {CartController} from "./controller/CartController";
+import {CustomerOrderController} from "./controller/CustomerOrderController";
+import {CustomerOrderItemController} from "./controller/CustomerOrderItemController";
+import {LocationController} from "./controller/LocationController";
+import {OpeningHourController} from "./controller/OpeningHourController";
+import {PictureController} from "./controller/PictureController";
+import {RoleController} from "./controller/RoleController";
+import {SecurityController} from "./controller/SecurityController";
+import {UnitOfMeasurementController} from "./controller/UnitOfMeasurementController";
+import {UserController} from "./controller/UserController";
 import {User} from "./models/User";
-import {GenericRouter} from "./routes/GenericRouter";
-import {SecurityRoutes} from "./routes/SecurityRoutes";
-import {DBService} from "./services/DBService";
 import {SocketService} from "./socket/SocketService";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
@@ -83,20 +64,19 @@ class Server {
     // create ClientSocketService
     this.socketService = new SocketService();
 
-    // Create database connections
-    this.databases();
+    useContainer(Container);
+    createConnection().then(async connection => {
+      // Setup routes
+      this.routes();
 
-    // Setup routes
-    this.routes();
+      // Create server
+      this.createServer();
 
-    // Create server
-    this.createServer();
-
-    // Handle websockets
-    this.sockets();
-
-    // Start listening
-    this.listen();
+      // Start listening
+      this.listen();
+    }).catch(err => {
+      console.error("Create Connection error: {}", err);
+    });
   }
 
   private createServer() {
@@ -158,114 +138,42 @@ class Server {
   }
 
   private routes(): void {
-    this.app.use(log4js.connectLogger(LOGGER, {
-      format: "express --> :method :url :status :req[Accept] :res[Content-Type]",
-      level: "trace",
+    useExpressServer(this.app, {
+      authorizationChecker: async (action: Action, roles: string[]) => {
+        const user: User = await this.verifyToken(action.request.headers.get("authorization"), this.jwtConfig.getVerifySecret());
+        return (user && (!roles.length || !!roles.find(role => user.roles.map(r => r.name).indexOf(role) !== -1)));
+      },
+      controllers: [
+        AddressController,
+        ArticleController,
+        CartController,
+        CustomerOrderController,
+        CustomerOrderItemController,
+        LocationController,
+        OpeningHourController,
+        PictureController,
+        RoleController,
+        UnitOfMeasurementController,
+        UserController,
+        SecurityController,
+      ],
+      cors: {
+        allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        methods: "POST, GET, PATCH, DELETE, PUT",
+        origin: "*",
+        preflightContinue: false,
+      },
+    });
+  }
+
+  private verifyToken(tokenAsString: string, secret: string | Buffer): Promise<User> {
+    return new Promise<User>((resolve, reject) => verify(tokenAsString, secret, (err: VerifyErrors, decoded: User) => {
+      if (decoded) {
+        resolve(decoded);
+      } else {
+        reject();
+      }
     }));
-    this.app.use(express.static(__dirname + "/public"));
-    this.app.use(bodyParser.json());
-    this.app.use(bodyParser.urlencoded({extended: false}));
-    this.app.use(this.inputLogger);
-
-    const articleModelWrapper = new ArticleModelWrapper();
-    const customerOrderItemModelWrapper = new CustomerOrderItemModelWrapper();
-    const customerOrderModelWrapper = new CustomerOrderModelWrapper(customerOrderItemModelWrapper);
-    this.app.use("/", this.appendHeaders);
-    this.app.options("/api/*", this.setStatus200);
-    this.app.use(new SecurityRoutes(this.jwtConfig).getRouter());
-    const db = DBService.sequelize;
-    this.app.use("/api/role", GenericRouter.all(
-      new TransactionController(db, new GenericController<Role>(new RoleModelWrapper()))));
-    this.app.use("/api/roleWithUserInfos", GenericRouter.all(
-      new TransactionController(db, new GenericController<Role>(new RoleWithUserInfosModelWrapper()))));
-    this.app.use("/api/address", GenericRouter.all(
-      new TransactionController(db, new GenericController<Address>(new AddressWithUserInfoModelWrapper()))));
-    this.app.use("/api/addressWithAll", GenericRouter.all(
-      new TransactionController(db, new GenericController<Address>(new AddressWithAllModelWrapper()))));
-    this.app.use("/api/userInfo", GenericRouter.all(
-      new TransactionController(db, new GenericController<User>(new UserInfoModelWrapper()))));
-    this.app.use("/api/userInfoWithRoles", GenericRouter.all(
-      new TransactionController(db, new GenericController<User>(new UserInfoWithRolesModelWrapper()))));
-    this.app.use("/api/userInfoWithAll", GenericRouter.all(
-      new TransactionController(db, new GenericController<User>(new UserInfoWithAllModelWrapper()))));
-    this.app.use("/api/unitOfMeasurement", GenericRouter.all(
-      new TransactionController(db, new GenericController<UnitOfMeasurement>(new UnitOfMeasurementModelWrapper()))));
-    this.app.use("/api/unitOfMeasurementWithArticles", GenericRouter.all(
-      new TransactionController(db, new GenericController<UnitOfMeasurement>(new UnitOfMeasurementWithArticlesModelWrapper()))));
-    this.app.use("/api/article", GenericRouter.all(
-      new TransactionController(db, new GenericController<Article>(articleModelWrapper))));
-    this.app.use("/api/articleWithStock", GenericRouter.all(
-      new TransactionController(db, new GenericController<Article>(new ArticleWithStockModelWrapper()))));
-    this.app.use("/api/articleWithAll", GenericRouter.all(
-      new TransactionController(db, new GenericController<Article>(new ArticleWithAllModelWrapper()))));
-    this.app.use("/api/cart", GenericRouter.post(
-      new TransactionController(db, new CartController(customerOrderItemModelWrapper))));
-    this.app.use("/api/location", GenericRouter.all(
-      new TransactionController(db, new GenericController<Location>(new LocationModelWrapper()))));
-    this.app.use("/api/pickupLocationWithOpeningHours", GenericRouter.all(
-      new TransactionController(db, new GenericController<Location>(
-        new LocationWithOpeningHoursModelWrapper()))));
-    this.app.use("/api/openingHour", GenericRouter.putPostDelete(
-      new TransactionController(db, new GenericController<OpeningHour>(new OpeningHourModelWrapper()))));
-    this.app.use("/api/customerOrder", GenericRouter.all(
-      new TransactionController(db, new GenericController<CustomerOrder>(customerOrderModelWrapper))));
-    this.app.use("/api/customerOrderItem", GenericRouter.putPostDelete(
-      new TransactionController(db, new GenericController<CustomerOrderItem>(customerOrderItemModelWrapper))));
-    this.app.use("/api/customerOrderWithItemsAndArticles", GenericRouter.all(
-      new TransactionController(db, new GenericController<CustomerOrder>(
-        new CustomerOrderWithItemsAndArticleModelWrapper()))));
-    this.app.use("/api/picture", GenericRouter.get(new TransactionController(db, new PictureController())));
-    this.app.use("/api/picture", GenericRouter.putPostDelete(new TransactionController(db, new PictureController())));
-    this.app.use("/api", this.createError);
-    this.app.use("/article", GenericRouter.get(
-      new TransactionController(db, new GenericController<Article>(articleModelWrapper))));
-    this.app.use("/articleInSale", GenericRouter.get(
-      new TransactionController(db, new GenericController<Article>(new ArticleInSaleModelWrapper()))));
-    this.app.use("/location", GenericRouter.get(
-      new TransactionController(db, new GenericController<Location>(
-        new LocationWithOpeningHoursModelWrapper()))));
-    this.app.use("/picture", GenericRouter.get(new TransactionController(db, new PictureController())));
-
-    this.app.use(this.sendFile);
-
-    this.app.use(this.outputLogger);
-    this.app.use(this.errorHandler);
-  }
-
-  private setStatus200(req: express.Request, res: express.Response, next: express.NextFunction) {
-    res.sendStatus(200);
-  }
-
-  private appendHeaders(req: express.Request, res: express.Response, next: express.NextFunction) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    res.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE, PUT");
-    next();
-  }
-
-  private createError(req: express.Request, res: express.Response, next: express.NextFunction) {
-    next(createError(404, `No route found for ${req.method} ${req.url}`));
-  }
-
-  private sendFile(req: express.Request, res: express.Response, next: express.NextFunction) {
-    res.sendFile(__dirname + "/public/index.html");
-  }
-
-  // Configure databases
-  private databases(): void {
-    DBService.init();
-  }
-
-  // Configure sockets
-  private sockets(): void {
-    // Get socket.io handle
-    /*    this.io = socketIo(this.server);
-        this.io.use(socketioJwt.authorize({
-          handshake: true,
-          secret: this.jwtConfig.getVerifySecret(),
-        }));
-
-        this.socketService.init(this.io);*/
   }
 
   // Start HTTP server listening
@@ -273,7 +181,7 @@ class Server {
     this.server.listen(this.port);
 
     // add error handler
-    this.server.on("error", this.loggError);
+    this.server.on("error", this.logError);
 
     // start listening on port
     this.server.on("listening", () => {
@@ -281,23 +189,8 @@ class Server {
     });
   }
 
-  private loggError(error: Error) {
+  private logError(error: Error) {
     LOGGER.error(`ERROR: ${error.stack}`);
-  }
-
-  private errorHandler(err: Error, req: express.Request, res: express.Response, next: express.NextFunction) {
-    LOGGER.error(`ErrorHandler: ${err.stack}`);
-    res.status(500).send(err.message);
-  }
-
-  private inputLogger(req: express.Request, res: express.Response, next: express.NextFunction) {
-    LOGGER.debug(`Request: ${req.method} ${req.url}`);
-    next();
-  }
-
-  private outputLogger(req: express.Request, res: express.Response, next: express.NextFunction) {
-    LOGGER.debug(`Response with status code: ${res.statusCode}`);
-    next();
   }
 }
 

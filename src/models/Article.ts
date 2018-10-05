@@ -1,45 +1,35 @@
-import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table, Unique} from "sequelize-typescript";
-import {addAttributeOptions} from "sequelize-typescript/lib/services/models";
+import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
 import {ArticleStock} from "./ArticleStock";
 import {UnitOfMeasurement} from "./UnitOfMeasurement";
-
-function ToNumber(target: any, propertyKey: string): any {
-  addAttributeOptions(target, propertyKey, {
-    get(): any {
-      return +this.getDataValue(propertyKey);
-    },
-  });
-}
 
 /**
  * Stammdaten
  */
-@Table
-export class Article extends Model<Article> {
-  @Unique
-  @Column
+@Entity()
+export class Article {
+
+  @PrimaryGeneratedColumn()
+  public id: number;
+
+  @Unique(["number"])
+  @Column()
   public number: number;
 
-  @Column
+  @Column()
   public description: string;
 
-  @Column
+  @Column({nullable: true})
   public pictureId: string;
 
-  @ToNumber
-  @Column({type: DataType.DECIMAL(10, 2)})
+  @Column("decimal", {precision: 10, scale: 2})
   public price: number;
 
-  @Column
+  @Column()
   public inSale: boolean;
 
-  @ForeignKey(() => UnitOfMeasurement)
-  @Column
-  public unitOfMeasurementId: number;
-
-  @BelongsTo(() => UnitOfMeasurement)
+  @ManyToOne(type => UnitOfMeasurement, unitOfMeasurement => unitOfMeasurement.articles)
   public unitOfMeasurement: UnitOfMeasurement;
 
-  @HasMany(() => ArticleStock)
+  @OneToMany(type => ArticleStock, articleStock => articleStock.article)
   public articleStocks: ArticleStock[];
 }
