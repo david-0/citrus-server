@@ -1,4 +1,4 @@
-import {Authorized, Delete, Get, JsonController, Param, Post} from "routing-controllers";
+import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Address} from "../models/Address";
@@ -55,6 +55,11 @@ export class ArticleController {
   @Post()
   public save(@EntityFromBody() article: Article) {
     return this.articleRepository.save(article);
+  }
+
+  @Put("/:id([0-9]+)")
+  public update(@EntityFromParam("id") article: Article, @EntityFromBody() newArticle: Article) {
+    return this.articleRepository.save(this.articleRepository.merge(article, newArticle));
   }
 
   @Authorized()
