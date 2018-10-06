@@ -4,8 +4,7 @@ import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 import {verify, VerifyErrors} from "jsonwebtoken";
-import * as log4js from "log4js";
-import {Logger} from "log4js";
+import {configure, getLogger, Logger} from "log4js";
 import * as path from "path";
 import "reflect-metadata";
 import {Action, useExpressServer} from "routing-controllers";
@@ -28,7 +27,7 @@ import {SocketService} from "./socket/SocketService";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
 
-const LOGGER: Logger = log4js.getLogger("Server");
+const LOGGER: Logger = getLogger("Server");
 
 declare var process: any;
 declare var dirname: any;
@@ -54,6 +53,12 @@ class Server {
   private jwtConfig: JwtConfiguration;
 
   constructor() {
+
+    configure({
+      appenders: {out: {type: "stdout"}},
+      categories: {default: {appenders: ["out"], level: "info"}},
+    });
+
     // Create expressjs application
     this.app = express();
     this.app.use(compression());
@@ -75,7 +80,7 @@ class Server {
       // Start listening
       this.listen();
     }).catch(err => {
-      console.error("Create Connection error: {}", err);
+      LOGGER.error("Create Connection error: {}", err);
     });
   }
 
