@@ -44,9 +44,9 @@ export class ArticleStock {
   @OneToMany(type => ArticleCheckOut, checkout => checkout.articleStock)
   public checkOuts: ArticleCheckOut[];
 
-  @ManyToOne(type => CustomerOrderItem, customerOrderItem => customerOrderItem.articleStock)
+  @OneToMany(type => CustomerOrderItem, customerOrderItem => customerOrderItem.articleStock)
   public customerOrderItems: CustomerOrderItem[];
 
-  @OneToMany(type => Location, location => location.articleStocks)
+  @ManyToOne(type => Location, location => location.id)
   public location: Location;
 }
