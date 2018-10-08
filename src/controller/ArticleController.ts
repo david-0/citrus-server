@@ -57,6 +57,7 @@ export class ArticleController {
     return this.articleRepository.save(article);
   }
 
+  @Authorized()
   @Put("/:id([0-9]+)")
   public update(@EntityFromParam("id") article: Article, @EntityFromBody() newArticle: Article) {
     return this.articleRepository.save(this.articleRepository.merge(article, newArticle));
