@@ -1,15 +1,16 @@
-import {Authorized, Delete, Get, JsonController, Post} from "routing-controllers";
+import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
+import {Location} from "../models/Location";
 import {OpeningHour} from "../models/OpeningHour";
 
 @Authorized()
 @JsonController("/api/openingHour")
 export class OpeningHourController {
-  private roleRepository: Repository<OpeningHour>;
+  private openingHourRepository: Repository<OpeningHour>;
 
   constructor() {
-    this.roleRepository = getManager().getRepository(OpeningHour);
+    this.openingHourRepository = getManager().getRepository(OpeningHour);
   }
 
   @Get("/:id([0-9]+)")
@@ -19,16 +20,21 @@ export class OpeningHourController {
 
   @Get()
   public getAll() {
-    return this.roleRepository.find();
+    return this.openingHourRepository.find();
   }
 
   @Post()
   public save(@EntityFromBody() openingHour: OpeningHour) {
-    return this.roleRepository.save(openingHour);
+    return this.openingHourRepository.save(openingHour);
+  }
+
+  @Put("/:id([0-9]+)")
+  public update(@EntityFromParam("id") openingHour: OpeningHour, @EntityFromBody() changedOpeningHour: OpeningHour) {
+    return this.openingHourRepository.save(this.openingHourRepository.merge(openingHour, changedOpeningHour));
   }
 
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") openingHour: OpeningHour) {
-    return this.roleRepository.remove(openingHour);
+    return this.openingHourRepository.remove(openingHour);
   }
 }

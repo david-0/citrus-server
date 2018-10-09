@@ -13,7 +13,7 @@ export class OpeningHour {
   @Column()
   public toDate: Date;
 
-  @ManyToOne(type => Location, location => location.openingHours, {onDelete: "CASCADE"})
+  @ManyToOne(type => Location, location => location.openingHours)
   public location: Location;
 
 }
