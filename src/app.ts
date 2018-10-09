@@ -12,6 +12,7 @@ import {Container} from "typedi";
 import {createConnection, useContainer} from "typeorm";
 import {AddressController} from "./controller/AddressController";
 import {ArticleController} from "./controller/ArticleController";
+import {ArticleStockController} from "./controller/ArticleStockController";
 import {CartController} from "./controller/CartController";
 import {CustomerOrderController} from "./controller/CustomerOrderController";
 import {CustomerOrderItemController} from "./controller/CustomerOrderItemController";
@@ -159,6 +160,7 @@ class Server {
       controllers: [
         AddressController,
         ArticleController,
+        ArticleStockController,
         CartController,
         CustomerOrderController,
         CustomerOrderItemController,
