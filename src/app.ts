@@ -25,6 +25,7 @@ import {UnitOfMeasurementController} from "./controller/UnitOfMeasurementControl
 import {UserController} from "./controller/UserController";
 import {User} from "./models/User";
 import {SocketService} from "./socket/SocketService";
+import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
 
@@ -178,6 +179,10 @@ class Server {
         origin: "*",
         preflightContinue: false,
       },
+      defaultErrorHandler: false,
+      middlewares: [
+        CustomErrorHandler,
+      ],
     });
   }
 
