@@ -1,4 +1,4 @@
-import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
 import {Article} from "./Article";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
@@ -9,6 +9,7 @@ import {Location} from "./Location";
  * Lagerbestand pro Standort
  */
 @Entity()
+@Unique(["article", "location"])
 export class ArticleStock {
 
   @PrimaryGeneratedColumn()
