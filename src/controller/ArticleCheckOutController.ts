@@ -14,13 +14,29 @@ export class ArticleCheckOutController {
   @Authorized()
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
-    return this.articleCheckOutRepository.findOne(id, {relations: ["articleStock", "user"]});
+    return this.articleCheckOutRepository.findOne(id, {
+      relations: [
+        "articleStock",
+        "articleStock.article",
+        "articleStock.article.unitOfMeasurement",
+        "articleStock.location",
+        "user",
+      ],
+    });
   }
 
   @Authorized()
   @Get("/withAll")
   public getAllWithAll() {
-    return this.articleCheckOutRepository.find({relations: ["articleStock", "user"]});
+    return this.articleCheckOutRepository.find({
+      relations: [
+        "articleStock",
+        "articleStock.article",
+        "articleStock.article.unitOfMeasurement",
+        "articleStock.location",
+        "user",
+      ],
+    });
   }
 
   @Authorized()
