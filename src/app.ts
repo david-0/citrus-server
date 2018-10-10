@@ -11,6 +11,8 @@ import {Action, useExpressServer} from "routing-controllers";
 import {Container} from "typedi";
 import {createConnection, useContainer} from "typeorm";
 import {AddressController} from "./controller/AddressController";
+import {ArticleCheckInController} from "./controller/ArticleCheckInController";
+import {ArticleCheckOutController} from "./controller/ArticleCheckOutController";
 import {ArticleController} from "./controller/ArticleController";
 import {ArticleStockController} from "./controller/ArticleStockController";
 import {CartController} from "./controller/CartController";
@@ -161,6 +163,8 @@ class Server {
       controllers: [
         AddressController,
         ArticleController,
+        ArticleCheckInController,
+        ArticleCheckOutController,
         ArticleStockController,
         CartController,
         CustomerOrderController,
