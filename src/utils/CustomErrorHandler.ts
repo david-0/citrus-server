@@ -6,11 +6,13 @@ import {ExpressErrorMiddlewareInterface, HttpError, Middleware} from "routing-co
  * Express middleware to catch all errors throwed in controlers.
  * Should be first in error chain as it sends response to client.
  *
+ * https://github.com/typestack/routing-controllers/issues/87
+ *
  * @export
  * @class CustomErrorHandler
  * @implements {ErrorMiddlewareInterface}
  */
-@Middleware({ type: "after" })
+@Middleware({type: "after"})
 export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
 
   /**
