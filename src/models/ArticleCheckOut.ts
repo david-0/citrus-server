@@ -22,6 +22,9 @@ export class ArticleCheckOut {
   public date: Date;
 
   @Column()
+  public done: boolean;
+
+  @Column()
   public comment: string;
 
   @ManyToOne(type => User, user => user.articleCheckOuts)

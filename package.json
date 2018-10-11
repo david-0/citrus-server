@@ -33,7 +33,7 @@
     "@types/uuid": "^3.4.4",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
-    "citrus-common": "^0.3.10",
+    "citrus-common": "^0.3.11",
     "compression": "^1.7.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",
