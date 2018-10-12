@@ -1,7 +1,6 @@
 import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {Address} from "../models/Address";
 import {Article} from "../models/Article";
 
 @JsonController("/api/article")
@@ -24,7 +23,16 @@ export class ArticleController {
 
   @Get("/inSale")
   public getAllInSale() {
-    return this.articleRepository.find({where: {inSale: true}, relations: ["unitOfMeasurement", "articleStocks"]});
+    return this.articleRepository.find({
+      relations: [
+        "unitOfMeasurement",
+        "articleStocks",
+        "articleStocks.location",
+        "articleStocks.article",
+        "articleStocks.article.unitOfMeasurement",
+      ],
+      where: {inSale: true},
+    });
   }
 
   @Authorized()
