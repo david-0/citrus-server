@@ -7,35 +7,34 @@ import {
   UpdateEvent,
 } from "typeorm";
 import {ArticleCheckIn} from "../entity/ArticleCheckIn";
-import {ArticleCheckOut} from "../entity/ArticleCheckOut";
 import {ArticleStock} from "../entity/ArticleStock";
 import {CustomerOrderItem} from "../entity/CustomerOrderItem";
 
 @EventSubscriber()
-export class ArticleCheckOutSubscriber implements EntitySubscriberInterface<ArticleCheckOut> {
+export class CustomerOrderItemQuantityUpdateSubscriber implements EntitySubscriberInterface<CustomerOrderItem> {
   public listenTo() {
-    return ArticleCheckOut;
+    return CustomerOrderItem;
   }
 
-  public async afterInsert(event: InsertEvent<ArticleCheckOut>) {
+  public async afterInsert(event: InsertEvent<CustomerOrderItem>) {
     await this.add(event.manager, event.entity);
   }
 
-  public async beforeUpdate(event: UpdateEvent<ArticleCheckOut>) {
+  public async beforeUpdate(event: UpdateEvent<CustomerOrderItem>) {
     await this.remove(event.manager, event.databaseEntity);
   }
 
-  public async afterUpdate(event: UpdateEvent<ArticleCheckOut>) {
+  public async afterUpdate(event: UpdateEvent<CustomerOrderItem>) {
     await this.add(event.manager, event.entity);
   }
 
-  public async beforeRemove(event: RemoveEvent<ArticleCheckOut>) {
+  public async beforeRemove(event: RemoveEvent<CustomerOrderItem>) {
     await this.remove(event.manager, event.entity);
   }
 
-  private async add(manager: EntityManager, entity: ArticleCheckOut) {
+  private async add(manager: EntityManager, entity: CustomerOrderItem) {
     const stock = await manager.getRepository(ArticleStock).findOne(entity.articleStock.id);
-    if (entity.done) {
+    if (entity.checkedOut) {
       stock.quantity -= +entity.quantity;
     } else {
       stock.reservedQuantity += +entity.quantity;
@@ -43,12 +42,12 @@ export class ArticleCheckOutSubscriber implements EntitySubscriberInterface<Arti
     await manager.getRepository(ArticleStock).save(stock);
   }
 
-  private async remove(manager: EntityManager, entity: ArticleCheckOut) {
+  private async remove(manager: EntityManager, entity: CustomerOrderItem) {
     if (!entity.articleStock) {
-      entity = await manager.getRepository(ArticleCheckOut).findOne(entity.id, {relations: ["articleStock"]});
+      entity = await manager.getRepository(CustomerOrderItem).findOne(entity.id, {relations: ["articleStock"]});
     }
     const stock = await manager.getRepository(ArticleStock).findOne(entity.articleStock.id);
-    if (entity.done) {
+    if (entity.checkedOut) {
       stock.quantity += +entity.quantity;
     } else {
       stock.reservedQuantity -= +entity.quantity;

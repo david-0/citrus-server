@@ -10,7 +10,7 @@ import {ArticleCheckIn} from "../entity/ArticleCheckIn";
 import {ArticleStock} from "../entity/ArticleStock";
 
 @EventSubscriber()
-export class ArticleCheckInSubscriber implements EntitySubscriberInterface<ArticleCheckIn> {
+export class ArticleCheckInQuantityUpdateSubscriber implements EntitySubscriberInterface<ArticleCheckIn> {
   public listenTo() {
     return ArticleCheckIn;
   }
