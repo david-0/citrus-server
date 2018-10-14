@@ -1,8 +1,8 @@
 import * as express from "express";
 import {Router} from "express-serve-static-core";
 import {getManager} from "typeorm";
-import {Role} from "../models/Role";
-import {User} from "../models/User";
+import {Role} from "../entity/Role";
+import {User} from "../entity/User";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
 import bcrypt = require("bcryptjs");
 import eJwt = require("express-jwt");

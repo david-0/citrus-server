@@ -1,8 +1,8 @@
 import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {Location} from "../models/Location";
-import {OpeningHour} from "../models/OpeningHour";
+import {Location} from "../entity/Location";
+import {OpeningHour} from "../entity/OpeningHour";
 
 @Authorized()
 @JsonController("/api/openingHour")

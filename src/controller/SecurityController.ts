@@ -4,8 +4,8 @@ import {Response} from "express";
 import {sign} from "jsonwebtoken";
 import {Authorized, Body, CurrentUser, JsonController, Param, Post, Res} from "routing-controllers";
 import {getManager} from "typeorm";
-import {Role} from "../models/Role";
-import {User} from "../models/User";
+import {Role} from "../entity/Role";
+import {User} from "../entity/User";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
 
 @JsonController()

@@ -25,7 +25,7 @@ import {RoleController} from "./controller/RoleController";
 import {SecurityController} from "./controller/SecurityController";
 import {UnitOfMeasurementController} from "./controller/UnitOfMeasurementController";
 import {UserController} from "./controller/UserController";
-import {User} from "./models/User";
+import {User} from "./entity/User";
 import {SocketService} from "./socket/SocketService";
 import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 

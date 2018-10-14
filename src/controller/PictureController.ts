@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {getConnectionManager, Repository} from "typeorm";
 import {EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {Picture} from "../models/Picture";
+import {Picture} from "../entity/Picture";
 
 @JsonController("/api/picture")
 export class PictureController {

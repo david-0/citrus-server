@@ -6,8 +6,8 @@ import {
   RemoveEvent,
   UpdateEvent,
 } from "typeorm";
-import {ArticleCheckIn} from "../models/ArticleCheckIn";
-import {ArticleStock} from "../models/ArticleStock";
+import {ArticleCheckIn} from "../entity/ArticleCheckIn";
+import {ArticleStock} from "../entity/ArticleStock";
 
 @EventSubscriber()
 export class ArticleCheckInSubscriber implements EntitySubscriberInterface<ArticleCheckIn> {

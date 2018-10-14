@@ -6,9 +6,9 @@ import {
   RemoveEvent,
   UpdateEvent,
 } from "typeorm";
-import {ArticleCheckIn} from "../models/ArticleCheckIn";
-import {ArticleStock} from "../models/ArticleStock";
-import {CustomerOrderItem} from "../models/CustomerOrderItem";
+import {ArticleCheckIn} from "../entity/ArticleCheckIn";
+import {ArticleStock} from "../entity/ArticleStock";
+import {CustomerOrderItem} from "../entity/CustomerOrderItem";
 
 @EventSubscriber()
 export class CustomerOrderItemSubscriber implements EntitySubscriberInterface<CustomerOrderItem> {

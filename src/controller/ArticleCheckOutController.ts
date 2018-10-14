@@ -1,7 +1,7 @@
 import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {ArticleCheckOut} from "../models/ArticleCheckOut";
+import {ArticleCheckOut} from "../entity/ArticleCheckOut";
 
 @JsonController("/api/articleCheckOut")
 export class ArticleCheckOutController {
