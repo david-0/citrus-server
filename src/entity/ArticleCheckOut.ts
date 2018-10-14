@@ -28,5 +28,5 @@ export class ArticleCheckOut {
   public comment: string;
 
   @ManyToOne(type => User, user => user.articleCheckOuts)
-  public user: User;
+  public doneUser: User;
 }

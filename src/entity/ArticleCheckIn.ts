@@ -27,5 +27,5 @@ export class ArticleCheckIn {
   public comment: string;
 
   @ManyToOne(type => User, user => user.articleCheckIns)
-  public user: User;
+  public doneUser: User;
 }

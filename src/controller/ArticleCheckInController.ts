@@ -20,7 +20,7 @@ export class ArticleCheckInController {
         "articleStock.article",
         "articleStock.article.unitOfMeasurement",
         "articleStock.location",
-        "user",
+        "doneUser",
       ],
     });
   }
@@ -34,7 +34,7 @@ export class ArticleCheckInController {
         "articleStock.article",
         "articleStock.article.unitOfMeasurement",
         "articleStock.location",
-        "user",
+        "doneUser",
       ],
     });
   }

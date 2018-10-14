@@ -36,10 +36,10 @@ export class User {
   @OneToMany(type => CustomerOrder, order => order.user)
   public customerOrders: CustomerOrder[];
 
-  @OneToMany(type => ArticleCheckIn, checkIn => checkIn.user)
+  @OneToMany(type => ArticleCheckIn, checkIn => checkIn.doneUser)
   public articleCheckIns: ArticleCheckIn[];
 
-  @OneToMany(type => ArticleCheckOut, checkOut => checkOut.user)
+  @OneToMany(type => ArticleCheckOut, checkOut => checkOut.doneUser)
   public articleCheckOuts: ArticleCheckOut[];
 
   @OneToMany(type => Address, address => address.user)
