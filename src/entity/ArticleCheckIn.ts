@@ -18,7 +18,7 @@ export class ArticleCheckIn {
   public quantity: number;
 
   @Column()
-  public date: Date;
+  public plannedDate: Date;
 
   @Column()
   public done: boolean;
