@@ -1,4 +1,4 @@
-import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
+import {Authorized, CurrentUser, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {ArticleCheckOut} from "../entity/ArticleCheckOut";
@@ -41,19 +41,23 @@ export class ArticleCheckOutController {
 
   @Authorized()
   @Post("/withAll")
-  public save(@EntityFromBody() article: ArticleCheckOut) {
-    return this.articleCheckOutRepository.save(article);
+  public save(@EntityFromBody() article: ArticleCheckOut, @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckOutRepository.save(article, {data: userId});
   }
 
   @Authorized()
   @Put("/withAll/:id([0-9]+)")
-  public update(@EntityFromParam("id") articleCheckOut: ArticleCheckOut, @EntityFromBody() changeArticleCheckOut: ArticleCheckOut) {
-    return this.articleCheckOutRepository.save(this.articleCheckOutRepository.merge(articleCheckOut, changeArticleCheckOut));
+  public update(@EntityFromParam("id") articleCheckOut: ArticleCheckOut,
+                @EntityFromBody() changeArticleCheckOut: ArticleCheckOut,
+                @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckOutRepository.save(
+      this.articleCheckOutRepository.merge(articleCheckOut, changeArticleCheckOut), {data: userId}
+    );
   }
 
   @Authorized()
   @Delete("/withAll/:id([0-9]+)")
-  public delete(@EntityFromParam("id") article: ArticleCheckOut) {
-    return this.articleCheckOutRepository.remove(article);
+  public delete(@EntityFromParam("id") article: ArticleCheckOut, @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckOutRepository.remove(article, {data: userId});
   }
 }

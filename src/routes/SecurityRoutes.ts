@@ -179,7 +179,7 @@ export class SecurityRoutes {
     const saleRole = new Role();
     saleRole.name = "sale";
     const user = new User();
-    user.id = 111;
+    user.id = 1;
     user.roles = [role, saleRole];
     return user;
   }

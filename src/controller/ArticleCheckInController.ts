@@ -1,7 +1,8 @@
-import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
+import {Authorized, CurrentUser, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {ArticleCheckIn} from "../entity/ArticleCheckIn";
+import {User} from "../entity/User";
 
 @JsonController("/api/articleCheckIn")
 export class ArticleCheckInController {
@@ -41,19 +42,23 @@ export class ArticleCheckInController {
 
   @Authorized()
   @Post("/withAll")
-  public save(@EntityFromBody() article: ArticleCheckIn) {
-    return this.articleCheckInRepository.save(article);
+  public async save(@EntityFromBody() article: ArticleCheckIn, @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckInRepository.save(article, {data: userId});
   }
 
   @Authorized()
   @Put("/withAll/:id([0-9]+)")
-  public update(@EntityFromParam("id") articleCheckIn: ArticleCheckIn, @EntityFromBody() changeArticleCheckIn: ArticleCheckIn) {
-    return this.articleCheckInRepository.save(this.articleCheckInRepository.merge(articleCheckIn, changeArticleCheckIn));
+  public update(@EntityFromParam("id") articleCheckIn: ArticleCheckIn,
+                @EntityFromBody() changeArticleCheckIn: ArticleCheckIn,
+                @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckInRepository.save(
+      this.articleCheckInRepository.merge(articleCheckIn, changeArticleCheckIn), {data: userId},
+    );
   }
 
   @Authorized()
   @Delete("/withAll/:id([0-9]+)")
-  public delete(@EntityFromParam("id") article: ArticleCheckIn) {
-    return this.articleCheckInRepository.remove(article);
+  public delete(@EntityFromParam("id") article: ArticleCheckIn, @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckInRepository.remove(article, {data: userId});
   }
 }

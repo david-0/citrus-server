@@ -22,11 +22,14 @@ export class ArticleCheckOut {
   public plannedDate: Date;
 
   @Column()
-  public done: boolean;
-
-  @Column()
   public comment: string;
 
-  @ManyToOne(type => User, user => user.articleCheckOuts)
+  @Column()
+  public done: boolean;
+
+  @Column({nullable: true})
+  public doneDate: Date;
+
+  @ManyToOne(type => User, user => user.articleCheckOuts, { nullable: true })
   public doneUser: User;
 }
