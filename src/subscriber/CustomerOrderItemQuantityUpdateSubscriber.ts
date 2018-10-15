@@ -6,7 +6,6 @@ import {
   RemoveEvent,
   UpdateEvent,
 } from "typeorm";
-import {ArticleCheckIn} from "../entity/ArticleCheckIn";
 import {ArticleStock} from "../entity/ArticleStock";
 import {CustomerOrderItem} from "../entity/CustomerOrderItem";
 
