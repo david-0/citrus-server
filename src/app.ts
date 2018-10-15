@@ -157,6 +157,14 @@ class Server {
     return user && (!roles.length || roles.filter(role => user.roles.indexOf(role) !== -1).length > 0);
   }
 
+  private async currentUserChecker(action: Action): Promise<number> {
+    const authHeaderName = "authorization";
+    const header = action.request.headers[authHeaderName];
+    const token = header.substring(7); // remove "Bearer " prefix
+    const user = await this.verifyToken(token, this.jwtConfig.getVerifySecret());
+    return user.id;
+  }
+
   private routes(): void {
     useExpressServer(this.app, {
       authorizationChecker: async (action: Action, roles: string[]) => this.authorizationChecker(action, roles),
@@ -183,6 +191,7 @@ class Server {
         origin: "*",
         preflightContinue: false,
       },
+      currentUserChecker: async (action: Action) => this.currentUserChecker(action),
       defaultErrorHandler: false,
       middlewares: [
         CustomErrorHandler,
