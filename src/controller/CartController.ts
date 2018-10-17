@@ -3,8 +3,8 @@ import {Request} from "express";
 import {Authorized, Body, JsonController, Post, Req} from "routing-controllers";
 import {EntityManager, Transaction, TransactionManager} from "typeorm";
 import {ArticleStock} from "../entity/ArticleStock";
-import {CustomerOrder} from "../entity/CustomerOrder";
-import {CustomerOrderItem} from "../entity/CustomerOrderItem";
+import {Order} from "../entity/Order";
+import {OrderItem} from "../entity/OrderItem";
 import {User} from "../entity/User";
 
 @Authorized()
@@ -13,24 +13,24 @@ export class CartController {
 
   @Post()
   @Transaction()
-  public async save(@TransactionManager() manager: EntityManager, @Body() cartDto: CartDto, @Req() request: Request): Promise<CustomerOrder> {
+  public async save(@TransactionManager() manager: EntityManager, @Body() cartDto: CartDto, @Req() request: Request): Promise<Order> {
     const user: User = await manager.getRepository(User).findOne(request.user.id);
-    const customerOrder = new CustomerOrder();
+    const customerOrder = new Order();
     customerOrder.user = user;
     for (const cartEntry of cartDto.cartEntries) {
       const articleStock = await manager.getRepository(ArticleStock).findOne(cartEntry.articleStockId);
-      const item = new CustomerOrderItem();
-      item.customerOrder = customerOrder;
+      const item = new OrderItem();
+      item.order = customerOrder;
       item.articleStock = articleStock;
       item.quantity = cartEntry.quantity;
-      customerOrder.customerOrderItems.push(item);
+      customerOrder.orderLocations.push(item);
     }
     customerOrder.totalPrice = this.computeTotalPrice(customerOrder);
-    return await manager.getRepository(CustomerOrder).save(customerOrder);
+    return await manager.getRepository(Order).save(customerOrder);
   }
 
-  private computeTotalPrice(customerOrder: CustomerOrder) {
-    return customerOrder.customerOrderItems
+  private computeTotalPrice(customerOrder: Order) {
+    return customerOrder.orderLocations
       .map(item => +item.copiedPrice * +item.quantity)
       .reduce((p, c) => p + c, 0);
   }

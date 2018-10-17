@@ -2,7 +2,8 @@ import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn
 import {Address} from "./Address";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
-import {CustomerOrder} from "./CustomerOrder";
+import {Order} from "./Order";
+import {OrderLocation} from "./OrderLocation";
 import {Role} from "./Role";
 
 @Entity()
@@ -33,8 +34,8 @@ export class User {
   @Column()
   public mobile: string;
 
-  @OneToMany(type => CustomerOrder, order => order.user)
-  public customerOrders: CustomerOrder[];
+  @OneToMany(type => OrderLocation, orderLocation => orderLocation.checkingOutUser)
+  public orderLocations: OrderLocation[];
 
   @OneToMany(type => ArticleCheckIn, checkIn => checkIn.doneUser)
   public articleCheckIns: ArticleCheckIn[];

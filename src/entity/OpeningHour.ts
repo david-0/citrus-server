@@ -1,5 +1,6 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Location} from "./Location";
+import {OrderLocation} from "./OrderLocation";
 
 @Entity()
 export class OpeningHour {
@@ -15,5 +16,9 @@ export class OpeningHour {
 
   @ManyToOne(type => Location, location => location.openingHours)
   public location: Location;
+
+  @OneToMany(type => OrderLocation, orderLocation => orderLocation.plannedCheckout)
+  public orderLocations: OrderLocation[];
+
 
 }

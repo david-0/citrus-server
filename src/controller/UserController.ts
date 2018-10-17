@@ -44,12 +44,12 @@ export class UserController {
 
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
-    return this.userRepository.findOne(id, {relations: ["roles", "customerOrders", "articleCheckIns", "articleCheckOuts", "addresses"]});
+    return this.userRepository.findOne(id, {relations: ["roles", "orders", "articleCheckIns", "articleCheckOuts", "addresses"]});
   }
 
   @Get("/withAll")
   public getAllWithAll() {
-    return this.userRepository.find({relations: ["roles", "customerOrders", "articleCheckIns", "articleCheckOuts", "addresses"]});
+    return this.userRepository.find({relations: ["roles", "orders", "articleCheckIns", "articleCheckOuts", "addresses"]});
   }
 
   @Delete("/withAll/:id([0-9]+)")

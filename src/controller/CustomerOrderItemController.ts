@@ -1,20 +1,20 @@
 import {Authorized, Delete, Get, JsonController, Post} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {CustomerOrderItem} from "../entity/CustomerOrderItem";
+import {OrderItem} from "../entity/OrderItem";
 import {Role} from "../entity/Role";
 
 @Authorized()
 @JsonController("/api/customerOrderItem")
 export class CustomerOrderItemController {
-  private customerOrderItemRepository: Repository<CustomerOrderItem>;
+  private customerOrderItemRepository: Repository<OrderItem>;
 
   constructor() {
-    this.customerOrderItemRepository = getManager().getRepository(CustomerOrderItem);
+    this.customerOrderItemRepository = getManager().getRepository(OrderItem);
   }
 
   @Get("/:id([0-9]+)")
-  public get(@EntityFromParam("id") item: CustomerOrderItem) {
+  public get(@EntityFromParam("id") item: OrderItem) {
     return item;
   }
 
@@ -24,12 +24,12 @@ export class CustomerOrderItemController {
   }
 
   @Post()
-  public save(@EntityFromBody() item: CustomerOrderItem) {
+  public save(@EntityFromBody() item: OrderItem) {
     return this.customerOrderItemRepository.save(item);
   }
 
   @Delete("/:id([0-9]+)")
-  public delete(@EntityFromParam("id") item: CustomerOrderItem) {
+  public delete(@EntityFromParam("id") item: OrderItem) {
     return this.customerOrderItemRepository.remove(item);
   }
 }

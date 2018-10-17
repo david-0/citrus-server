@@ -2,7 +2,7 @@ import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique} fr
 import {Article} from "./Article";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
-import {CustomerOrderItem} from "./CustomerOrderItem";
+import {OrderItem} from "./OrderItem";
 import {Location} from "./Location";
 
 /**
@@ -45,8 +45,8 @@ export class ArticleStock {
   @OneToMany(type => ArticleCheckOut, checkout => checkout.articleStock)
   public checkOuts: ArticleCheckOut[];
 
-  @OneToMany(type => CustomerOrderItem, customerOrderItem => customerOrderItem.articleStock)
-  public customerOrderItems: CustomerOrderItem[];
+  @OneToMany(type => OrderItem, orderItem => orderItem.articleStock)
+  public orderItems: OrderItem[];
 
   @ManyToOne(type => Location, location => location.id)
   public location: Location;
