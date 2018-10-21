@@ -15,12 +15,12 @@ export class OrderItem {
   @ManyToOne(type => ArticleStock, stock => stock.orderItems)
   public articleStock: ArticleStock;
 
+  /**
+   * price per Unit
+   */
   @Column("decimal", {precision: 10, scale: 2})
   public copiedPrice: number;
 
   @Column()
   public quantity: number;
-
-  @Column()
-  public checkedOut: boolean;
 }

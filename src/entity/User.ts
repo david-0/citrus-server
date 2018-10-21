@@ -34,6 +34,9 @@ export class User {
   @Column()
   public mobile: string;
 
+  @OneToMany(type => Order, order => order.user)
+  public orders: Order[];
+
   @OneToMany(type => OrderLocation, orderLocation => orderLocation.checkingOutUser)
   public orderLocations: OrderLocation[];
 

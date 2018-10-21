@@ -1,4 +1,5 @@
 import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Location} from "./Location";
 import {OpeningHour} from "./OpeningHour";
 import {Order} from "./Order";
 import {OrderItem} from "./OrderItem";
@@ -12,6 +13,9 @@ export class OrderLocation {
 
   @ManyToOne(type => Order, order => order.orderLocations)
   public order: Order;
+
+  @ManyToOne(type => Location, location => location.orderLocations, {nullable: true})
+  public location: Location;
 
   @OneToMany(type => OrderItem, item => item.orderLocation, {cascade: true})
   public orderItems: OrderItem[];
