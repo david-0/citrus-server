@@ -8,6 +8,7 @@ import {
 } from "typeorm";
 import {ArticleStock} from "../entity/ArticleStock";
 import {OrderItem} from "../entity/OrderItem";
+import {OrderLocation} from "../entity/OrderLocation";
 
 @EventSubscriber()
 export class CustomerOrderItemQuantityUpdateSubscriber implements EntitySubscriberInterface<OrderItem> {
@@ -32,8 +33,11 @@ export class CustomerOrderItemQuantityUpdateSubscriber implements EntitySubscrib
   }
 
   private async add(manager: EntityManager, entity: OrderItem) {
+    if (!entity.orderLocation) {
+      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["orderLocation"]});
+    }
     const stock = await manager.getRepository(ArticleStock).findOne(entity.articleStock.id);
-    if (entity.checkedOut) {
+    if (entity.orderLocation.checkedOut) {
       stock.quantity -= +entity.quantity;
     } else {
       stock.reservedQuantity += +entity.quantity;
@@ -42,11 +46,11 @@ export class CustomerOrderItemQuantityUpdateSubscriber implements EntitySubscrib
   }
 
   private async remove(manager: EntityManager, entity: OrderItem) {
-    if (!entity.articleStock) {
-      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["articleStock"]});
+    if (!entity.articleStock || !entity.orderLocation) {
+      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["articleStock", "orderLocation"]});
     }
     const stock = await manager.getRepository(ArticleStock).findOne(entity.articleStock.id);
-    if (entity.checkedOut) {
+    if (entity.orderLocation.checkedOut) {
       stock.quantity += +entity.quantity;
     } else {
       stock.reservedQuantity -= +entity.quantity;

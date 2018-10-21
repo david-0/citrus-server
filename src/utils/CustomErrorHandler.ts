@@ -1,5 +1,6 @@
 import {ValidationError} from "class-validator";
 import * as express from "express";
+import {getLogger, Logger} from "log4js";
 import {ExpressErrorMiddlewareInterface, HttpError, Middleware} from "routing-controllers";
 
 /**
@@ -14,6 +15,8 @@ import {ExpressErrorMiddlewareInterface, HttpError, Middleware} from "routing-co
  */
 @Middleware({type: "after"})
 export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
+
+  private LOGGER: Logger = getLogger("CustomErrorHandler");
 
   /**
    * Error handler - sets response code and sends json with error message.
@@ -43,6 +46,7 @@ export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
       if (error instanceof HttpError && error.httpCode) {
         response.status(error.httpCode);
       } else {
+        this.LOGGER.error(error.stack);
         response.status(500);
       }
 
