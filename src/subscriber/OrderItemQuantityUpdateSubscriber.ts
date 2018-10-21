@@ -8,10 +8,9 @@ import {
 } from "typeorm";
 import {ArticleStock} from "../entity/ArticleStock";
 import {OrderItem} from "../entity/OrderItem";
-import {OrderLocation} from "../entity/OrderLocation";
 
 @EventSubscriber()
-export class CustomerOrderItemQuantityUpdateSubscriber implements EntitySubscriberInterface<OrderItem> {
+export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterface<OrderItem> {
   public listenTo() {
     return OrderItem;
   }
@@ -33,8 +32,8 @@ export class CustomerOrderItemQuantityUpdateSubscriber implements EntitySubscrib
   }
 
   private async add(manager: EntityManager, entity: OrderItem) {
-    if (!entity.orderLocation) {
-      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["orderLocation"]});
+    if (!entity.articleStock || !entity.orderLocation) {
+      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["articleStock", "orderLocation"]});
     }
     const stock = await manager.getRepository(ArticleStock).findOne(entity.articleStock.id);
     if (entity.orderLocation.checkedOut) {
