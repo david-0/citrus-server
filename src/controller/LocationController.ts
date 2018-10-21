@@ -1,7 +1,6 @@
 import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {Article} from "../entity/Article";
 import {Location} from "../entity/Location";
 
 @JsonController("/api/location")
@@ -31,7 +30,10 @@ export class LocationController {
 
   @Get("/withOpeningHours")
   public getAllWithOpeningHours() {
-    return this.locationRepository.find({relations: ["openingHours"]});
+    return this.locationRepository.createQueryBuilder("l")
+      .leftJoinAndSelect("l.openingHours", "o")
+      .orderBy({"o.fromDate": "ASC"})
+      .getMany();
   }
 
   @Authorized()
