@@ -1,5 +1,6 @@
 import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
 import {ArticleStock} from "./ArticleStock";
+import {OrderItem} from "./OrderItem";
 import {UnitOfMeasurement} from "./UnitOfMeasurement";
 
 /**
@@ -32,4 +33,7 @@ export class Article {
 
   @OneToMany(type => ArticleStock, articleStock => articleStock.article)
   public articleStocks: ArticleStock[];
+
+  @OneToMany(type => OrderItem, orderItem => orderItem.article)
+  public orderItems: OrderItem[];
 }

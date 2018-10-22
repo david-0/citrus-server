@@ -1,7 +1,6 @@
 import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
-import {ArticleStock} from "./ArticleStock";
+import {Article} from "./Article";
 import {Order} from "./Order";
-import {OrderLocation} from "./OrderLocation";
 
 @Entity()
 export class OrderItem {
@@ -9,11 +8,11 @@ export class OrderItem {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @ManyToOne(type => OrderLocation, order => order.orderItems)
-  public orderLocation: OrderLocation;
+  @ManyToOne(type => Order, order => order.orderItems)
+  public order: Order;
 
-  @ManyToOne(type => ArticleStock, stock => stock.orderItems)
-  public articleStock: ArticleStock;
+  @ManyToOne(type => Article, article => article.orderItems)
+  public article: Article;
 
   /**
    * price per Unit

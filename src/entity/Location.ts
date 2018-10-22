@@ -1,7 +1,7 @@
 import {Column, Entity, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {ArticleStock} from "./ArticleStock";
 import {OpeningHour} from "./OpeningHour";
-import {OrderLocation} from "./OrderLocation";
+import {Order} from "./Order";
 
 @Entity()
 export class Location {
@@ -33,8 +33,8 @@ export class Location {
   @OneToMany(type => ArticleStock, stock => stock.location)
   public articleStocks: ArticleStock[];
 
-  @OneToMany(type => OrderLocation, orderLocation => orderLocation.location)
-  public orderLocations: OrderLocation[];
+  @OneToMany(type => Order, order => order.location)
+  public orders: Order[];
 
   @OneToMany(type => OpeningHour, openingHour => openingHour.location)
   public openingHours: OpeningHour[];

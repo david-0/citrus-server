@@ -33,7 +33,7 @@
     "@types/uuid": "^3.4.4",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
-    "citrus-common": "^0.4.7",
+    "citrus-common": "^0.4.8",
     "compression": "^1.7.3",
     "cors": "^2.8.4",
     "express": "^4.16.3",
@@ -51,7 +51,7 @@
     "ts-node": "^7.0.1",
     "tslint": "^5.11.0",
     "typedi": "^0.8.0",
-    "typeorm": "^0.2.7",
+    "typeorm": "^0.2.8",
     "typeorm-routing-controllers-extensions": "^0.2.0",
     "typescript": "^3.1.1",
     "uuid": "^3.3.2"

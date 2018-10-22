@@ -7,7 +7,6 @@ import {Location} from "../entity/Location";
 import {OpeningHour} from "../entity/OpeningHour";
 import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
-import {OrderLocation} from "../entity/OrderLocation";
 import {User} from "../entity/User";
 
 @Authorized()
@@ -24,37 +23,30 @@ export class CartController {
     const order = new Order();
     order.date = new Date();
     order.user = user;
-    order.completed = false;
-    order.orderLocations = [];
-    for (const cartLocation of cartDto.cartLocations) {
-      const orderLocation = new OrderLocation();
-      orderLocation.orderItems = [];
-      orderLocation.checkedOut = false;
-      orderLocation.location = await manager.getRepository(Location).findOne(cartLocation.location.id);
-      if (cartLocation.openingHourOfPlannedCheckout) {
-        orderLocation.plannedCheckout = await manager.getRepository(OpeningHour).findOne(cartLocation.openingHourOfPlannedCheckout.id);
+    order.checkedOut = false;
+    order.orderItems = [];
+    order.location = await manager.getRepository(Location).findOne(order.location.id);
+    if (order.plannedCheckout) {
+      order.plannedCheckout = await manager.getRepository(OpeningHour).findOne(order.plannedCheckout.id);
+    }
+    for (const cartItem of cartDto.cartItems) {
+      const articleStock = await manager.getRepository(ArticleStock)
+        .find({
+          where:
+            {
+              article: {id: cartItem.article.id},
+              location: {id: order.location.id},
+            },
+        });
+      if (articleStock.length === 1) {
+        const item = new OrderItem();
+        item.article = articleStock[0].article;
+        item.copiedPrice = cartItem.price;
+        item.quantity = cartItem.quantity;
+        order.orderItems.push(item);
+      } else {
+        throw new Error(`Article (id: ${cartItem.article.id} at location (id: ${cartDto.location.id}) not available.`);
       }
-      for (const cartItem of cartLocation.cartItems) {
-        const articleStock = await manager.getRepository(ArticleStock)
-          .find({
-            where:
-              {
-                article: {id: cartItem.article.id},
-                location: {id: cartLocation.location.id},
-              },
-          });
-        if (articleStock.length === 1) {
-          const item = new OrderItem();
-          item.articleStock = articleStock[0];
-//          item.orderLocation = orderLocation;
-          item.copiedPrice = cartItem.price;
-          item.quantity = cartItem.quantity;
-          orderLocation.orderItems.push(item);
-        } else {
-          throw new Error(`Article (id: ${cartItem.article.id} at location (id: ${cartLocation.location.id}) not available.`);
-        }
-      }
-      order.orderLocations.push(orderLocation);
     }
     order.totalPrice = this.computeTotalPrice(order);
     return await manager.getRepository(Order).save(order);
@@ -62,13 +54,8 @@ export class CartController {
 
   private computeTotalPrice(order: Order) {
     let totalPrice = 0;
-    order.orderLocations.forEach(l => {
-      let totalLocationPrice = 0;
-      l.orderItems.forEach(i => {
-        totalLocationPrice += +i.copiedPrice * +i.quantity;
-      });
-      l.totalLocationPrice = totalLocationPrice;
-      totalPrice += totalLocationPrice;
+    order.orderItems.forEach(i => {
+      totalPrice += +i.copiedPrice * +i.quantity;
     });
     return totalPrice;
   }

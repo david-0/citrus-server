@@ -3,7 +3,6 @@ import {Address} from "./Address";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
 import {Order} from "./Order";
-import {OrderLocation} from "./OrderLocation";
 import {Role} from "./Role";
 
 @Entity()
@@ -37,8 +36,8 @@ export class User {
   @OneToMany(type => Order, order => order.user)
   public orders: Order[];
 
-  @OneToMany(type => OrderLocation, orderLocation => orderLocation.checkingOutUser)
-  public orderLocations: OrderLocation[];
+  @OneToMany(type => Order, order => order.checkingOutUser)
+  public ordersCheckingOutUser: Order[];
 
   @OneToMany(type => ArticleCheckIn, checkIn => checkIn.doneUser)
   public articleCheckIns: ArticleCheckIn[];

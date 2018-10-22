@@ -32,11 +32,11 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
   }
 
   private async add(manager: EntityManager, entity: OrderItem) {
-    if (!entity.articleStock || !entity.orderLocation) {
-      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["articleStock", "orderLocation"]});
+    if (!entity.article || !entity.order) {
+      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["article", "order"]});
     }
-    const stock = await manager.getRepository(ArticleStock).findOne(entity.articleStock.id);
-    if (entity.orderLocation.checkedOut) {
+    const stock = await manager.getRepository(ArticleStock).findOne(entity.article.id);
+    if (entity.order.checkedOut) {
       stock.quantity -= +entity.quantity;
     } else {
       stock.reservedQuantity += +entity.quantity;
@@ -45,11 +45,11 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
   }
 
   private async remove(manager: EntityManager, entity: OrderItem) {
-    if (!entity.articleStock || !entity.orderLocation) {
-      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["articleStock", "orderLocation"]});
+    if (!entity.article || !entity.order) {
+      entity = await manager.getRepository(OrderItem).findOne(entity.id, {relations: ["article", "order"]});
     }
-    const stock = await manager.getRepository(ArticleStock).findOne(entity.articleStock.id);
-    if (entity.orderLocation.checkedOut) {
+    const stock = await manager.getRepository(ArticleStock).findOne(entity.article.id);
+    if (entity.order.checkedOut) {
       stock.quantity += +entity.quantity;
     } else {
       stock.reservedQuantity -= +entity.quantity;
