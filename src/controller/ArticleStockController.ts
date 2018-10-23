@@ -38,7 +38,7 @@ export class ArticleStockController {
   public getWithAll(@Param("id") id: number) {
     return this.articleStockRepository.findOne(id, {
       relations: ["article", "article.unitOfMeasurement",
-        "checkIns", "checkOuts", "orderItems", "location"]
+        "checkIns", "checkOuts", "location"],
     });
   }
 
@@ -47,7 +47,7 @@ export class ArticleStockController {
   public getAllWithAll() {
     return this.articleStockRepository.find({
       relations: ["article", "article.unitOfMeasurement",
-        "checkIns", "checkOuts", "orderItems", "location"]
+        "checkIns", "checkOuts", "location"],
     });
   }
 
