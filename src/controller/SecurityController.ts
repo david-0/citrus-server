@@ -95,9 +95,11 @@ export class SecurityController {
     role.name = "admin";
     const saleRole = new Role();
     saleRole.name = "sale";
+    const storeRole = new Role();
+    storeRole.name = "store";
     const user = new User();
     user.id = 1;
-    user.roles = [role, saleRole];
+    user.roles = [role, saleRole, storeRole];
     return user;
   }
 
