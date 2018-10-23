@@ -39,12 +39,12 @@ export class CustomerOrderController {
 
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@EntityFromParam("id") order: Order) {
-    return order;
+    return this.customerOrderRepository.findOne(order.id, {relations: ["user", "location", "orderItems", "plannedCheckout", "checkingOutUser"]});
   }
 
   @Get("/withAll")
   public getAllWithAll() {
-    return this.customerOrderRepository.find();
+    return this.customerOrderRepository.find({relations: ["user", "location", "orderItems", "plannedCheckout", "checkingOutUser"]});
   }
 
   @Post("/withAll")
