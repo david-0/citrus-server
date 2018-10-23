@@ -8,7 +8,7 @@ export class OrderItem {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @ManyToOne(type => Order, order => order.orderItems)
+  @ManyToOne(type => Order, order => order.orderItems, {onDelete: "CASCADE"})
   public order: Order;
 
   @ManyToOne(type => Article, article => article.orderItems)
