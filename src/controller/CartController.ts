@@ -25,13 +25,14 @@ export class CartController {
     order.user = user;
     order.checkedOut = false;
     order.orderItems = [];
-    order.location = await manager.getRepository(Location).findOne(order.location.id);
+    order.location = await manager.getRepository(Location).findOne(cartDto.location.id);
     if (order.plannedCheckout) {
       order.plannedCheckout = await manager.getRepository(OpeningHour).findOne(order.plannedCheckout.id);
     }
     for (const cartItem of cartDto.cartItems) {
       const articleStock = await manager.getRepository(ArticleStock)
         .find({
+          relations: ["article", "location"],
           where:
             {
               article: {id: cartItem.article.id},
