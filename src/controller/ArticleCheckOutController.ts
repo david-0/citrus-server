@@ -11,7 +11,7 @@ export class ArticleCheckOutController {
     this.articleCheckOutRepository = getManager().getRepository(ArticleCheckOut);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
     return this.articleCheckOutRepository.findOne(id, {
@@ -25,7 +25,7 @@ export class ArticleCheckOutController {
     });
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll")
   public getAllWithAll() {
     return this.articleCheckOutRepository.find({
@@ -39,13 +39,13 @@ export class ArticleCheckOutController {
     });
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post("/withAll")
   public save(@EntityFromBody() article: ArticleCheckOut, @CurrentUser({required: true}) userId: number) {
     return this.articleCheckOutRepository.save(article, {data: userId});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Put("/withAll/:id([0-9]+)")
   public update(@EntityFromParam("id") articleCheckOut: ArticleCheckOut,
                 @EntityFromBody() changeArticleCheckOut: ArticleCheckOut,
@@ -55,7 +55,7 @@ export class ArticleCheckOutController {
     );
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Delete("/withAll/:id([0-9]+)")
   public delete(@EntityFromParam("id") article: ArticleCheckOut, @CurrentUser({required: true}) userId: number) {
     return this.articleCheckOutRepository.remove(article, {data: userId});

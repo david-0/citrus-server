@@ -3,7 +3,7 @@ import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {OpeningHour} from "../entity/OpeningHour";
 
-@Authorized()
+@Authorized("admin")
 @JsonController("/api/openingHour")
 export class OpeningHourController {
   private openingHourRepository: Repository<OpeningHour>;

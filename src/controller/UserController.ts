@@ -3,7 +3,7 @@ import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {User} from "../entity/User";
 
-@Authorized()
+@Authorized("admin")
 @JsonController("/api/user")
 export class UserController {
   private userRepository: Repository<User>;

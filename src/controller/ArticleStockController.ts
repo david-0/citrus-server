@@ -21,19 +21,19 @@ export class ArticleStockController {
     return this.articleStockRepository.find();
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withArticle/:id([0-9]+)")
   public getWithStock(@Param("id") id: number) {
     return this.articleStockRepository.findOne(id, {relations: ["article"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withArticle")
   public getAllWithStock() {
     return this.articleStockRepository.find({relations: ["article"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
     return this.articleStockRepository.findOne(id, {
@@ -42,7 +42,7 @@ export class ArticleStockController {
     });
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll")
   public getAllWithAll() {
     return this.articleStockRepository.find({
@@ -51,31 +51,31 @@ export class ArticleStockController {
     });
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post("/withAll")
   public saveWithAll(@EntityFromBody() articleStock: ArticleStock) {
     return this.articleStockRepository.save(articleStock);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Put("/withAll/:id([0-9]+)")
   public updateWithAll(@EntityFromParam("id") articleStock: ArticleStock, @EntityFromBody() changeArticleStock: ArticleStock) {
     return this.articleStockRepository.save(this.articleStockRepository.merge(articleStock, changeArticleStock));
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Delete("/withAll/:id([0-9]+)")
   public deleteWithAll(@EntityFromParam("id") articleStock: ArticleStock) {
     return this.articleStockRepository.remove(articleStock);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post()
   public save(@EntityFromBody() articleStock: ArticleStock) {
     return this.articleStockRepository.save(articleStock);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") articleStock: ArticleStock) {
     return this.articleStockRepository.remove(articleStock);

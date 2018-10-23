@@ -19,13 +19,13 @@ export class PictureController {
     response.status(200).send(picture.image);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get()
   public getAll() {
     return this.pictureRepository.find();
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post()
   public async save(@Body() image: Buffer,@Req() request: Request) {
     const picture = new Picture();
@@ -34,7 +34,7 @@ export class PictureController {
     return this.pictureRepository.save(picture);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Put("/:id([0-9]+)")
   public async update(@Body() image: Buffer, @Param("id") id: number, @Req() request: Request) {
     const picture = await this.pictureRepository.findOne(id);
@@ -43,7 +43,7 @@ export class PictureController {
     return this.pictureRepository.save(picture);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") picture: Picture) {
     return this.pictureRepository.remove(picture);

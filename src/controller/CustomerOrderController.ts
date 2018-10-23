@@ -1,10 +1,9 @@
 import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {ArticleStock} from "../entity/ArticleStock";
 import {Order} from "../entity/Order";
 
-@Authorized()
+@Authorized("admin")
 @JsonController("/api/order")
 export class CustomerOrderController {
   private customerOrderRepository: Repository<Order>;

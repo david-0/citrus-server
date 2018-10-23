@@ -2,7 +2,6 @@ import {Authorized, CurrentUser, Delete, Get, JsonController, Param, Post, Put} 
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {ArticleCheckIn} from "../entity/ArticleCheckIn";
-import {User} from "../entity/User";
 
 @JsonController("/api/articleCheckIn")
 export class ArticleCheckInController {
@@ -12,7 +11,7 @@ export class ArticleCheckInController {
     this.articleCheckInRepository = getManager().getRepository(ArticleCheckIn);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
     return this.articleCheckInRepository.findOne(id, {
@@ -26,7 +25,7 @@ export class ArticleCheckInController {
     });
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll")
   public getAllWithAll() {
     return this.articleCheckInRepository.find({
@@ -40,13 +39,13 @@ export class ArticleCheckInController {
     });
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post("/withAll")
   public async save(@EntityFromBody() article: ArticleCheckIn, @CurrentUser({required: true}) userId: number) {
     return this.articleCheckInRepository.save(article, {data: userId});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Put("/withAll/:id([0-9]+)")
   public update(@EntityFromParam("id") articleCheckIn: ArticleCheckIn,
                 @EntityFromBody() changeArticleCheckIn: ArticleCheckIn,
@@ -56,7 +55,7 @@ export class ArticleCheckInController {
     );
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Delete("/withAll/:id([0-9]+)")
   public delete(@EntityFromParam("id") article: ArticleCheckIn, @CurrentUser({required: true}) userId: number) {
     return this.articleCheckInRepository.remove(article, {data: userId});

@@ -35,43 +35,43 @@ export class ArticleController {
     });
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withStock/:id([0-9]+)")
   public getWithStock(@Param("id") id: number) {
     return this.articleRepository.findOne(id, {relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withStock")
   public getAllWithStock() {
     return this.articleRepository.find({relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
     return this.articleRepository.findOne(id, {relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll")
   public getAllWithAll() {
     return this.articleRepository.find({relations: ["unitOfMeasurement", "articleStocks"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post()
   public save(@EntityFromBody() article: Article) {
     return this.articleRepository.save(article);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Put("/:id([0-9]+)")
   public update(@EntityFromParam("id") article: Article, @EntityFromBody() newArticle: Article) {
     return this.articleRepository.save(this.articleRepository.merge(article, newArticle));
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") article: Article) {
     return this.articleRepository.remove(article);

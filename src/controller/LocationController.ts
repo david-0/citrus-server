@@ -11,13 +11,13 @@ export class LocationController {
     this.locationRepository = getManager().getRepository(Location);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/:id([0-9]+)")
   public get(@EntityFromParam("id") location: Location) {
     return location;
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get()
   public getAll() {
     return this.locationRepository.find();
@@ -36,37 +36,37 @@ export class LocationController {
       .getMany();
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post("/withOpeningHours")
   public saveWithOpeningHours(@EntityFromBody() location: Location) {
     return this.locationRepository.save(location);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Put("/withOpeningHours/:id([0-9]+)")
   public update(@EntityFromParam("id") location: Location, @EntityFromBody() changedLocation: Location) {
     return this.locationRepository.save(this.locationRepository.merge(location, changedLocation));
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@Param("id") id: number) {
     return this.locationRepository.findOne(id, {relations: ["articleStocks", "openingHours"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Get("/withAll")
   public getAllWithAll() {
     return this.locationRepository.find({relations: ["articleStocks", "openingHours"]});
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Post()
   public save(@EntityFromBody() location: Location) {
     return this.locationRepository.save(location);
   }
 
-  @Authorized()
+  @Authorized("admin")
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") location: Location) {
     return this.locationRepository.remove(location);

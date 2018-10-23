@@ -2,9 +2,8 @@ import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing
 import {getManager, Repository} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Address} from "../entity/Address";
-import {Role} from "../entity/Role";
 
-@Authorized()
+@Authorized("admin")
 @JsonController("/api/address")
 export class AddressController {
   private addressRepository: Repository<Address>;
