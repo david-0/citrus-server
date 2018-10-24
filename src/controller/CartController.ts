@@ -9,7 +9,7 @@ import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
 import {User} from "../entity/User";
 
-@Authorized("admin")
+@Authorized()
 @JsonController("/api/cart")
 export class CartController {
 
