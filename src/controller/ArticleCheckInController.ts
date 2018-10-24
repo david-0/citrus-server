@@ -39,7 +39,7 @@ export class ArticleCheckInController {
     });
   }
 
-  @Authorized("admin")
+  @Authorized(["admin", "store"])
   @Post("/withAll")
   public async save(@EntityFromBody() article: ArticleCheckIn, @CurrentUser({required: true}) userId: number) {
     return this.articleCheckInRepository.save(article, {data: userId});

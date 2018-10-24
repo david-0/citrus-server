@@ -39,7 +39,7 @@ export class ArticleCheckOutController {
     });
   }
 
-  @Authorized("admin")
+  @Authorized(["admin", "store"])
   @Post("/withAll")
   public save(@EntityFromBody() article: ArticleCheckOut, @CurrentUser({required: true}) userId: number) {
     return this.articleCheckOutRepository.save(article, {data: userId});

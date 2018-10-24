@@ -42,7 +42,7 @@ export class ArticleStockController {
     });
   }
 
-  @Authorized("admin")
+  @Authorized(["admin", "store"])
   @Get("/withAll")
   public getAllWithAll() {
     return this.articleStockRepository.find({
