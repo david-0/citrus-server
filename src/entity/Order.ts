@@ -32,7 +32,7 @@ export class Order {
   public checkedOut: boolean;
 
   @Column({nullable: true})
-  public checkoutedOutDate: Date;
+  public checkedOutDate: Date;
 
   @ManyToOne(type => User, user => user.orders, {nullable: true})
   public checkingOutUser: User;
