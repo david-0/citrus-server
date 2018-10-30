@@ -26,8 +26,8 @@ export class CartController {
     order.checkedOut = false;
     order.orderItems = [];
     order.location = await manager.getRepository(Location).findOne(cartDto.location.id);
-    if (order.plannedCheckout) {
-      order.plannedCheckout = await manager.getRepository(OpeningHour).findOne(order.plannedCheckout.id);
+    if (cartDto.openingHourOfPlannedCheckout) {
+      order.plannedCheckout = await manager.getRepository(OpeningHour).findOne(cartDto.openingHourOfPlannedCheckout.id);
     }
     for (const cartItem of cartDto.cartItems) {
       const articleStock = await manager.getRepository(ArticleStock)
