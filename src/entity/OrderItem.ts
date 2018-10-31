@@ -22,4 +22,8 @@ export class OrderItem {
 
   @Column()
   public quantity: number;
+  // desiredQuantity
+  // provConfirmedQuantity
+  // confirmedQuantity
+  // fetchedQuantity
 }

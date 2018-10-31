@@ -44,6 +44,7 @@ export class CustomerOrderController {
       relations: [
         "user",
         "location",
+        "location.openingHours",
         "orderItems",
         "orderItems.article",
         "orderItems.article.unitOfMeasurement",
@@ -59,6 +60,7 @@ export class CustomerOrderController {
       relations: [
         "user",
         "location",
+        "location.openingHours",
         "orderItems",
         "orderItems.article",
         "orderItems.article.unitOfMeasurement",
