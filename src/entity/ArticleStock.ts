@@ -23,7 +23,7 @@ export class ArticleStock {
    * <ul>
    *     <li>plus all CheckIn quantities (in the past)</li>
    *     <li>minus all Checkout quantities (in the past)</li>
-   *     <li>minus all CustomerOrderItem[checkedOut=true] quantities</li>
+   *     <li>minus all OrderItem[checkedOut=true] quantities</li>
    * </ul>
    */
   @Column()
@@ -32,7 +32,7 @@ export class ArticleStock {
   /**
    * Reserved is a computed(redundant) column with the following formula:
    * <ul>
-   *     <li>plus all CustomerOrderItem[checkedOut=false] quantities</li>
+   *     <li>plus all OrderItem[checkedOut=false] quantities</li>
    *     <li>plus all Checkout quantities(in the future)</li>
    * </ul>
    */

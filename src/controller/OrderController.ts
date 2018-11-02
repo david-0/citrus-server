@@ -6,11 +6,11 @@ import {OrderItem} from "../entity/OrderItem";
 
 @Authorized("admin")
 @JsonController("/api/order")
-export class CustomerOrderController {
-  private customerOrderRepository: Repository<Order>;
+export class OrderController {
+  private orderRepository: Repository<Order>;
 
   constructor() {
-    this.customerOrderRepository = getManager().getRepository(Order);
+    this.orderRepository = getManager().getRepository(Order);
   }
 
   @Get("/:id([0-9]+)")
@@ -20,27 +20,27 @@ export class CustomerOrderController {
 
   @Get()
   public getAll() {
-    return this.customerOrderRepository.find();
+    return this.orderRepository.find();
   }
 
   @Post()
   public save(@EntityFromBody() order: Order) {
-    return this.customerOrderRepository.save(order);
+    return this.orderRepository.save(order);
   }
 
   @Put("/:id([0-9]+)")
-  public update(@EntityFromParam("id") customerOrder: Order, @EntityFromBody() changeCustomerOrder: Order) {
-    return this.customerOrderRepository.save(this.customerOrderRepository.merge(customerOrder, changeCustomerOrder));
+  public update(@EntityFromParam("id") order: Order, @EntityFromBody() changedOrder: Order) {
+    return this.orderRepository.save(this.orderRepository.merge(order, changedOrder));
   }
 
   @Delete("/:id([0-9]+)")
   public delete(@EntityFromParam("id") order: Order) {
-    return this.customerOrderRepository.remove(order);
+    return this.orderRepository.remove(order);
   }
 
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@EntityFromParam("id") order: Order) {
-    return this.customerOrderRepository.findOne(order.id, {
+    return this.orderRepository.findOne(order.id, {
       relations: [
         "user",
         "location",
@@ -55,7 +55,7 @@ export class CustomerOrderController {
 
   @Get("/withAll")
   public getAllWithAll() {
-    return this.customerOrderRepository.find({
+    return this.orderRepository.find({
       relations: [
         "user",
         "location",
@@ -77,9 +77,9 @@ export class CustomerOrderController {
   @Put("/withAll/:id([0-9]+)")
   @Transaction()
   public updateWithAll(@TransactionManager() manager: EntityManager,
-                       @EntityFromParam("id") customerOrder: Order,
-                       @EntityFromBody() changeCustomerOrder: Order) {
-    return manager.getRepository(Order).save(manager.getRepository(Order).merge(customerOrder, changeCustomerOrder));
+                       @EntityFromParam("id") order: Order,
+                       @EntityFromBody() changedOrder: Order) {
+    return manager.getRepository(Order).save(manager.getRepository(Order).merge(order, changedOrder));
   }
 
   @Delete("/withAll/:id([0-9]+)")
