@@ -26,10 +26,10 @@
     "@types/http-errors": "^1.6.1",
     "@types/jasmine": "^2.8.9",
     "@types/jsonwebtoken": "^7.2.8",
-    "@types/node": "^10.12.1",
+    "@types/node": "^10.12.2",
     "@types/pg": "^7.4.11",
     "@types/request": "^2.48.0",
-    "@types/socket.io": "^1.4.38",
+    "@types/socket.io": "^1.4.39",
     "@types/uuid": "^3.4.4",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
@@ -53,7 +53,7 @@
     "typedi": "^0.8.0",
     "typeorm": "^0.2.8",
     "typeorm-routing-controllers-extensions": "^0.2.0",
-    "typescript": "^3.1.4",
+    "typescript": "^3.1.6",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
