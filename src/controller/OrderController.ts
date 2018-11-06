@@ -1,6 +1,7 @@
 import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
 import {EntityManager, getManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
+import {Location} from "../entity/Location";
 import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
 
@@ -50,6 +51,18 @@ export class OrderController {
         "plannedCheckout",
         "checkingOutUser",
       ],
+    });
+  }
+
+  @Authorized(["sale", "admin"])
+  @Get("/byLocation/:id([0-9]+)")
+  public getAllWithUserByLocation(@EntityFromParam("id") location: Location) {
+    return this.orderRepository.find({
+      relations: [
+        "user",
+        "plannedCheckout",
+      ],
+      where: {location, checkedOut: false},
     });
   }
 
