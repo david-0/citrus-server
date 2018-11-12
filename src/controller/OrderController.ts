@@ -57,13 +57,13 @@ export class OrderController {
   @Authorized(["sale", "admin"])
   @Get("/byLocation/:id([0-9]+)")
   public getAllWithUserByLocation(@EntityFromParam("id") location: Location) {
-    return this.orderRepository.find({
-      relations: [
-        "user",
-        "plannedCheckout",
-      ],
-      where: {location, checkedOut: false},
-    });
+    return this.orderRepository
+      .createQueryBuilder("o")
+      .leftJoinAndSelect("o.location", "l")
+      .leftJoinAndSelect("o.plannedCheckout", "c")
+      .where("o.location.id = :id", {id: location.id})
+      .orderBy("c.fromDate", "ASC")
+      .getMany();
   }
 
   @Get("/withAll")
