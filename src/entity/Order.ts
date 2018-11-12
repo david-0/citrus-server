@@ -31,6 +31,12 @@ export class Order {
   @Column()
   public checkedOut: boolean;
 
+  @OneToMany(type => OrderItem, item => item.order, {cascade: true})
+  public checkedOutOrderItems: OrderItem[];
+
+  @Column("decimal", {precision: 10, scale: 2, nullable: true})
+  public checkoutOutTotalPrice: number;
+
   @Column({nullable: true})
   public checkedOutDate: Date;
 

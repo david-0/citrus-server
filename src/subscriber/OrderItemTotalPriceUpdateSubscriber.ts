@@ -33,6 +33,7 @@ export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInte
         relations: [
           "order",
           "order.orderItems",
+          "order.checkedOutOrderItems",
         ],
       });
     }
@@ -40,8 +41,13 @@ export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInte
     entity.order.orderItems.forEach(item => {
       totalPrice += +item.copiedPrice * +item.quantity;
     });
+    let checkedOutTotalPrice = 0;
+    entity.order.checkedOutOrderItems.forEach(item => {
+      checkedOutTotalPrice += +item.copiedPrice * +item.quantity;
+    });
     const order = await manager.getRepository(Order).findOne(entity.order.id);
     order.totalPrice = totalPrice;
+    order.checkoutOutTotalPrice = checkedOutTotalPrice;
     await manager.getRepository(Order).save(order);
   }
 }
