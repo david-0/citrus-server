@@ -1,4 +1,5 @@
 import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {CheckedOutOrderItem} from "./CheckedOutOrderItem";
 import {Location} from "./Location";
 import {OpeningHour} from "./OpeningHour";
 import {OrderItem} from "./OrderItem";
@@ -31,11 +32,11 @@ export class Order {
   @Column()
   public checkedOut: boolean;
 
-  @OneToMany(type => OrderItem, item => item.order, {cascade: true})
-  public checkedOutOrderItems: OrderItem[];
+  @OneToMany(type => CheckedOutOrderItem, item => item.order, {cascade: true})
+  public checkedOutOrderItems: CheckedOutOrderItem[];
 
   @Column("decimal", {precision: 10, scale: 2, nullable: true})
-  public checkoutOutTotalPrice: number;
+  public checkedOutTotalPrice: number;
 
   @Column({nullable: true})
   public checkedOutDate: Date;

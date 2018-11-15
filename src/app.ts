@@ -16,6 +16,7 @@ import {ArticleCheckOutController} from "./controller/ArticleCheckOutController"
 import {ArticleController} from "./controller/ArticleController";
 import {ArticleStockController} from "./controller/ArticleStockController";
 import {CartController} from "./controller/CartController";
+import {CheckedOutOrderItemController} from "./controller/CheckedOutOrderItemController";
 import {OrderController} from "./controller/OrderController";
 import {OrderItemController} from "./controller/OrderItemController";
 import {LocationController} from "./controller/LocationController";
@@ -177,6 +178,7 @@ class Server {
         CartController,
         OrderController,
         OrderItemController,
+        CheckedOutOrderItemController,
         LocationController,
         OpeningHourController,
         PictureController,
