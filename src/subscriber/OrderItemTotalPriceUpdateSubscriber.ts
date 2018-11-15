@@ -55,11 +55,13 @@ export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInte
 
   private getTotalPrice(items: OrderItem[], excludeItemId: number) {
     let totalPrice = 0;
-    items.forEach(item => {
-      if (item.id !== excludeItemId) {
-        totalPrice += this.getPrice(item);
-      }
-    });
+    if (items) {
+      items.forEach(item => {
+        if (item.id !== excludeItemId) {
+          totalPrice += this.getPrice(item);
+        }
+      });
+    }
     return totalPrice;
   }
 

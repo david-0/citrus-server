@@ -54,11 +54,13 @@ export class CheckedOutOrderItemTotalPriceUpdateSubscriber implements EntitySubs
 
   private getTotalPrice(items: CheckedOutOrderItem[], excludeItemId: number) {
     let checkedOutTotalPrice = 0;
-    items.forEach(item => {
-      if (item.id !== excludeItemId) {
-        checkedOutTotalPrice += this.getPrice(item);
-      }
-    });
+    if (items) {
+      items.forEach(item => {
+        if (item.id !== excludeItemId) {
+          checkedOutTotalPrice += this.getPrice(item);
+        }
+      });
+    }
     return checkedOutTotalPrice;
   }
 
