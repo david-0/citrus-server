@@ -7,45 +7,45 @@ import {
   UpdateEvent,
 } from "typeorm";
 import {ArticleStock} from "../entity/ArticleStock";
+import {CheckedOutOrderItem} from "../entity/CheckedOutOrderItem";
 import {OrderItem} from "../entity/OrderItem";
 
 @EventSubscriber()
-export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterface<OrderItem> {
+export class CheckedOutOrderItemQuantityUpdateSubscriber implements EntitySubscriberInterface<CheckedOutOrderItem> {
   public listenTo() {
-    return OrderItem;
+    return CheckedOutOrderItem;
   }
 
-  public async afterInsert(event: InsertEvent<OrderItem>) {
-    await this.add(event.manager, event.entity);
+  public async afterInsert(event: InsertEvent<CheckedOutOrderItem>) {
+    // await this.add(event.manager, event.entity);
   }
 
-  public async beforeUpdate(event: UpdateEvent<OrderItem>) {
-    await this.remove(event.manager, event.databaseEntity);
+  public async beforeUpdate(event: UpdateEvent<CheckedOutOrderItem>) {
+    // await this.remove(event.manager, event.databaseEntity);
   }
 
-  public async afterUpdate(event: UpdateEvent<OrderItem>) {
-    await this.add(event.manager, event.entity);
+  public async afterUpdate(event: UpdateEvent<CheckedOutOrderItem>) {
+    // await this.add(event.manager, event.entity);
   }
 
-  public async beforeRemove(event: RemoveEvent<OrderItem>) {
-    await this.remove(event.manager, event.entity);
+  public async beforeRemove(event: RemoveEvent<CheckedOutOrderItem>) {
+    // await this.remove(event.manager, event.entity);
   }
 
-  private async add(manager: EntityManager, entity: OrderItem) {
+  private async add(manager: EntityManager, entity: CheckedOutOrderItem) {
     entity = await this.ensureOrderAndArticleLoaded(entity, manager);
     const stock = await this.loadArticleStock(manager, entity.article.id, entity.order.location.id);
-    if (!entity.order.checkedOut) {
-      stock.reservedQuantity += +entity.quantity;
+    if (entity.order.checkedOut) {
+      stock.quantity -= +entity.quantity;
     }
     await manager.getRepository(ArticleStock).save(stock);
   }
 
-
-  private async remove(manager: EntityManager, entity: OrderItem) {
+  private async remove(manager: EntityManager, entity: CheckedOutOrderItem) {
     entity = await this.ensureOrderAndArticleLoaded(entity, manager);
     const stock = await this.loadArticleStock(manager, entity.article.id, entity.order.location.id);
-    if (!entity.order.checkedOut) {
-      stock.reservedQuantity -= +entity.quantity;
+    if (entity.order.checkedOut) {
+      stock.quantity += +entity.quantity;
     }
     await manager.getRepository(ArticleStock).save(stock);
   }
@@ -74,4 +74,5 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
           },
       }))[0];
   }
+
 }
