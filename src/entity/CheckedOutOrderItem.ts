@@ -8,10 +8,10 @@ export class CheckedOutOrderItem {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @ManyToOne(type => Order, order => order.orderItems, {onDelete: "CASCADE"})
+  @ManyToOne(type => Order, order => order.checkedOutOrderItems, {onDelete: "CASCADE"})
   public order: Order;
 
-  @ManyToOne(type => Article, article => article.orderItems)
+  @ManyToOne(type => Article, article => article.checkedOutOrderItems)
   public article: Article;
 
   /**
