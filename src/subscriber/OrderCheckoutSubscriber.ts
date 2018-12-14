@@ -1,67 +1,109 @@
-import {EntityManager, EntitySubscriberInterface, EventSubscriber, InsertEvent, UpdateEvent} from "typeorm";
+import {Authorized} from "routing-controllers";
+import {
+  EntityManager,
+  EntitySubscriberInterface,
+  EventSubscriber,
+  InsertEvent,
+  RemoveEvent,
+  UpdateEvent,
+} from "typeorm";
 import {ArticleStock} from "../entity/ArticleStock";
+import {CheckedOutOrderItem} from "../entity/CheckedOutOrderItem";
 import {Order} from "../entity/Order";
+import {OrderItem} from "../entity/OrderItem";
 import {User} from "../entity/User";
 
+@Authorized("admin")
 @EventSubscriber()
 export class OrderCheckoutSubscriber implements EntitySubscriberInterface<Order> {
   public listenTo() {
     return Order;
   }
 
+  public async beforeRemove(event: RemoveEvent<Order>) {
+    await this.doBefore(event);
+  }
+
   public async beforeUpdate(event: UpdateEvent<Order>) {
-    if (!event.databaseEntity.checkedOut && event.entity.checkedOut) {
-      const user = await event.manager.getRepository(User).findOne(event.queryRunner.data);
-      event.entity.checkedOutDate = new Date();
-      event.entity.checkingOutUser = user;
-      await this.updateStockQuantitiesOnCheckout(event.entity, event.manager);
-    } else if (event.databaseEntity.checkedOut && !event.entity.checkedOut) {
-      event.entity.checkedOutDate = null;
-      event.entity.checkingOutUser = null;
-      await this.updateStockQuantitiesOnDisableCheckout(event.entity, event.manager);
+    await this.doBefore(event);
+  }
+
+  public async afterUpdate(event: UpdateEvent<Order>) {
+    await this.doAfter(event);
+  }
+
+  public async afterInsert(event: InsertEvent<Order>) {
+    await this.doAfter(event);
+  }
+
+  private async doBefore(event: RemoveEvent<Order> | UpdateEvent<Order>) {
+    const completeOrder = await this.loadOrderItems(event.manager, event.entity);
+    if (this.wasCheckedOut(event)) {
+      await this.addStockQuantities(completeOrder.checkedOutOrderItems, completeOrder.location.id, event.manager);
+    } else {
+      await this.addStockReservedQuantities(completeOrder.orderItems, completeOrder.location.id, event.manager);
     }
   }
 
-  public async beforeInsert(event: InsertEvent<Order>) {
-    if (event.entity.checkedOut) {
-      const user = await event.manager.getRepository(User).findOne(event.queryRunner.data);
-      event.entity.checkedOutDate = new Date();
-      event.entity.checkingOutUser = user;
-      await this.updateStockQuantitiesOnCheckout(event.entity, event.manager);
+  private async doAfter(event: InsertEvent<Order> | UpdateEvent<Order>) {
+    const completeOrder = await this.loadOrderItems(event.manager, event.entity);
+    if (this.isCheckedout(event)) {
+      await this.removeStockQuantities(completeOrder.checkedOutOrderItems, completeOrder.location.id, event.manager);
+      await this.setTimestampIfNotAlreadySet(event);
+    } else {
+      await this.removeStockReservedQuantities(completeOrder.orderItems, completeOrder.location.id, event.manager);
+      this.resetTimestamp(event);
     }
   }
 
-  private async updateStockQuantitiesOnCheckout(order: Order, manager: EntityManager) {
-    const completeOrder = await this.loadOrderItems(manager, order);
-    if (completeOrder.orderItems) {
-      for (const item of completeOrder.orderItems) {
-        const articleStock = await this.loadArticleStock(manager, item.article.id, order.location.id);
+  private resetTimestamp(event: UpdateEvent<Order> | InsertEvent<Order>) {
+    event.entity.checkedOutDate = null;
+    event.entity.checkingOutUser = null;
+  }
+
+  private async setTimestampIfNotAlreadySet(event: UpdateEvent<Order> | InsertEvent<Order>) {
+    if (!event.entity.checkingOutUser) {
+      const user = await event.manager.getRepository(User).findOne(event.queryRunner.data);
+      event.entity.checkedOutDate = new Date();
+      event.entity.checkingOutUser = user;
+    }
+  }
+
+  private async removeStockQuantities(items: CheckedOutOrderItem[], locationId: number, manager: EntityManager) {
+    if (items) {
+      for (const item of items) {
+        const articleStock = await this.loadArticleStock(manager, item.article.id, locationId);
+        articleStock.quantity -= item.quantity;
+        await manager.getRepository(ArticleStock).save(articleStock);
+      }
+    }
+  }
+
+  private async addStockQuantities(items: CheckedOutOrderItem[], locationId: number, manager: EntityManager) {
+    if (items) {
+      for (const item of items) {
+        const articleStock = await this.loadArticleStock(manager, item.article.id, locationId);
+        articleStock.quantity += item.quantity;
+        await manager.getRepository(ArticleStock).save(articleStock);
+      }
+    }
+  }
+
+  private async removeStockReservedQuantities(items: OrderItem[], locationId: number, manager: EntityManager) {
+    if (items) {
+      for (const item of items) {
+        const articleStock = await this.loadArticleStock(manager, item.article.id, locationId);
         articleStock.reservedQuantity -= item.quantity;
         await manager.getRepository(ArticleStock).save(articleStock);
       }
     }
-    if (completeOrder.checkedOutOrderItems) {
-      for (const checkedOutItem of completeOrder.checkedOutOrderItems) {
-        const articleStock = await this.loadArticleStock(manager, checkedOutItem.article.id, order.location.id);
-        articleStock.quantity += checkedOutItem.quantity;
-        await manager.getRepository(ArticleStock).save(articleStock);
-      }
-    }
   }
 
-  private async updateStockQuantitiesOnDisableCheckout(order: Order, manager: EntityManager) {
-    const completeOrder = await this.loadOrderItems(manager, order);
-    if (completeOrder.orderItems) {
-      for (const item of completeOrder.orderItems) {
-        const articleStock = await this.loadArticleStock(manager, item.article.id, order.location.id);
+  private async addStockReservedQuantities(items: OrderItem[], locationId: number, manager: EntityManager) {
+    if (items) {
+      for (const item of items) {
+        const articleStock = await this.loadArticleStock(manager, item.article.id, locationId);
         articleStock.reservedQuantity += item.quantity;
-        await manager.getRepository(ArticleStock).save(articleStock);
-      }
-    }
-    if (completeOrder.checkedOutOrderItems) {
-      for (const checkedOutItem of completeOrder.checkedOutOrderItems) {
-        const articleStock = await this.loadArticleStock(manager, checkedOutItem.article.id, order.location.id);
-        articleStock.quantity -= checkedOutItem.quantity;
         await manager.getRepository(ArticleStock).save(articleStock);
       }
     }
@@ -90,5 +132,13 @@ export class OrderCheckoutSubscriber implements EntitySubscriberInterface<Order>
         ],
       });
     return completeOrder;
+  }
+
+  private wasCheckedOut(event: UpdateEvent<Order> | RemoveEvent<Order>) {
+    return event.databaseEntity.checkedOut;
+  }
+
+  private isCheckedout(event: UpdateEvent<Order> | InsertEvent<Order>) {
+    return event.entity.checkedOut;
   }
 }
