@@ -26,10 +26,15 @@ export class OrderCheckoutSubscriber implements EntitySubscriberInterface<Order>
 
   public async beforeUpdate(event: UpdateEvent<Order>) {
     await this.doBefore(event);
+    await this.updateTimestampBeforeUpdate(event);
   }
 
   public async afterUpdate(event: UpdateEvent<Order>) {
     await this.doAfter(event);
+  }
+
+  public async beforeInsert(event: InsertEvent<Order>) {
+    await this.updateTimestampBeforeInsert(event);
   }
 
   public async afterInsert(event: InsertEvent<Order>) {
@@ -53,19 +58,6 @@ export class OrderCheckoutSubscriber implements EntitySubscriberInterface<Order>
     } else {
       await this.removeStockReservedQuantities(completeOrder.orderItems, completeOrder.location.id, event.manager);
       this.resetTimestamp(event);
-    }
-  }
-
-  private resetTimestamp(event: UpdateEvent<Order> | InsertEvent<Order>) {
-    event.entity.checkedOutDate = null;
-    event.entity.checkingOutUser = null;
-  }
-
-  private async setTimestampIfNotAlreadySet(event: UpdateEvent<Order> | InsertEvent<Order>) {
-    if (!event.entity.checkingOutUser) {
-      const user = await event.manager.getRepository(User).findOne(event.queryRunner.data);
-      event.entity.checkedOutDate = new Date();
-      event.entity.checkingOutUser = user;
     }
   }
 
@@ -141,4 +133,38 @@ export class OrderCheckoutSubscriber implements EntitySubscriberInterface<Order>
   private isCheckedout(event: UpdateEvent<Order> | InsertEvent<Order>) {
     return event.entity.checkedOut;
   }
+
+  /**
+   * This call must be done in the "beforeUpdate" call. If this change is saved in the "afterUpdate" call, a recursion is the result.
+   */
+  private updateTimestampBeforeUpdate(event: UpdateEvent<Order>) {
+    if (this.wasCheckedOut(event) && !this.isCheckedout(event)) {
+      this.resetTimestamp(event);
+    } else if (!this.wasCheckedOut(event) && this.isCheckedout(event)) {
+      this.setTimestampIfNotAlreadySet(event);
+    }
+  }
+
+  /**
+   * This call must be done in the "beforeInsert" call. If this change is saved in the "afterInsert" call, a recursion is the result.
+   */
+  private updateTimestampBeforeInsert(event: InsertEvent<Order>) {
+    if (this.isCheckedout(event)) {
+      this.setTimestampIfNotAlreadySet(event);
+    }
+  }
+
+  private resetTimestamp(event: UpdateEvent<Order> | InsertEvent<Order>) {
+    event.entity.checkedOutDate = null;
+    event.entity.checkingOutUser = null;
+  }
+
+  private async setTimestampIfNotAlreadySet(event: UpdateEvent<Order> | InsertEvent<Order>) {
+    if (!event.entity.checkingOutUser) {
+      const user = await event.manager.getRepository(User).findOne(event.queryRunner.data);
+      event.entity.checkedOutDate = new Date();
+      event.entity.checkingOutUser = user;
+    }
+  }
+
 }
