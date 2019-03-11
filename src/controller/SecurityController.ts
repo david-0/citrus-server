@@ -109,3 +109,12 @@ export class SecurityController {
       this.jwtConfig.getSignSecret(), this.jwtConfig.getSignOptions());
   }
 }
+
+
+declare global {
+  namespace Express {
+    export interface Request {
+      user?: any
+    }
+  }
+}
