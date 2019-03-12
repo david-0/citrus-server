@@ -3,6 +3,7 @@ import {Address} from "./Address";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
 import {Order} from "./Order";
+import {ResetToken} from "./ResetToken";
 import {Role} from "./Role";
 
 @Entity()
@@ -20,6 +21,9 @@ export class User {
   @ManyToMany(type => Role, role => role.users)
   @JoinTable()
   public roles: Role[];
+
+  @OneToMany(type => ResetToken, resetToken => resetToken.token, {cascade: true})
+  public resetToken?: ResetToken[];
 
   @Column()
   public name: string;

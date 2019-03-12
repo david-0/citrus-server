@@ -17,10 +17,10 @@ import {ArticleController} from "./controller/ArticleController";
 import {ArticleStockController} from "./controller/ArticleStockController";
 import {CartController} from "./controller/CartController";
 import {CheckedOutOrderItemController} from "./controller/CheckedOutOrderItemController";
-import {OrderController} from "./controller/OrderController";
-import {OrderItemController} from "./controller/OrderItemController";
 import {LocationController} from "./controller/LocationController";
 import {OpeningHourController} from "./controller/OpeningHourController";
+import {OrderController} from "./controller/OrderController";
+import {OrderItemController} from "./controller/OrderItemController";
 import {PictureController} from "./controller/PictureController";
 import {RoleController} from "./controller/RoleController";
 import {SecurityController} from "./controller/SecurityController";
@@ -31,6 +31,9 @@ import {SocketService} from "./socket/SocketService";
 import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
+import {ResetTokenEvictor} from "./utils/ResetTokenEvictor";
+import {StartupNotifier} from "./utils/StartupNotifier";
+import {SuppressNextMiddlewareHandler} from "./utils/SuppressNextMiddlewareHandler";
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -39,7 +42,6 @@ declare var dirname: any;
 
 class Server {
 
-  // Bootstrap the application.
   public static bootstrap(): Server {
     return new Server();
   }
@@ -63,26 +65,19 @@ class Server {
       appenders: {out: {type: "stdout"}},
       categories: {default: {appenders: ["out"], level: "info"}},
     });
-
-    // Create expressjs application
     this.app = express();
     this.app.use(compression());
-
-    // Configure application
     this.config();
-
-    // create ClientSocketService
     this.socketService = new SocketService();
 
     useContainer(Container);
     createConnection().then(async connection => {
-      // Setup routes
+      new ResetTokenEvictor().schedule(0);
+      new StartupNotifier().notify("david.leuenberger@gmx.ch");
       this.routes();
-
-      // Create server
+      this.staticRoutes();
+      this.defaultRoute();
       this.createServer();
-
-      // Start listening
       this.listen();
     }).catch(err => {
       LOGGER.error("Create Connection error: {}", err);
@@ -90,7 +85,7 @@ class Server {
   }
 
   private createServer() {
-    if (this.env === "production" || fs.existsSync("../../certificate/privkey.pem")) {
+    if (this.env === "production" || fs.existsSync("../../certificate/ssl/privkey.pem")) {
       this.redirectHttp();
       this.server = this.createHttpsServer();
     } else {
@@ -103,9 +98,9 @@ class Server {
     this.port = this.portHttps;
     this.protocol = "https";
     return https.createServer({
-      ca: fs.readFileSync("../../certificate/chain.pem"),
-      cert: fs.readFileSync("../../certificate/cert.pem"),
-      key: fs.readFileSync("../../certificate/privkey.pem"),
+      ca: fs.readFileSync("../../certificate/ssl/chain.pem"),
+      cert: fs.readFileSync("../../certificate/ssl/cert.pem"),
+      key: fs.readFileSync("../../certificate/ssl/privkey.pem"),
     }, this.app);
   }
 
@@ -126,7 +121,7 @@ class Server {
   }
 
   private redirectToHttps(req: express.Request, res: express.Response, next: express.NextFunction) {
-    res.redirect("https://pfila2017-mutig-vorwaerts.ch" + req.url);
+    res.redirect("https://88.99.118.38:3002" + req.url);
   }
 
   private config(): void {
@@ -138,7 +133,7 @@ class Server {
 
     this.jwtConfig = new JwtConfiguration(this.env);
     if (this.env === "production") {
-      this.jwtConfig.initProd("../../ha-key", "../../ha-key.pub");
+      this.jwtConfig.initProd("../../certificate/jwt/private-key.pem", "../../certificate/jwt/public-key.pem");
       this.portHttps = process.env.PORT || 443;
       this.portHttp = process.env.PORT_HTTP || 80;
       LOGGER.info(`PRODUCTION-MODE, use private/public keys.`);
@@ -166,7 +161,30 @@ class Server {
     return user.id;
   }
 
+  private staticRoutes(): void {
+    const staticRoutePath = __dirname + "/client";
+    if (fs.existsSync(staticRoutePath)) {
+      LOGGER.info(`Static-Route: serve files from "/client" in "/"`);
+      this.app.use(express.static(__dirname + "/client", {redirect: true}));
+    }
+  }
+
+  private defaultRoute(): void {
+    this.app.get("*", (req, res) => {
+      res.sendFile(__dirname + "/client/index.html");
+    });
+  }
+
   private routes(): void {
+    let corsOptions = {};
+    if (this.env !== "producation") {
+      corsOptions = {
+        allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        methods: "POST, GET, PATCH, DELETE, PUT",
+        origin: "*",
+        preflightContinue: false,
+      };
+    }
     useExpressServer(this.app, {
       authorizationChecker: async (action: Action, roles: string[]) => this.authorizationChecker(action, roles),
       controllers: [
@@ -187,16 +205,12 @@ class Server {
         UserController,
         SecurityController,
       ],
-      cors: {
-        allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-        methods: "POST, GET, PATCH, DELETE, PUT",
-        origin: "*",
-        preflightContinue: false,
-      },
+      cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),
       defaultErrorHandler: false,
       middlewares: [
         CustomErrorHandler,
+        SuppressNextMiddlewareHandler,
       ],
     });
   }
