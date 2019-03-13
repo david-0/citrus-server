@@ -1,62 +1,158 @@
 import * as bcrypt from "bcryptjs";
 import * as express from "express";
-import {Response} from "express";
 import {sign} from "jsonwebtoken";
-import {Authorized, Body, CurrentUser, JsonController, Param, Post, Res} from "routing-controllers";
-import {getManager} from "typeorm";
+import * as moment from "moment";
+import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req} from "routing-controllers";
+import {EntityManager, getManager, Repository, Transaction, TransactionManager} from "typeorm";
+import {v4 as uuid} from "uuid";
+import {ResetToken} from "../entity/ResetToken";
 import {Role} from "../entity/Role";
 import {User} from "../entity/User";
+import {UserAudit} from "../entity/UserAudit";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
+import {MailService} from "../utils/MailService";
+
+declare var process: any;
 
 @JsonController()
 export class SecurityController {
 
   // TODO Inject as Service
   private jwtConfig: JwtConfiguration;
+  private mailService: MailService;
+
+  private userAuditRepository: Repository<UserAudit>;
+  private env: string;
 
   constructor() {
-    this.jwtConfig = new JwtConfiguration("development");
+    this.env = process.env.NODE_ENV || "development";
+    this.jwtConfig = new JwtConfiguration(this.env);
+    if (this.env === "production") {
+      this.jwtConfig.initProd("../../certificate/jwt/private-key.pem", "../../certificate/jwt/public-key.pem");
+    }
+    this.mailService = new MailService("../../configuration/smtp.json");
+    this.userAuditRepository = getManager().getRepository(UserAudit);
   }
 
   @Post("/api/authenticate")
-  public async authenticateEndpoint(@Body() body: any): Promise<any> {
-    const user = await this.checkLogin(body.email, body.password);
-    if (!!user && (typeof user !== "string")) {
-      return {token: this.createToken(user)};
+  public async authenticateEndpoint(@Req() request: express.Request, @Body() body: any): Promise<any> {
+    const user = await this.findUserbyEmail(body.email);
+    if (!user) {
+      this.authenticateAudit("not registered", user, body, request);
+      return Promise.reject("login NOT successfull");
     }
-//            res.status(500).json({error: `error creating token for user: ${email}. ${err}`});
-//          console.info("login NOT successfull --> fake admin user");
-    return {token: this.createToken(this.createTestingAdminUser())};
+    const checkedUser = await this.checkLogin(user, body.password);
+    if (!!checkedUser && (typeof checkedUser !== "string")) {
+      this.authenticateAudit("success", checkedUser, body, request);
+      return {token: this.createToken(checkedUser)};
+    }
+    this.authenticateAudit("password failed", checkedUser, body, request);
+    return Promise.reject("login NOT successfull");
   }
 
   @Authorized("admin")
   @Post("/api/user/:id([0-9]+)/changepassword")
-  public addChangePasswordEndpoint(@Param("id") userId: number, @Body() body: any, @Res() res: Response) {
-    return this.changePassword(userId, body.password);
+  public async addChangePasswordEndpoint(@CurrentUser({required: true}) currentUserId: number,
+                                         @Param("id") userId: number, @Body() body: any, @Req() request: express.Request) {
+    return this.changePassword(currentUserId, userId, body.password, request);
   }
 
+  @Authorized()
   @Post("/api/user/changemypassword")
-  public async addChangeMyPasswordEndpoint(@CurrentUser({required: true}) userId: number, @Body() body: any, @Res() res: Response) {
-    return this.changePassword(userId, body.password);
+  @Transaction()
+  public async addChangeMyPasswordEndpoint(@TransactionManager() manager: EntityManager,
+                                           @CurrentUser({required: true}) userId: number, @Body() body: any, @Req() request: express.Request) {
+    return this.changeMyPassword(manager, userId, body.currentPassword, body.password, request);
   }
 
-  private async changePassword(userId: number, password: string): Promise<User> {
-    const user = await this.findUserbyId(userId);
-    await this.updatePassword(user.id, password);
-    return user;
+  @Post("/api/user/resetPasswordWithToken")
+  @Transaction()
+  public async resetPasswordWithTokenEndpoint(@TransactionManager() manager: EntityManager, @Body() body: any, @Req() request: express.Request) {
+    const resetToken = await this.findResetTokenByToken(manager, body.token);
+    if (resetToken && resetToken.user) {
+      await this.updatePassword(resetToken.user.id, body.password, manager);
+      this.changePasswordWithTokenAudit("success", resetToken.user, request);
+      await manager.getRepository(ResetToken).remove(resetToken);
+      return resetToken.user;
+    }
+    this.changePasswordWithTokenAudit("token not valid", resetToken.user, request);
+    return Promise.reject(new HttpError(401, "Token not valid"));
   }
 
-  private async updatePassword(userId: number, password: string): Promise<void> {
-    const passwordHash = await bcrypt.hash(password, 10);
-    const update = await getManager().getRepository(User).update({id: userId}, {password: passwordHash});
+  @Post("/api/user/createTokenByEmail")
+  @Transaction()
+  public async createTokenByEmailEndpoint(@TransactionManager() manager: EntityManager,
+                                          @Body() body: any, @Req() request: express.Request): Promise<void> {
+    const user = await this.findUserbyEmail(body.email);
+    if (user) {
+      const resetToken = new ResetToken();
+      resetToken.user = user;
+      resetToken.token = uuid();
+      resetToken.validTo = moment().add(2, "h").toDate();
+      const insertResult = await manager.getRepository(ResetToken).insert(resetToken);
+      await this.sendResetToken(user, resetToken.token);
+      this.sendResetTokenAudit(user, body.email, request);
+    } else {
+      this.sendResetTokenAudit(user, body.email, request);
+    }
     return;
   }
 
-  private findUserbyId(userId: number): Promise<User> {
-    return getManager().getRepository(User).findOne({id: userId});
+  private authenticateAudit(actionResult: string, user: any, body: any, request: express.Request): void {
+    const audit = {
+      action: "authenticate",
+      actionResult,
+      additionalData: body.email,
+      user,
+    };
+    this.userAuditRepository.save(audit, {data: request});
   }
 
-  private async findUserbyEmail(emailAddress: string): Promise<User> {
+  private async changeMyPassword(manager: EntityManager, userId: number, currentPassword: string,
+                                 password: string, request: express.Request): Promise<User> {
+    const user = await this.findUserbyId(userId, manager);
+    const userPassword = await this.getUserPassword(userId, manager);
+    const ok: boolean = await bcrypt.compare(currentPassword, userPassword.password);
+    if (!ok) {
+      this.changeMyPasswordAudit("password failed", user, request);
+      return Promise.reject(new HttpError(401, "password not changed"));
+    }
+    await this.updatePassword(user.id, password, manager);
+    this.changeMyPasswordAudit("success", user, request);
+    return user;
+  }
+
+  private async changePassword(currentUserId: number, userId: number, password: string, request: express.Request): Promise<User> {
+    const user = await this.findUserbyId(userId, getManager());
+    const currentUser = await this.findUserbyId(currentUserId, getManager());
+    await this.updatePassword(user.id, password, getManager());
+    this.changePasswordAudit(currentUser, user, request);
+    return user;
+  }
+
+  private async updatePassword(userId: number, password: string, manager: EntityManager): Promise<void> {
+    const passwordHash = await bcrypt.hash(password, 10);
+    const update = await manager.getRepository(User).update({id: userId}, {password: passwordHash});
+    return;
+  }
+
+  private findUserbyId(userId: number, manager: EntityManager): Promise<User> {
+    return manager.getRepository(User).findOne({id: userId});
+  }
+
+  private getUserPassword(userId: number, manager: EntityManager): Promise<User> {
+    return manager.getRepository(User).findOne({id: userId}, {select: ["password"]});
+  }
+
+  private async findResetTokenByToken(manager: EntityManager, token: string): Promise<ResetToken | undefined> {
+    const resetToken = await manager.getRepository(ResetToken).findOne({token}, {relations: ["user"]});
+    if (resetToken && (resetToken.validTo >= new Date())) {
+      return resetToken;
+    }
+    return undefined;
+  }
+
+  private async findUserbyEmail(emailAddress: string): Promise<User | undefined> {
     return getManager().getRepository(User)
       .createQueryBuilder("user")
       .addSelect("user.password")
@@ -75,8 +171,7 @@ export class SecurityController {
     }
   }
 
-  private async checkLogin(email: string, password: string): Promise<any> {
-    const user = await this.findUserbyEmail(email);
+  private async checkLogin(user: User, password: string): Promise<any> {
     if (!!user) {
       const ok: boolean = await bcrypt.compare(password, user.password);
       if (ok) {
@@ -86,35 +181,79 @@ export class SecurityController {
     return new Promise<string>((resolve, reject) => resolve("Login not successful!"));
   }
 
-  /**
-   * TODO: remove before production
-   * @param {e.Response} res
-   */
-  private createTestingAdminUser(): User {
-    const role = new Role();
-    role.name = "admin";
-    const saleRole = new Role();
-    saleRole.name = "sale";
-    const storeRole = new Role();
-    storeRole.name = "store";
-    const user = new User();
-    user.id = 1;
-    user.roles = [role, saleRole, storeRole];
-    return user;
-  }
-
   private createToken(user: User): string {
     const roles = user.roles.map(role => role.name);
     return sign({id: user.id, roles},
       this.jwtConfig.getSignSecret(), this.jwtConfig.getSignOptions());
   }
-}
 
+  private changePasswordAudit(currentUser: User, userToChange: User, request: express.Request) {
+    const audit = {
+      action: "changePassword",
+      actionResult: "ok",
+      additionalData: userToChange.email,
+      user: currentUser,
+    };
+    this.userAuditRepository.save(audit, {data: request});
+  }
+
+  private async changeMyPasswordAudit(actionResult: string, user: User, request: express.Request) {
+    const audit = {
+      action: "changeMyPassword",
+      actionResult,
+      user,
+    };
+    this.userAuditRepository.save(audit, {data: request});
+  }
+
+  private async changePasswordWithTokenAudit(actionResult: string, user: User, request: express.Request) {
+    const audit = {
+      action: "changePasswordWithToken",
+      actionResult,
+      user,
+    };
+    this.userAuditRepository.save(audit, {data: request});
+  }
+
+  private async sendResetTokenAudit(user: User, email: string, request: express.Request) {
+    const audit = {
+      action: "sendResetToken",
+      actionResult: user ? "user found" : "user not found",
+      additionalData: user ? undefined : email,
+      user,
+    };
+    this.userAuditRepository.save(audit, {data: request});
+  }
+
+  private async sendResetToken(user: User, token: string) {
+    let domain = "http://localhost:4200/";
+    if (this.env === "production") {
+      domain = "https://88.99.118.38:3002";
+    }
+    const link = `${domain}/admin/resetPassword/${token}`;
+    await this.mailService.sendMail(user.email, "Citrus - Passwort zurücksetzen",
+      "Hallo\r\n\r\n" +
+      "Du erhältst dieses Mail weil du (oder jemand anderes) für den Citrus-Benutzer '" + user.email +
+      "' eine Passwort zurücksetzen Anfrage gestellt hat.\r\n\r\n" +
+      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.\r\n" +
+      "Der Link ist zwei Stunden gültig.\r\n\r\n" + link + "\r\n\r\n" +
+      "Wenn du dieses Mail irrtümlich erhalten hast, kannst du es ignorieren.\r\n\r\n" +
+      "Webmaster Citrus",
+      "<h3>Hallo</h3>" +
+      "<p>Du erhältst dieses Mail weil du (oder jemand anderes) für den Citrus Benutzer '" + user.email +
+      "' eine Passwort zurücksetzen Anfrage gestellt hat.<br/>" +
+      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.<br/>" +
+      "Der Link ist zwei Stunden gültig.</p>" +
+      "<a href='" + link + "'>" + link + "</a>" +
+      "<p>Wenn Sie dieses Mail irrtümlich erhalten haben, können Sie es ignorieren.</p>" +
+      "<p>Webmaster Citrus</p>");
+  }
+}
 
 declare global {
   namespace Express {
     export interface Request {
-      user?: any
+      user?: any;
     }
   }
 }
