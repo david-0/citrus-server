@@ -121,7 +121,7 @@ class Server {
   }
 
   private redirectToHttps(req: express.Request, res: express.Response, next: express.NextFunction) {
-    res.redirect("https://88.99.118.38:" + this.portHttps + req.url);
+    res.redirect("https://88.99.118.38:444" + req.url);
   }
 
   private config(): void {
