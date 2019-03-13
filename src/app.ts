@@ -85,7 +85,7 @@ class Server {
   }
 
   private createServer() {
-    if (this.env === "production" || fs.existsSync("../../certificate/ssl/privkey.pem")) {
+    if (this.env === "production" || fs.existsSync("../certificate/ssl/privkey.pem")) {
       this.redirectHttp();
       this.server = this.createHttpsServer();
     } else {
@@ -98,9 +98,9 @@ class Server {
     this.port = this.portHttps;
     this.protocol = "https";
     return https.createServer({
-      ca: fs.readFileSync("../../certificate/ssl/chain.pem"),
-      cert: fs.readFileSync("../../certificate/ssl/cert.pem"),
-      key: fs.readFileSync("../../certificate/ssl/privkey.pem"),
+      ca: fs.readFileSync("../certificate/ssl/chain.pem"),
+      cert: fs.readFileSync("../certificate/ssl/cert.pem"),
+      key: fs.readFileSync("../certificate/ssl/privkey.pem"),
     }, this.app);
   }
 
@@ -133,7 +133,7 @@ class Server {
 
     this.jwtConfig = new JwtConfiguration(this.env);
     if (this.env === "production") {
-      this.jwtConfig.initProd("../../certificate/jwt/private-key.pem", "../../certificate/jwt/public-key.pem");
+      this.jwtConfig.initProd("../certificate/jwt/private-key.pem", "../certificate/jwt/public-key.pem");
       this.portHttps = process.env.PORT || 443;
       this.portHttp = process.env.PORT_HTTP || 80;
       LOGGER.info(`PRODUCTION-MODE, use private/public keys.`);

@@ -16,8 +16,8 @@ export class JwtConfiguration {
 
   public initProd(privateKeyFilename: string, publicKeyFilename: string) {
     if (!fs.existsSync(privateKeyFilename) || !fs.existsSync(publicKeyFilename)) {
-      LOGGER.fatal(`in PRODUCTION-MODE, the private (../../ha-key) and public
-       (../../ha-key.pub) key files must exist. `);
+      LOGGER.fatal(`in PRODUCTION-MODE, the private (${privateKeyFilename}) and public
+       (${publicKeyFilename}) key files must exist. `);
       process.exit(0);
     }
     this.signSecret = fs.readFileSync(privateKeyFilename);
