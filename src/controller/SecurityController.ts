@@ -1,8 +1,9 @@
 import * as bcrypt from "bcryptjs";
 import * as express from "express";
 import {sign} from "jsonwebtoken";
+import {getLogger, Logger} from "log4js";
 import * as moment from "moment";
-import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req} from "routing-controllers";
+import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req, Res} from "routing-controllers";
 import {EntityManager, getManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {v4 as uuid} from "uuid";
 import {ResetToken} from "../entity/ResetToken";
@@ -17,6 +18,7 @@ declare var process: any;
 @JsonController()
 export class SecurityController {
 
+  private LOGGER: Logger = getLogger("SecurityController");
   // TODO Inject as Service
   private jwtConfig: JwtConfiguration;
   private mailService: MailService;
@@ -35,19 +37,22 @@ export class SecurityController {
   }
 
   @Post("/api/authenticate")
-  public async authenticateEndpoint(@Req() request: express.Request, @Body() body: any): Promise<any> {
+  public async authenticateEndpoint(@Req() request: express.Request, @Body() body: any, @Res() response: express.Response): Promise<any> {
     const user = await this.findUserbyEmail(body.email);
     if (!user) {
       this.authenticateAudit("not registered", user, body, request);
-      return Promise.reject("login NOT successfull");
+      response.status(403);
+      return "login NOT successfull";
     }
     const checkedUser = await this.checkLogin(user, body.password);
+    this.LOGGER.error("TypeOf CheckedUser: " + typeof checkedUser);
     if (!!checkedUser && (typeof checkedUser !== "string")) {
       this.authenticateAudit("success", checkedUser, body, request);
       return {token: this.createToken(checkedUser)};
     }
     this.authenticateAudit("password failed", checkedUser, body, request);
-    return Promise.reject("login NOT successfull");
+    response.status(403);
+    return "login NOT successfull";
   }
 
   @Authorized("admin")
