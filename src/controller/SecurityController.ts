@@ -1,7 +1,6 @@
 import * as bcrypt from "bcryptjs";
 import * as express from "express";
 import {sign} from "jsonwebtoken";
-import {getLogger, Logger} from "log4js";
 import * as moment from "moment";
 import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req, Res} from "routing-controllers";
 import {EntityManager, getManager, Repository, Transaction, TransactionManager} from "typeorm";
@@ -17,8 +16,6 @@ declare var process: any;
 
 @JsonController()
 export class SecurityController {
-
-  private LOGGER: Logger = getLogger("SecurityController");
   // TODO Inject as Service
   private jwtConfig: JwtConfiguration;
   private mailService: MailService;
@@ -80,7 +77,7 @@ export class SecurityController {
       return resetToken.user;
     }
     this.changePasswordWithTokenAudit("token not valid", resetToken.user, request);
-    return Promise.reject(new HttpError(401, "Token not valid"));
+    return Promise.reject(new HttpError(403, "Token not valid"));
   }
 
   @Post("/api/user/createTokenByEmail")
@@ -119,7 +116,7 @@ export class SecurityController {
     const ok: boolean = await bcrypt.compare(currentPassword, userPassword.password);
     if (!ok) {
       this.changeMyPasswordAudit("password failed", user, request);
-      return Promise.reject(new HttpError(401, "password not changed"));
+      return Promise.reject(new HttpError(403, "password not changed"));
     }
     await this.updatePassword(user.id, password, manager);
     this.changeMyPasswordAudit("success", user, request);
