@@ -45,12 +45,11 @@ export class SecurityController {
       return "login NOT successfull";
     }
     const checkedUser = await this.checkLogin(user, body.password);
-    this.LOGGER.error("TypeOf CheckedUser: " + typeof checkedUser);
     if (!!checkedUser && (typeof checkedUser !== "string")) {
       this.authenticateAudit("success", checkedUser, body, request);
       return {token: this.createToken(checkedUser)};
     }
-    this.authenticateAudit("password failed", checkedUser, body, request);
+    this.authenticateAudit("password failed", user, body, request);
     response.status(403);
     return "login NOT successfull";
   }
