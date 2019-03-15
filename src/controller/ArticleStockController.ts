@@ -1,83 +1,96 @@
 import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {getManager, Repository} from "typeorm";
+import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {ArticleStock} from "../entity/ArticleStock";
 
 @JsonController("/api/articleStock")
 export class ArticleStockController {
-  private articleStockRepository: Repository<ArticleStock>;
+  private articleStockRepo: (manager: EntityManager) => Repository<ArticleStock>;
 
   constructor() {
-    this.articleStockRepository = getManager().getRepository(ArticleStock);
+    this.articleStockRepo = manager => manager.getRepository(ArticleStock);
   }
 
+  @Transaction()
   @Get("/:id([0-9]+)")
-  public get(@Param("id") id: number) {
-    return this.articleStockRepository.findOne(id);
+  public get(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.articleStockRepo(manager).findOne(id);
   }
 
+  @Transaction()
   @Get()
-  public getAll() {
-    return this.articleStockRepository.find();
+  public getAll(@TransactionManager() manager: EntityManager) {
+    return this.articleStockRepo(manager).find();
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/withArticle/:id([0-9]+)")
-  public getWithStock(@Param("id") id: number) {
-    return this.articleStockRepository.findOne(id, {relations: ["article"]});
+  public getWithStock(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.articleStockRepo(manager).findOne(id, {relations: ["article"]});
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/withArticle")
-  public getAllWithStock() {
-    return this.articleStockRepository.find({relations: ["article"]});
+  public getAllWithStock(@TransactionManager() manager: EntityManager) {
+    return this.articleStockRepo(manager).find({relations: ["article"]});
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
-  public getWithAll(@Param("id") id: number) {
-    return this.articleStockRepository.findOne(id, {
+  public getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.articleStockRepo(manager).findOne(id, {
       relations: ["article", "article.unitOfMeasurement",
         "checkIns", "checkOuts", "location"],
     });
   }
 
+  @Transaction()
   @Authorized(["admin", "store"])
   @Get("/withAll")
-  public getAllWithAll() {
-    return this.articleStockRepository.find({
+  public getAllWithAll(@TransactionManager() manager: EntityManager) {
+    return this.articleStockRepo(manager).find({
       relations: ["article", "article.unitOfMeasurement",
         "checkIns", "checkOuts", "location"],
     });
   }
 
+  @Transaction()
   @Authorized("admin")
   @Post("/withAll")
-  public saveWithAll(@EntityFromBody() articleStock: ArticleStock) {
-    return this.articleStockRepository.save(articleStock);
+  public saveWithAll(@TransactionManager() manager: EntityManager, @EntityFromBody() articleStock: ArticleStock) {
+    return this.articleStockRepo(manager).save(articleStock);
   }
 
+  @Transaction()
   @Authorized("admin")
   @Put("/withAll/:id([0-9]+)")
-  public updateWithAll(@EntityFromParam("id") articleStock: ArticleStock, @EntityFromBody() changeArticleStock: ArticleStock) {
-    return this.articleStockRepository.save(this.articleStockRepository.merge(articleStock, changeArticleStock));
+  public updateWithAll(@TransactionManager() manager: EntityManager,
+                       @EntityFromParam("id") articleStock: ArticleStock,
+                       @EntityFromBody() changeArticleStock: ArticleStock) {
+    return this.articleStockRepo(manager).save(this.articleStockRepo(manager).merge(articleStock, changeArticleStock));
   }
 
+  @Transaction()
   @Authorized("admin")
   @Delete("/withAll/:id([0-9]+)")
-  public deleteWithAll(@EntityFromParam("id") articleStock: ArticleStock) {
-    return this.articleStockRepository.remove(articleStock);
+  public deleteWithAll(@TransactionManager() manager: EntityManager, @EntityFromParam("id") articleStock: ArticleStock) {
+    return this.articleStockRepo(manager).remove(articleStock);
   }
 
+  @Transaction()
   @Authorized("admin")
   @Post()
-  public save(@EntityFromBody() articleStock: ArticleStock) {
-    return this.articleStockRepository.save(articleStock);
+  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() articleStock: ArticleStock) {
+    return this.articleStockRepo(manager).save(articleStock);
   }
 
+  @Transaction()
   @Authorized("admin")
   @Delete("/:id([0-9]+)")
-  public delete(@EntityFromParam("id") articleStock: ArticleStock) {
-    return this.articleStockRepository.remove(articleStock);
+  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") articleStock: ArticleStock) {
+    return this.articleStockRepo(manager).remove(articleStock);
   }
 }

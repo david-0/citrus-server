@@ -1,5 +1,5 @@
 import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
-import {EntityManager, getManager, Repository, Transaction, TransactionManager} from "typeorm";
+import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Location} from "../entity/Location";
 import {Order} from "../entity/Order";
@@ -8,40 +8,49 @@ import {OrderItem} from "../entity/OrderItem";
 @Authorized("admin")
 @JsonController("/api/order")
 export class OrderController {
-  private orderRepository: Repository<Order>;
+  private orderRepo: (manager: EntityManager) => Repository<Order>;
 
   constructor() {
-    this.orderRepository = getManager().getRepository(Order);
+    this.orderRepo = manager => manager.getRepository(Order);
   }
 
+  @Transaction()
   @Get("/:id([0-9]+)")
   public get(@EntityFromParam("id") order: Order) {
     return order;
   }
 
+  @Transaction()
   @Get()
-  public getAll() {
-    return this.orderRepository.find();
+  public getAll(@TransactionManager() manager: EntityManager) {
+    return this.orderRepo(manager).find();
   }
 
+  @Transaction()
   @Post()
-  public save(@EntityFromBody() order: Order) {
-    return this.orderRepository.save(order);
+  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() order: Order) {
+    return this.orderRepo(manager).save(order);
   }
 
+  @Transaction()
   @Put("/:id([0-9]+)")
-  public update(@EntityFromParam("id") order: Order, @EntityFromBody() changedOrder: Order) {
-    return this.orderRepository.save(this.orderRepository.merge(order, changedOrder));
+  public update(@TransactionManager() manager: EntityManager,
+                @EntityFromParam("id") order: Order,
+                @EntityFromBody() changedOrder: Order) {
+    return this.orderRepo(manager).save(this.orderRepo(manager).merge(order, changedOrder));
   }
 
+  @Transaction()
   @Delete("/:id([0-9]+)")
-  public delete(@EntityFromParam("id") order: Order) {
-    return this.orderRepository.remove(order);
+  public delete(@TransactionManager() manager: EntityManager,
+                @EntityFromParam("id") order: Order) {
+    return this.orderRepo(manager).remove(order);
   }
 
+  @Transaction()
   @Get("/withAll/:id([0-9]+)")
-  public getWithAll(@EntityFromParam("id") order: Order) {
-    return this.orderRepository.findOne(order.id, {
+  public getWithAll(@TransactionManager() manager: EntityManager, @EntityFromParam("id") order: Order) {
+    return this.orderRepo(manager).findOne(order.id, {
       relations: [
         "user",
         "location",
@@ -54,10 +63,11 @@ export class OrderController {
     });
   }
 
+  @Transaction()
   @Authorized(["sale", "admin"])
   @Get("/openByLocation/:id([0-9]+)")
-  public getAllOpenWithUserByLocation(@EntityFromParam("id") location: Location) {
-    return this.orderRepository
+  public getAllOpenWithUserByLocation(@TransactionManager() manager: EntityManager, @EntityFromParam("id") location: Location) {
+    return this.orderRepo(manager)
       .createQueryBuilder("o")
       .leftJoinAndSelect("o.location", "l")
       .leftJoinAndSelect("o.plannedCheckout", "c")
@@ -67,9 +77,10 @@ export class OrderController {
       .getMany();
   }
 
+  @Transaction()
   @Get("/withAll")
-  public getAllWithAll() {
-    return this.orderRepository.find({
+  public getAllWithAll(@TransactionManager() manager: EntityManager) {
+    return this.orderRepo(manager).find({
       relations: [
         "user",
         "location",
@@ -85,7 +96,7 @@ export class OrderController {
   @Post("/withAll")
   @Transaction()
   public saveWithAll(@TransactionManager() manager: EntityManager, @EntityFromBody() order: Order) {
-    return manager.getRepository(Order).save(order);
+    return this.orderRepo(manager).save(order);
   }
 
   @Put("/withAll/:id([0-9]+)")
@@ -93,16 +104,16 @@ export class OrderController {
   public updateWithAll(@TransactionManager() manager: EntityManager,
                        @EntityFromParam("id") order: Order,
                        @EntityFromBody() changedOrder: Order) {
-    return manager.getRepository(Order).save(manager.getRepository(Order).merge(order, changedOrder));
+    return this.orderRepo(manager).save(this.orderRepo(manager).merge(order, changedOrder));
   }
 
   @Delete("/withAll/:id([0-9]+)")
   @Transaction()
   public async deleteWithAll(@TransactionManager() manager: EntityManager, @EntityFromParam("id") order: Order) {
-    const extendedOrder = await manager.getRepository(Order).findOne(order.id, {relations: ["orderItems"]});
+    const extendedOrder = await this.orderRepo(manager).findOne(order.id, {relations: ["orderItems"]});
     for (const item of extendedOrder.orderItems) {
       await manager.getRepository(OrderItem).remove(item);
     }
-    return await manager.getRepository(Order).remove(order);
+    return await this.orderRepo(manager).remove(order);
   }
 }

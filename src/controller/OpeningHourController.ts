@@ -1,39 +1,46 @@
 import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
-import {getManager, Repository} from "typeorm";
+import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {OpeningHour} from "../entity/OpeningHour";
 
 @Authorized("admin")
 @JsonController("/api/openingHour")
 export class OpeningHourController {
-  private openingHourRepository: Repository<OpeningHour>;
+  private openingHourRepo: (manager: EntityManager) => Repository<OpeningHour>;
 
   constructor() {
-    this.openingHourRepository = getManager().getRepository(OpeningHour);
+    this.openingHourRepo = manager => manager.getRepository(OpeningHour);
   }
 
+  @Transaction()
   @Get("/:id([0-9]+)")
   public get(@EntityFromParam("id") openingHour: OpeningHour) {
     return openingHour;
   }
 
+  @Transaction()
   @Get()
-  public getAll() {
-    return this.openingHourRepository.find();
+  public getAll(@TransactionManager() manager: EntityManager) {
+    return this.openingHourRepo(manager).find();
   }
 
+  @Transaction()
   @Post()
-  public save(@EntityFromBody() openingHour: OpeningHour) {
-    return this.openingHourRepository.save(openingHour);
+  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() openingHour: OpeningHour) {
+    return this.openingHourRepo(manager).save(openingHour);
   }
 
+  @Transaction()
   @Put("/:id([0-9]+)")
-  public update(@EntityFromParam("id") openingHour: OpeningHour, @EntityFromBody() changedOpeningHour: OpeningHour) {
-    return this.openingHourRepository.save(this.openingHourRepository.merge(openingHour, changedOpeningHour));
+  public update(@TransactionManager() manager: EntityManager,
+                @EntityFromParam("id") openingHour: OpeningHour,
+                @EntityFromBody() changedOpeningHour: OpeningHour) {
+    return this.openingHourRepo(manager).save(this.openingHourRepo(manager).merge(openingHour, changedOpeningHour));
   }
 
+  @Transaction()
   @Delete("/:id([0-9]+)")
-  public delete(@EntityFromParam("id") openingHour: OpeningHour) {
-    return this.openingHourRepository.remove(openingHour);
+  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") openingHour: OpeningHour) {
+    return this.openingHourRepo(manager).remove(openingHour);
   }
 }

@@ -1,55 +1,66 @@
 import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {getManager, Repository} from "typeorm";
+import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {UnitOfMeasurement} from "../entity/UnitOfMeasurement";
 
 @Authorized("admin")
 @JsonController("/api/unitOfMeasurement")
 export class UnitOfMeasurementController {
-  private unitOfMeasurementRepository: Repository<UnitOfMeasurement>;
+  private unitOfMeasurementRepo: (manager: EntityManager) => Repository<UnitOfMeasurement>;
 
   constructor() {
-    this.unitOfMeasurementRepository = getManager().getRepository(UnitOfMeasurement);
+    this.unitOfMeasurementRepo = manager => manager.getRepository(UnitOfMeasurement);
   }
 
+  @Transaction()
   @Get("/:id([0-9]+)")
   public get(@EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement) {
     return unitOfMeasurement;
   }
 
+  @Transaction()
   @Get()
-  public getAll() {
-    return this.unitOfMeasurementRepository.find();
+  public getAll(@TransactionManager() manager: EntityManager) {
+    return this.unitOfMeasurementRepo(manager).find();
   }
 
+  @Transaction()
   @Get("/withArticles/:id([0-9]+)")
-  public getWithArticles(@Param("id") id: number) {
-    return this.unitOfMeasurementRepository.findOne(id, {relations: ["articles"]});
+  public getWithArticles(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.unitOfMeasurementRepo(manager).findOne(id, {relations: ["articles"]});
   }
 
+  @Transaction()
   @Get("/withArticles")
-  public getAllWithArticles() {
-    return this.unitOfMeasurementRepository.find({relations: ["articles"]});
+  public getAllWithArticles(@TransactionManager() manager: EntityManager) {
+    return this.unitOfMeasurementRepo(manager).find({relations: ["articles"]});
   }
 
+  @Transaction()
   @Delete("/withArticles/:id([0-9]+)")
-  public deleteWithArticles(@EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement) {
-    return this.unitOfMeasurementRepository.remove(unitOfMeasurement);
+  public deleteWithArticles(@TransactionManager() manager: EntityManager,
+                            @EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement) {
+    return this.unitOfMeasurementRepo(manager).remove(unitOfMeasurement);
   }
 
+  @Transaction()
   @Post()
-  public save(@EntityFromBody() unitOfMeasurement: UnitOfMeasurement) {
-    return this.unitOfMeasurementRepository.save(unitOfMeasurement);
+  public save(@TransactionManager() manager: EntityManager,
+              @EntityFromBody() unitOfMeasurement: UnitOfMeasurement) {
+    return this.unitOfMeasurementRepo(manager).save(unitOfMeasurement);
   }
 
+  @Transaction()
   @Put("/:id([0-9]+)")
-  public update(@EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement, @EntityFromBody() newUnitOfMeasurement: UnitOfMeasurement) {
-    return this.unitOfMeasurementRepository.save(this.unitOfMeasurementRepository.merge(unitOfMeasurement, newUnitOfMeasurement));
+  public update(@TransactionManager() manager: EntityManager,
+                @EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement,
+                @EntityFromBody() newUnitOfMeasurement: UnitOfMeasurement) {
+    return this.unitOfMeasurementRepo(manager).save(this.unitOfMeasurementRepo(manager).merge(unitOfMeasurement, newUnitOfMeasurement));
   }
 
-
+  @Transaction()
   @Delete("/:id([0-9]+)")
-  public delete(@EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement) {
-    return this.unitOfMeasurementRepository.remove(unitOfMeasurement);
+  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement) {
+    return this.unitOfMeasurementRepo(manager).remove(unitOfMeasurement);
   }
 }

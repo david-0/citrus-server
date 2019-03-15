@@ -1,20 +1,21 @@
 import {Authorized, CurrentUser, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {getManager, Repository} from "typeorm";
+import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {ArticleCheckIn} from "../entity/ArticleCheckIn";
 
 @JsonController("/api/articleCheckIn")
 export class ArticleCheckInController {
-  private articleCheckInRepository: Repository<ArticleCheckIn>;
+  private articleCheckInRepo: (manager: EntityManager) => Repository<ArticleCheckIn>;
 
   constructor() {
-    this.articleCheckInRepository = getManager().getRepository(ArticleCheckIn);
+    this.articleCheckInRepo = manager => manager.getRepository(ArticleCheckIn);
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
-  public getWithAll(@Param("id") id: number) {
-    return this.articleCheckInRepository.findOne(id, {
+  public getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.articleCheckInRepo(manager).findOne(id, {
       relations: [
         "articleStock",
         "articleStock.article",
@@ -25,10 +26,11 @@ export class ArticleCheckInController {
     });
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/withAll")
-  public getAllWithAll() {
-    return this.articleCheckInRepository.find({
+  public getAllWithAll(@TransactionManager() manager: EntityManager) {
+    return this.articleCheckInRepo(manager).find({
       relations: [
         "articleStock",
         "articleStock.article",
@@ -39,25 +41,33 @@ export class ArticleCheckInController {
     });
   }
 
+  @Transaction()
   @Authorized(["admin", "store"])
   @Post("/withAll")
-  public async save(@EntityFromBody() article: ArticleCheckIn, @CurrentUser({required: true}) userId: number) {
-    return this.articleCheckInRepository.save(article, {data: userId});
+  public async save(@TransactionManager() manager: EntityManager,
+                    @EntityFromBody() article: ArticleCheckIn,
+                    @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckInRepo(manager).save(article, {data: userId});
   }
 
+  @Transaction()
   @Authorized("admin")
   @Put("/withAll/:id([0-9]+)")
-  public update(@EntityFromParam("id") articleCheckIn: ArticleCheckIn,
+  public update(@TransactionManager() manager: EntityManager,
+                @EntityFromParam("id") articleCheckIn: ArticleCheckIn,
                 @EntityFromBody() changeArticleCheckIn: ArticleCheckIn,
                 @CurrentUser({required: true}) userId: number) {
-    return this.articleCheckInRepository.save(
-      this.articleCheckInRepository.merge(articleCheckIn, changeArticleCheckIn), {data: userId},
+    return this.articleCheckInRepo(manager).save(
+      this.articleCheckInRepo(manager).merge(articleCheckIn, changeArticleCheckIn), {data: userId},
     );
   }
 
+  @Transaction()
   @Authorized("admin")
   @Delete("/withAll/:id([0-9]+)")
-  public delete(@EntityFromParam("id") article: ArticleCheckIn, @CurrentUser({required: true}) userId: number) {
-    return this.articleCheckInRepository.remove(article, {data: userId});
+  public delete(@TransactionManager() manager: EntityManager,
+                @EntityFromParam("id") article: ArticleCheckIn,
+                @CurrentUser({required: true}) userId: number) {
+    return this.articleCheckInRepo(manager).remove(article, {data: userId});
   }
 }

@@ -1,74 +1,86 @@
 import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {getManager, Repository} from "typeorm";
+import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Location} from "../entity/Location";
 
 @JsonController("/api/location")
 export class LocationController {
-  private locationRepository: Repository<Location>;
+  private locationRepo: (manager: EntityManager) => Repository<Location>;
 
   constructor() {
-    this.locationRepository = getManager().getRepository(Location);
+    this.locationRepo = manager => manager.getRepository(Location);
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/:id([0-9]+)")
   public get(@EntityFromParam("id") location: Location) {
     return location;
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get()
-  public getAll() {
-    return this.locationRepository.find();
+  public getAll(@TransactionManager() manager: EntityManager) {
+    return this.locationRepo(manager).find();
   }
 
+  @Transaction()
   @Get("/withOpeningHours/:id([0-9]+)")
-  public getWithOpeningHours(@Param("id") id: number) {
-    return this.locationRepository.findOne(id, {relations: ["openingHours"]});
+  public getWithOpeningHours(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.locationRepo(manager).findOne(id, {relations: ["openingHours"]});
   }
 
+  @Transaction()
   @Get("/withOpeningHours")
-  public getAllWithOpeningHours() {
-    return this.locationRepository.createQueryBuilder("l")
+  public getAllWithOpeningHours(@TransactionManager() manager: EntityManager) {
+    return this.locationRepo(manager).createQueryBuilder("l")
       .leftJoinAndSelect("l.openingHours", "o")
       .orderBy({"o.fromDate": "ASC"})
       .getMany();
   }
 
+  @Transaction()
   @Authorized("admin")
   @Post("/withOpeningHours")
-  public saveWithOpeningHours(@EntityFromBody() location: Location) {
-    return this.locationRepository.save(location);
+  public saveWithOpeningHours(@TransactionManager() manager: EntityManager, @EntityFromBody() location: Location) {
+    return this.locationRepo(manager).save(location);
   }
 
+  @Transaction()
   @Authorized("admin")
   @Put("/withOpeningHours/:id([0-9]+)")
-  public update(@EntityFromParam("id") location: Location, @EntityFromBody() changedLocation: Location) {
-    return this.locationRepository.save(this.locationRepository.merge(location, changedLocation));
+  public update(@TransactionManager() manager: EntityManager,
+                @EntityFromParam("id") location: Location,
+                @EntityFromBody() changedLocation: Location) {
+    return this.locationRepo(manager).save(this.locationRepo(manager).merge(location, changedLocation));
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
-  public getWithAll(@Param("id") id: number) {
-    return this.locationRepository.findOne(id, {relations: ["articleStocks", "openingHours"]});
+  public getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.locationRepo(manager).findOne(id, {relations: ["articleStocks", "openingHours"]});
   }
 
+  @Transaction()
   @Authorized("admin")
   @Get("/withAll")
-  public getAllWithAll() {
-    return this.locationRepository.find({relations: ["articleStocks", "openingHours"]});
+  public getAllWithAll(@TransactionManager() manager: EntityManager) {
+    return this.locationRepo(manager).find({relations: ["articleStocks", "openingHours"]});
   }
 
+  @Transaction()
   @Authorized("admin")
   @Post()
-  public save(@EntityFromBody() location: Location) {
-    return this.locationRepository.save(location);
+  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() location: Location) {
+    return this.locationRepo(manager).save(location);
   }
 
+  @Transaction()
   @Authorized("admin")
   @Delete("/:id([0-9]+)")
-  public delete(@EntityFromParam("id") location: Location) {
-    return this.locationRepository.remove(location);
+  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") location: Location) {
+    return this.locationRepo(manager).remove(location);
   }
 }

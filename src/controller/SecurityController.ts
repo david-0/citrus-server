@@ -3,7 +3,7 @@ import * as express from "express";
 import {sign} from "jsonwebtoken";
 import * as moment from "moment";
 import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req, Res} from "routing-controllers";
-import {EntityManager, getManager, Repository, Transaction, TransactionManager} from "typeorm";
+import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {v4 as uuid} from "uuid";
 import {ResetToken} from "../entity/ResetToken";
 import {Role} from "../entity/Role";
@@ -20,8 +20,9 @@ export class SecurityController {
   private jwtConfig: JwtConfiguration;
   private mailService: MailService;
 
-  private userAuditRepository: Repository<UserAudit>;
   private env: string;
+
+  private userAuditRepo: (manager: EntityManager) => Repository<UserAudit>;
 
   constructor() {
     this.env = process.env.NODE_ENV || "development";
@@ -30,32 +31,38 @@ export class SecurityController {
       this.jwtConfig.initProd("../../certificate/jwt/private-key.pem", "../../certificate/jwt/public-key.pem");
     }
     this.mailService = new MailService("../../configuration/smtp.json");
-    this.userAuditRepository = getManager().getRepository(UserAudit);
+    this.userAuditRepo = manager => manager.getRepository(UserAudit);
   }
 
   @Post("/api/authenticate")
-  public async authenticateEndpoint(@Req() request: express.Request, @Body() body: any, @Res() response: express.Response): Promise<any> {
-    const user = await this.findUserbyEmail(body.email);
+  @Transaction()
+  public async authenticateEndpoint(@TransactionManager() manager: EntityManager,
+                                    @Req() request: express.Request,
+                                    @Body() body: any,
+                                    @Res() response: express.Response): Promise<any> {
+    const user = await this.findUserbyEmail(manager, body.email);
     if (!user) {
-      this.authenticateAudit("not registered", user, body, request);
+      this.authenticateAudit(manager, "not registered", user, body, request);
       response.status(403);
       return "login NOT successfull";
     }
     const checkedUser = await this.checkLogin(user, body.password);
     if (!!checkedUser && (typeof checkedUser !== "string")) {
-      this.authenticateAudit("success", checkedUser, body, request);
+      this.authenticateAudit(manager, "success", checkedUser, body, request);
       return {token: this.createToken(checkedUser)};
     }
-    this.authenticateAudit("password failed", user, body, request);
+    this.authenticateAudit(manager, "password failed", user, body, request);
     response.status(403);
     return "login NOT successfull";
   }
 
   @Authorized("admin")
   @Post("/api/user/:id([0-9]+)/changepassword")
-  public async addChangePasswordEndpoint(@CurrentUser({required: true}) currentUserId: number,
+  @Transaction()
+  public async addChangePasswordEndpoint(@TransactionManager() manager: EntityManager,
+                                         @CurrentUser({required: true}) currentUserId: number,
                                          @Param("id") userId: number, @Body() body: any, @Req() request: express.Request) {
-    return this.changePassword(currentUserId, userId, body.password, request);
+    return this.changePassword(currentUserId, userId, body.password, request, manager);
   }
 
   @Authorized()
@@ -72,11 +79,11 @@ export class SecurityController {
     const resetToken = await this.findResetTokenByToken(manager, body.token);
     if (resetToken && resetToken.user) {
       await this.updatePassword(resetToken.user.id, body.password, manager);
-      this.changePasswordWithTokenAudit("success", resetToken.user, request);
+      this.changePasswordWithTokenAudit(manager, "success", resetToken.user, request);
       await manager.getRepository(ResetToken).remove(resetToken);
       return resetToken.user;
     }
-    this.changePasswordWithTokenAudit("token not valid", resetToken.user, request);
+    this.changePasswordWithTokenAudit(manager, "token not valid", resetToken.user, request);
     return Promise.reject(new HttpError(403, "Token not valid"));
   }
 
@@ -84,7 +91,7 @@ export class SecurityController {
   @Transaction()
   public async createTokenByEmailEndpoint(@TransactionManager() manager: EntityManager,
                                           @Body() body: any, @Req() request: express.Request): Promise<void> {
-    const user = await this.findUserbyEmail(body.email);
+    const user = await this.findUserbyEmail(manager, body.email);
     if (user) {
       const resetToken = new ResetToken();
       resetToken.user = user;
@@ -92,21 +99,22 @@ export class SecurityController {
       resetToken.validTo = moment().add(2, "h").toDate();
       const insertResult = await manager.getRepository(ResetToken).insert(resetToken);
       await this.sendResetToken(user, resetToken.token);
-      this.sendResetTokenAudit(user, body.email, request);
+      this.sendResetTokenAudit(manager, user, body.email, request);
     } else {
-      this.sendResetTokenAudit(user, body.email, request);
+      this.sendResetTokenAudit(manager, user, body.email, request);
     }
     return;
   }
 
-  private authenticateAudit(actionResult: string, user: any, body: any, request: express.Request): void {
+  private authenticateAudit(manager: EntityManager, actionResult: string,
+                            user: any, body: any, request: express.Request): void {
     const audit = {
       action: "authenticate",
       actionResult,
       additionalData: body.email,
       user,
     };
-    this.userAuditRepository.save(audit, {data: request});
+    this.userAuditRepo(manager).save(audit, {data: request});
   }
 
   private async changeMyPassword(manager: EntityManager, userId: number, currentPassword: string,
@@ -115,19 +123,20 @@ export class SecurityController {
     const userPassword = await this.getUserPassword(userId, manager);
     const ok: boolean = await bcrypt.compare(currentPassword, userPassword.password);
     if (!ok) {
-      this.changeMyPasswordAudit("password failed", user, request);
+      this.changeMyPasswordAudit(manager, "password failed", user, request);
       return Promise.reject(new HttpError(403, "password not changed"));
     }
     await this.updatePassword(user.id, password, manager);
-    this.changeMyPasswordAudit("success", user, request);
+    this.changeMyPasswordAudit(manager, "success", user, request);
     return user;
   }
 
-  private async changePassword(currentUserId: number, userId: number, password: string, request: express.Request): Promise<User> {
-    const user = await this.findUserbyId(userId, getManager());
-    const currentUser = await this.findUserbyId(currentUserId, getManager());
-    await this.updatePassword(user.id, password, getManager());
-    this.changePasswordAudit(currentUser, user, request);
+  private async changePassword(currentUserId: number, userId: number, password: string,
+                               request: express.Request, manager: EntityManager): Promise<User> {
+    const user = await this.findUserbyId(userId, manager);
+    const currentUser = await this.findUserbyId(currentUserId, manager);
+    await this.updatePassword(user.id, password, manager);
+    this.changePasswordAudit(manager, currentUser, user, request);
     return user;
   }
 
@@ -153,8 +162,8 @@ export class SecurityController {
     return undefined;
   }
 
-  private async findUserbyEmail(emailAddress: string): Promise<User | undefined> {
-    return getManager().getRepository(User)
+  private async findUserbyEmail(manager: EntityManager, emailAddress: string): Promise<User | undefined> {
+    return manager.getRepository(User)
       .createQueryBuilder("user")
       .addSelect("user.password")
       .leftJoinAndSelect("user.roles", "roles")
@@ -188,42 +197,42 @@ export class SecurityController {
       this.jwtConfig.getSignSecret(), this.jwtConfig.getSignOptions());
   }
 
-  private changePasswordAudit(currentUser: User, userToChange: User, request: express.Request) {
+  private changePasswordAudit(manager: EntityManager, currentUser: User, userToChange: User, request: express.Request) {
     const audit = {
       action: "changePassword",
       actionResult: "ok",
       additionalData: userToChange.email,
       user: currentUser,
     };
-    this.userAuditRepository.save(audit, {data: request});
+    this.userAuditRepo(manager).save(audit, {data: request});
   }
 
-  private async changeMyPasswordAudit(actionResult: string, user: User, request: express.Request) {
+  private async changeMyPasswordAudit(manager: EntityManager, actionResult: string, user: User, request: express.Request) {
     const audit = {
       action: "changeMyPassword",
       actionResult,
       user,
     };
-    this.userAuditRepository.save(audit, {data: request});
+    this.userAuditRepo(manager).save(audit, {data: request});
   }
 
-  private async changePasswordWithTokenAudit(actionResult: string, user: User, request: express.Request) {
+  private async changePasswordWithTokenAudit(manager: EntityManager, actionResult: string, user: User, request: express.Request) {
     const audit = {
       action: "changePasswordWithToken",
       actionResult,
       user,
     };
-    this.userAuditRepository.save(audit, {data: request});
+    this.userAuditRepo(manager).save(audit, {data: request});
   }
 
-  private async sendResetTokenAudit(user: User, email: string, request: express.Request) {
+  private async sendResetTokenAudit(manager: EntityManager, user: User, email: string, request: express.Request) {
     const audit = {
       action: "sendResetToken",
       actionResult: user ? "user found" : "user not found",
       additionalData: user ? undefined : email,
       user,
     };
-    this.userAuditRepository.save(audit, {data: request});
+    this.userAuditRepo(manager).save(audit, {data: request});
   }
 
   private async sendResetToken(user: User, token: string) {
