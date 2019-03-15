@@ -65,9 +65,9 @@ export class ArticleCheckInController {
   @Transaction()
   @Authorized("admin")
   @Delete("/withAll/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager,
-                @EntityFromParam("id") article: ArticleCheckIn,
-                @CurrentUser({required: true}) userId: number) {
-    return this.articleCheckInRepo(manager).remove(article, {data: userId});
+  public async delete(@TransactionManager() manager: EntityManager,
+                      @EntityFromParam("id") article: ArticleCheckIn,
+                      @CurrentUser({required: true}) userId: number) {
+    return await this.articleCheckInRepo(manager).remove(article, {data: userId});
   }
 }
