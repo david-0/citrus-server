@@ -6,7 +6,6 @@ import {
   RemoveEvent,
   UpdateEvent,
 } from "typeorm";
-import {CheckedOutOrderItem} from "../entity/CheckedOutOrderItem";
 import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
 
@@ -24,21 +23,11 @@ export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInte
     await this.updateAfter(event.manager, event.entity);
   }
 
-  public async beforeRemove(event: RemoveEvent<OrderItem>) {
-    await this.updateBefore(event.manager, event.entity);
-  }
-
   private async updateAfter(manager: EntityManager, entity: OrderItem) {
     entity = await this.reloadOrder(entity, manager);
     let totalPrice = this.getTotalPrice(entity.order.orderItems, entity.id);
     totalPrice += +entity.copiedPrice * +entity.quantity;
     await this.updateTotalPrice(manager, entity.order.id, totalPrice);
-  }
-
-  private async updateBefore(manager: EntityManager, entity: CheckedOutOrderItem) {
-    entity = await this.reloadOrder(entity, manager);
-    const checkedOutTotalPrice = this.getTotalPrice(entity.order.checkedOutOrderItems, entity.id);
-    await this.updateTotalPrice(manager, entity.order.id, checkedOutTotalPrice);
   }
 
   private async reloadOrder(entity: OrderItem, manager: EntityManager) {

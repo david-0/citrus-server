@@ -49,9 +49,6 @@ export class OrderController {
         "orderItems.article",
         "orderItems.article.unitOfMeasurement",
         "plannedCheckout",
-        "checkedOutOrderItems",
-        "checkedOutOrderItems.article",
-        "checkedOutOrderItems.article.unitOfMeasurement",
         "checkingOutUser",
       ],
     });
@@ -80,9 +77,6 @@ export class OrderController {
         "orderItems.article",
         "orderItems.article.unitOfMeasurement",
         "plannedCheckout",
-        "checkedOutOrderItems",
-        "checkedOutOrderItems.article",
-        "checkedOutOrderItems.article.unitOfMeasurement",
         "checkingOutUser",
       ],
     });
