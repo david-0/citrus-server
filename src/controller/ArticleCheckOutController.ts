@@ -53,12 +53,12 @@ export class ArticleCheckOutController {
   @Transaction()
   @Authorized("admin")
   @Put("/withAll/:id([0-9]+)")
-  public update(@TransactionManager() manager: EntityManager,
-                @EntityFromParam("id") articleCheckOut: ArticleCheckOut,
-                @EntityFromBody() changeArticleCheckOut: ArticleCheckOut,
-                @CurrentUser({required: true}) userId: number) {
-    return this.articleCheckOutRepo(manager).save(
-      this.articleCheckOutRepo(manager).merge(articleCheckOut, changeArticleCheckOut), {data: userId}
+  public async update(@TransactionManager() manager: EntityManager,
+                      @EntityFromParam("id") articleCheckOut: ArticleCheckOut,
+                      @EntityFromBody() changeArticleCheckOut: ArticleCheckOut,
+                      @CurrentUser({required: true}) userId: number) {
+    return await this.articleCheckOutRepo(manager).save(
+      await this.articleCheckOutRepo(manager).merge(articleCheckOut, changeArticleCheckOut), {data: userId}
     );
   }
 

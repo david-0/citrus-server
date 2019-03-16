@@ -1,3 +1,4 @@
+import {getLogger, Logger} from "log4js";
 import {Authorized, CurrentUser, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
@@ -5,6 +6,7 @@ import {ArticleCheckIn} from "../entity/ArticleCheckIn";
 
 @JsonController("/api/articleCheckIn")
 export class ArticleCheckInController {
+  private LOGGER: Logger = getLogger("ArticleCheckInController");
   private articleCheckInRepo: (manager: EntityManager) => Repository<ArticleCheckIn>;
 
   constructor() {
@@ -47,7 +49,10 @@ export class ArticleCheckInController {
   public async save(@TransactionManager() manager: EntityManager,
                     @EntityFromBody() article: ArticleCheckIn,
                     @CurrentUser({required: true}) userId: number) {
-    return await this.articleCheckInRepo(manager).save(article, {data: userId});
+    this.LOGGER.info("before save");
+    const result = await this.articleCheckInRepo(manager).save(article, {data: userId});
+    this.LOGGER.info("after save");
+    return result;
   }
 
   @Transaction()
@@ -58,7 +63,7 @@ export class ArticleCheckInController {
                       @EntityFromBody() changeArticleCheckIn: ArticleCheckIn,
                       @CurrentUser({required: true}) userId: number) {
     return await this.articleCheckInRepo(manager).save(
-      this.articleCheckInRepo(manager).merge(articleCheckIn, changeArticleCheckIn), {data: userId},
+      await this.articleCheckInRepo(manager).merge(articleCheckIn, changeArticleCheckIn), {data: userId},
     );
   }
 
