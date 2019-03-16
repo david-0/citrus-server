@@ -64,6 +64,8 @@ class Server {
       appenders: {out: {type: "stdout"}},
       categories: {default: {appenders: ["out"], level: "info"}},
     });
+    LOGGER.info("Node Version: " + process.version);
+    LOGGER.info("Node Env: " + JSON.stringify(process.env));
     this.app = express();
     this.app.use(compression());
     this.config();
