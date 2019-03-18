@@ -10,8 +10,8 @@
   "scripts": {
     "start": "webpack-dev-server",
     "build": "gulp build",
-    "reload": "git reset --hard && git clean -fd && git pull && pm2 stop citrus-server && npm ci && npm run build && pm2 start citrus-server",
-    "full-reload": "git reset --hard && git clean -fd && git pull && pm2 stop citrus-server && rm -rf node_modules && npm ci && npm run build && pm2 start citrus-server",
+    "reload": "git reset --hard && git clean -fd && git pull && forever stop dist/app.js && npm ci && npm run build && forever start dist/app.js",
+    "full-reload": "git reset --hard && git clean -fd && git pull && forever stop dist/app.js && rm -rf node_modules && npm ci && npm run build && forever start dist/app.js",
     "test": "gulp unittest",
     "integration-test": "gulp integration-test"
   },
