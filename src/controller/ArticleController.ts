@@ -42,28 +42,63 @@ export class ArticleController {
   @Authorized("admin")
   @Get("/withStock/:id([0-9]+)")
   public getWithStock(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.articleRepo(manager).findOne(id, {relations: ["unitOfMeasurement", "articleStocks"]});
+    return this.articleRepo(manager).findOne(id, {
+      relations: [
+        "unitOfMeasurement",
+        "articleStocks",
+        "articleStocks.location",
+        "articleStocks.article",
+        "articleStocks.article.unitOfMeasurement",
+        "articleStocks.checkIns",
+      ]
+    });
   }
 
   @Transaction()
   @Authorized("admin")
   @Get("/withStock")
-  public getAllWithStock(@TransactionManager() manager: EntityManager,) {
-    return this.articleRepo(manager).find({relations: ["unitOfMeasurement", "articleStocks"]});
+  public getAllWithStock(@TransactionManager() manager: EntityManager) {
+    return this.articleRepo(manager).find({
+      relations: [
+        "unitOfMeasurement",
+        "articleStocks",
+        "articleStocks.location",
+        "articleStocks.article",
+        "articleStocks.article.unitOfMeasurement",
+        "articleStocks.checkIns",
+      ]
+    });
   }
 
   @Transaction()
-  @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
   public getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.articleRepo(manager).findOne(id, {relations: ["unitOfMeasurement", "articleStocks"]});
+    return this.articleRepo(manager).findOne(id, {
+      relations: [
+        "unitOfMeasurement",
+        "articleStocks",
+        "articleStocks.location",
+        "articleStocks.article",
+        "articleStocks.article.unitOfMeasurement",
+        "articleStocks.checkIns",
+      ]
+    });
   }
 
   @Transaction()
   @Authorized("admin")
   @Get("/withAll")
-  public getAllWithAll(@TransactionManager() manager: EntityManager,) {
-    return this.articleRepo(manager).find({relations: ["unitOfMeasurement", "articleStocks"]});
+  public getAllWithAll(@TransactionManager() manager: EntityManager) {
+    return this.articleRepo(manager).find({
+      relations: [
+        "unitOfMeasurement",
+        "articleStocks",
+        "articleStocks.location",
+        "articleStocks.article",
+        "articleStocks.article.unitOfMeasurement",
+        "articleStocks.checkIns",
+      ]
+    });
   }
 
   @Transaction()
