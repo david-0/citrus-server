@@ -20,7 +20,7 @@ import {LocationController} from "./controller/LocationController";
 import {OpeningHourController} from "./controller/OpeningHourController";
 import {OrderController} from "./controller/OrderController";
 import {OrderItemController} from "./controller/OrderItemController";
-import {PictureController} from "./controller/PictureController";
+import {ImageController} from "./controller/ImageController";
 import {RoleController} from "./controller/RoleController";
 import {SecurityController} from "./controller/SecurityController";
 import {UnitOfMeasurementController} from "./controller/UnitOfMeasurementController";
@@ -199,7 +199,7 @@ class Server {
         OrderItemController,
         LocationController,
         OpeningHourController,
-        PictureController,
+        ImageController,
         RoleController,
         UnitOfMeasurementController,
         UserController,

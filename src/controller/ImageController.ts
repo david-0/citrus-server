@@ -2,41 +2,45 @@ import {Request, Response} from "express";
 import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {Picture} from "../entity/Picture";
+import {Image} from "../entity/Image";
 
-@JsonController("/api/picture")
-export class PictureController {
+@JsonController("/api/image")
+export class ImageController {
 
-  private pictureRepo: (manager: EntityManager) => Repository<Picture>;
+  private imageRepo: (manager: EntityManager) => Repository<Image>;
 
   constructor() {
-    this.pictureRepo = manager => manager.getRepository(Picture);
+    this.imageRepo = manager => manager.getRepository(Image);
   }
 
   @Transaction()
   @Get("/:id([0-9]+)")
   public get(@TransactionManager() manager: EntityManager,
-             @EntityFromParam("id") picture: Picture,
+             @EntityFromParam("id") image: Image,
              @Res() response: Response) {
-    response.contentType(picture.contentType);
-    response.status(200).send(picture.image);
+    response.contentType(image.contentType);
+    response.status(200).send(image.image);
   }
 
   @Transaction()
   @Authorized("admin")
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.pictureRepo(manager).find();
+    return this.imageRepo(manager).find();
   }
 
   @Transaction()
   @Authorized("admin")
   @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() image: Buffer, @Req() request: Request) {
-    const picture = new Picture();
-    picture.contentType = request.headers["content-type"];
-    picture.image = image;
-    return this.pictureRepo(manager).save(picture);
+  public async save(@TransactionManager() manager: EntityManager, @Req() request: Request) {
+    var form = new multiparty.Form();
+    form.parse(req, function(err, fields, files) {
+      // fields fields fields
+    });
+    const image = new Image();
+    image.contentType = request.headers["content-type"];
+    image.image = formData.g;
+    return this.imageRepo(manager).save(image);
   }
 
   @Transaction()
@@ -46,16 +50,16 @@ export class PictureController {
                       @Body() image: Buffer,
                       @Param("id") id: number,
                       @Req() request: Request) {
-    const picture = await this.pictureRepo(manager).findOne(id);
+    const picture = await this.imageRepo(manager).findOne(id);
     picture.contentType = request.headers["content-type"];
     picture.image = image;
-    return this.pictureRepo(manager).save(picture);
+    return this.imageRepo(manager).save(picture);
   }
 
   @Transaction()
   @Authorized("admin")
   @Delete("/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") picture: Picture) {
-    return this.pictureRepo(manager).remove(picture);
+  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") picture: Image) {
+    return this.imageRepo(manager).remove(picture);
   }
 }

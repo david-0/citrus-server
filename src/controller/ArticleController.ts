@@ -50,7 +50,7 @@ export class ArticleController {
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
-      ]
+      ],
     });
   }
 
@@ -66,7 +66,7 @@ export class ArticleController {
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
-      ]
+      ],
     });
   }
 
@@ -81,7 +81,7 @@ export class ArticleController {
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
-      ]
+      ],
     });
   }
 
@@ -97,7 +97,7 @@ export class ArticleController {
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
-      ]
+      ],
     });
   }
 

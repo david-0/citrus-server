@@ -20,7 +20,7 @@ export class Article {
   public description: string;
 
   @Column({nullable: true})
-  public pictureId: string;
+  public imageId: string;
 
   @Column("decimal", {precision: 10, scale: 2})
   public price: number;
