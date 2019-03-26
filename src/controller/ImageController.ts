@@ -1,4 +1,7 @@
 import {Request, Response} from "express";
+import {getType} from "mime";
+import Mime from "mime/Mime";
+import {Form} from "multiparty";
 import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromParam} from "typeorm-routing-controllers-extensions";
@@ -33,13 +36,12 @@ export class ImageController {
   @Authorized("admin")
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Req() request: Request) {
-    var form = new multiparty.Form();
-    form.parse(req, function(err, fields, files) {
-      // fields fields fields
-    });
+    const form = new Form();
     const image = new Image();
-    image.contentType = request.headers["content-type"];
-    image.image = formData.g;
+    form.parse(request, (err, fields, files) => {
+      image.contentType = getType(files[0].filename);
+      image.image = files[0].data;
+    });
     return this.imageRepo(manager).save(image);
   }
 
