@@ -1,6 +1,6 @@
 import {Request, Response} from "express";
+import * as fs from "fs";
 import {getType} from "mime";
-import Mime from "mime/Mime";
 import {Form} from "multiparty";
 import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
@@ -38,23 +38,27 @@ export class ImageController {
   public async save(@TransactionManager() manager: EntityManager, @Req() request: Request) {
     const form = new Form();
     const image = new Image();
-    form.parse(request, (err, fields, files) => {
-      image.contentType = getType(files[0].filename);
-      image.image = files[0].data;
+    await new Promise((resolve, reject) => {
+      form.parse(request, (err, fields, files) => {
+        image.contentType = getType(files.fileKey[0].originalFilename);
+        image.image = fs.readFileSync(files.fileKey[0].path);
+        resolve();
+      });
     });
-    return this.imageRepo(manager).save(image);
+    const entity = await this.imageRepo(manager).save(image);
+    return entity.id;
   }
 
   @Transaction()
   @Authorized("admin")
   @Put("/:id([0-9]+)")
   public async update(@TransactionManager() manager: EntityManager,
-                      @Body() image: Buffer,
+                      @Body() image: Image,
                       @Param("id") id: number,
                       @Req() request: Request) {
     const picture = await this.imageRepo(manager).findOne(id);
-    picture.contentType = request.headers["content-type"];
-    picture.image = image;
+    picture.contentType = image.contentType
+    picture.image = image.image;
     return this.imageRepo(manager).save(picture);
   }
 
