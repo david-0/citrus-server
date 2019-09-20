@@ -72,7 +72,7 @@ export class OrderController {
       .leftJoinAndSelect("o.location", "l")
       .leftJoinAndSelect("o.plannedCheckout", "c")
       .where("o.location.id = :id", {id: location.id})
-      .where("o.checkedOut = :open", {open: false})
+      .andWhere("o.checkedOut = :open", {open: false})
       .orderBy("c.fromDate", "ASC")
       .getMany();
   }
