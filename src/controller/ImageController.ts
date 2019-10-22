@@ -5,6 +5,7 @@ import {Form} from "multiparty";
 import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromParam} from "typeorm-routing-controllers-extensions";
+import {isNullOrUndefined} from "util";
 import {Image} from "../entity/Image";
 
 @JsonController("/api/image")
@@ -40,13 +41,18 @@ export class ImageController {
     const image = new Image();
     await new Promise((resolve, reject) => {
       form.parse(request, (err, fields, files) => {
-        image.contentType = getType(files.fileKey[0].originalFilename);
-        image.image = fs.readFileSync(files.fileKey[0].path);
+        if (files.fileKey) {
+          image.contentType = getType(files.fileKey[0].originalFilename);
+          image.image = fs.readFileSync(files.fileKey[0].path);
+        }
         resolve();
       });
     });
-    const entity = await this.imageRepo(manager).save(image);
-    return entity.id;
+    if (image.image) {
+      const entity = await this.imageRepo(manager).save(image);
+      return entity.id;
+    }
+    return null;
   }
 
   @Transaction()
@@ -57,7 +63,7 @@ export class ImageController {
                       @Param("id") id: number,
                       @Req() request: Request) {
     const picture = await this.imageRepo(manager).findOne(id);
-    picture.contentType = image.contentType
+    picture.contentType = image.contentType;
     picture.image = image.image;
     return this.imageRepo(manager).save(picture);
   }
