@@ -4,13 +4,13 @@ import {sign} from "jsonwebtoken";
 import * as moment from "moment";
 import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req, Res} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {v4 as uuid} from "uuid";
 import {ResetToken} from "../entity/ResetToken";
 import {Role} from "../entity/Role";
 import {User} from "../entity/User";
 import {UserAudit} from "../entity/UserAudit";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
 import {MailService} from "../utils/MailService";
+import uuid = require("uuid");
 
 declare var process: any;
 
@@ -89,8 +89,8 @@ export class SecurityController {
 
   @Post("/api/user/createTokenByEmail")
   @Transaction()
-  public async createTokenByEmailEndpoint(@TransactionManager() manager: EntityManager,
-                                          @Body() body: any, @Req() request: express.Request): Promise<void> {
+  public async createTokenByEmailEndpoint(@TransactionManager() manager: EntityManager, @Body() body: any,
+                                          @Req() request: express.Request): Promise<boolean> {
     const user = await this.findUserbyEmail(manager, body.email);
     if (user) {
       const resetToken = new ResetToken();
@@ -103,7 +103,7 @@ export class SecurityController {
     } else {
       this.sendResetTokenAudit(manager, user, body.email, request);
     }
-    return;
+    return Promise.resolve(true);
   }
 
   private authenticateAudit(manager: EntityManager, actionResult: string,
@@ -240,7 +240,7 @@ export class SecurityController {
     if (this.env === "production") {
       domain = "https://88.99.118.38:3002";
     }
-    const link = `${domain}/admin/resetPassword/${token}`;
+    const link = `${domain}resetPassword/${token}`;
     await this.mailService.sendMail(user.email, "Citrus - Passwort zurücksetzen",
       "Hallo\r\n\r\n" +
       "Du erhältst dieses Mail weil du (oder jemand anderes) für den Citrus-Benutzer '" + user.email +
