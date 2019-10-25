@@ -67,8 +67,6 @@ export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
         responseObject.message = error;
       }
     }
-
-    // send json only with error
-    response.json(responseObject);
+    response.send(JSON.stringify(responseObject));
   }
 }
