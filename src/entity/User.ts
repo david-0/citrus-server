@@ -38,9 +38,6 @@ export class User {
   @Column()
   public phone: string;
 
-  @Column()
-  public mobile: string;
-
   @OneToMany(type => Order, order => order.user)
   public orders: Order[];
 
