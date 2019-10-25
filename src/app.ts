@@ -16,11 +16,11 @@ import {ArticleCheckOutController} from "./controller/ArticleCheckOutController"
 import {ArticleController} from "./controller/ArticleController";
 import {ArticleStockController} from "./controller/ArticleStockController";
 import {CartController} from "./controller/CartController";
+import {ImageController} from "./controller/ImageController";
 import {LocationController} from "./controller/LocationController";
 import {OpeningHourController} from "./controller/OpeningHourController";
 import {OrderController} from "./controller/OrderController";
 import {OrderItemController} from "./controller/OrderItemController";
-import {ImageController} from "./controller/ImageController";
 import {RoleController} from "./controller/RoleController";
 import {SecurityController} from "./controller/SecurityController";
 import {UnitOfMeasurementController} from "./controller/UnitOfMeasurementController";
@@ -33,6 +33,7 @@ import {JwtConfiguration} from "./utils/JwtConfiguration";
 import {ResetTokenEvictor} from "./utils/ResetTokenEvictor";
 import {StartupNotifier} from "./utils/StartupNotifier";
 import {SuppressNextMiddlewareHandler} from "./utils/SuppressNextMiddlewareHandler";
+import {UserNotConfirmedEvictor} from "./utils/UserNotConfirmedEvictor";
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -74,6 +75,7 @@ class Server {
     useContainer(Container);
     createConnection().then(async connection => {
       new ResetTokenEvictor().schedule(0);
+      new UserNotConfirmedEvictor().schedule(0);
       new StartupNotifier().notify("david.leuenberger@gmx.ch");
       this.routes();
       this.staticRoutes();

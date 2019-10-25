@@ -8,6 +8,7 @@ import {ResetToken} from "../entity/ResetToken";
 import {Role} from "../entity/Role";
 import {User} from "../entity/User";
 import {UserAudit} from "../entity/UserAudit";
+import {UserNotConfirmed} from "../entity/UserNotConfirmed";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
 import {MailService} from "../utils/MailService";
 import uuid = require("uuid");
@@ -106,6 +107,66 @@ export class SecurityController {
     return Promise.resolve(true);
   }
 
+  @Post("/api/user/register")
+  @Transaction()
+  public async register(@TransactionManager() manager: EntityManager, @Body() body: any,
+                        @Req() request: express.Request): Promise<number> {
+    const existingUser = await this.findUserbyEmail(manager, body.email);
+    const existingUserNotConfirmed = await this.findUserNotConfirmedByEmail(manager, body.email);
+    if (existingUser || existingUserNotConfirmed) {
+      this.tryRegisterAlreadyExistingUserAudit(manager, body.name, body.prename, body.phoneNumber, body.email, request);
+      return Promise.resolve(1);
+    }
+    const newUser = new UserNotConfirmed();
+    newUser.name = body.name;
+    newUser.prename = body.prename;
+    newUser.email = body.email;
+    newUser.phoneNumber = body.phoneNumber;
+    newUser.token = uuid();
+    newUser.validTo = moment().add(2, "h").toDate();
+    try {
+      await manager.getRepository(UserNotConfirmed).save(newUser);
+      await this.sendActivationToken(newUser);
+      this.registerUserAudit(manager, newUser, request);
+      return Promise.resolve(0);
+    } catch (e) {
+      this.registerUserWithExceptionAudit(manager, newUser, request, e);
+      return Promise.resolve(2);
+    }
+  }
+
+  @Post("/api/user/confirm")
+  @Transaction()
+  public async userConfirmation(@TransactionManager() manager: EntityManager, @Body() body: any,
+                                @Req() request: express.Request): Promise<boolean> {
+    const newUserNotConfirmed = await this.findUserNotConfirmedByToken(manager, body.token);
+    if (!newUserNotConfirmed) {
+      await this.tryUserConfirmationUserAlreadyExistsAudit(manager, body.token, request);
+      return Promise.resolve(false);
+    }
+    const existingUser = await this.findUserbyEmail(manager, newUserNotConfirmed.email);
+    if (existingUser) {
+      await this.userConfirmationTokenNotValidAudit(manager, newUserNotConfirmed, request);
+      return Promise.resolve(false);
+    }
+    const newUser = new User();
+    newUser.name = newUserNotConfirmed.name;
+    newUser.prename = newUserNotConfirmed.prename;
+    newUser.email = newUserNotConfirmed.email;
+    newUser.phone = newUserNotConfirmed.phoneNumber;
+    try {
+      await manager.getRepository(User).save(newUser);
+      const userId = (await this.findUserbyEmail(manager, newUser.email)).id;
+      await this.updatePassword(userId, body.password, manager);
+      await manager.getRepository(UserNotConfirmed).delete({token: body.token});
+      await this.userConfirmedAudit(manager, newUser, request);
+      return Promise.resolve(true);
+    } catch (e) {
+      await this.userNotConfirmedAudit(manager, newUser, request, e);
+      return Promise.resolve(false);
+    }
+  }
+
   private authenticateAudit(manager: EntityManager, actionResult: string,
                             user: any, body: any, request: express.Request): void {
     const audit = {
@@ -136,7 +197,7 @@ export class SecurityController {
     const user = await this.findUserbyId(userId, manager);
     const currentUser = await this.findUserbyId(currentUserId, manager);
     await this.updatePassword(user.id, password, manager);
-    this.changePasswordAudit(manager, currentUser, user, request);
+    await this.changePasswordAudit(manager, currentUser, user, request);
     return user;
   }
 
@@ -158,6 +219,22 @@ export class SecurityController {
     const resetToken = await manager.getRepository(ResetToken).findOne({token}, {relations: ["user"]});
     if (resetToken && (resetToken.validTo >= new Date())) {
       return resetToken;
+    }
+    return undefined;
+  }
+
+  private async findUserNotConfirmedByToken(manager: EntityManager, token: string): Promise<UserNotConfirmed | undefined> {
+    const userNotConfirmed = await manager.getRepository(UserNotConfirmed).findOne({token});
+    if (userNotConfirmed && (userNotConfirmed.validTo >= new Date())) {
+      return userNotConfirmed;
+    }
+    return undefined;
+  }
+
+  private async findUserNotConfirmedByEmail(manager: EntityManager, email: string): Promise<UserNotConfirmed | undefined> {
+    const userNotConfirmed = await manager.getRepository(UserNotConfirmed).findOne({email});
+    if (userNotConfirmed && (userNotConfirmed.validTo >= new Date())) {
+      return userNotConfirmed;
     }
     return undefined;
   }
@@ -197,14 +274,14 @@ export class SecurityController {
       this.jwtConfig.getSignSecret(), this.jwtConfig.getSignOptions());
   }
 
-  private changePasswordAudit(manager: EntityManager, currentUser: User, userToChange: User, request: express.Request) {
+  private async changePasswordAudit(manager: EntityManager, currentUser: User, userToChange: User, request: express.Request) {
     const audit = {
       action: "changePassword",
       actionResult: "ok",
       additionalData: userToChange.email,
       user: currentUser,
     };
-    this.userAuditRepo(manager).save(audit, {data: request});
+    await this.userAuditRepo(manager).save(audit, {data: request});
   }
 
   private async changeMyPasswordAudit(manager: EntityManager, actionResult: string, user: User, request: express.Request) {
@@ -213,7 +290,7 @@ export class SecurityController {
       actionResult,
       user,
     };
-    this.userAuditRepo(manager).save(audit, {data: request});
+    await this.userAuditRepo(manager).save(audit, {data: request});
   }
 
   private async changePasswordWithTokenAudit(manager: EntityManager, actionResult: string, user: User, request: express.Request) {
@@ -222,7 +299,7 @@ export class SecurityController {
       actionResult,
       user,
     };
-    this.userAuditRepo(manager).save(audit, {data: request});
+    await this.userAuditRepo(manager).save(audit, {data: request});
   }
 
   private async sendResetTokenAudit(manager: EntityManager, user: User, email: string, request: express.Request) {
@@ -232,7 +309,83 @@ export class SecurityController {
       additionalData: user ? undefined : email,
       user,
     };
-    this.userAuditRepo(manager).save(audit, {data: request});
+    await this.userAuditRepo(manager).save(audit, {data: request});
+  }
+
+  private async registerUserAudit(manager: EntityManager, userNotConfirmed: UserNotConfirmed, request: express.Request) {
+    const user: User = undefined;
+    const audit = {
+      action: "registerUser",
+      actionResult: "user registered",
+      additionalData: userNotConfirmed.name + ", " + userNotConfirmed.prename + ", " + userNotConfirmed.phoneNumber + ", " + userNotConfirmed.email,
+      user,
+    };
+    await this.userAuditRepo(manager).save(audit, {data: request});
+  }
+
+  private async userNotConfirmedAudit(manager: EntityManager, user: User, request: express.Request, expection: any) {
+    const audit = {
+      action: "userConfirmed",
+      actionResult: "user not confirmed",
+      additionalData: user.name + ", " + user.prename + ", " + user.phone + ", " + user.email + ", " + JSON.stringify(expection),
+      user,
+    };
+    await this.userAuditRepo(manager).save(audit, {data: request});
+  }
+
+  private async userConfirmedAudit(manager: EntityManager, user: User, request: express.Request) {
+    const audit = {
+      action: "userConfirmed",
+      actionResult: "user confirmed",
+      additionalData: user.name + ", " + user.prename + ", " + user.phone + ", " + user.email,
+      user,
+    };
+    await this.userAuditRepo(manager).save(audit, {data: request});
+  }
+
+  private async registerUserWithExceptionAudit(manager: EntityManager, userNotConfirmed: UserNotConfirmed, request: express.Request, exception: any) {
+    const user: User = undefined;
+    const audit = {
+      action: "registerUser",
+      actionResult: "user registered",
+      additionalData: userNotConfirmed.name + ", " + userNotConfirmed.prename + ", " + userNotConfirmed.phoneNumber + ", " + userNotConfirmed.email + ", " + JSON.stringify(exception),
+      user,
+    };
+    await this.userAuditRepo(manager).save(audit, {data: request});
+  }
+
+  private async tryRegisterAlreadyExistingUserAudit(manager: EntityManager, name: string, prename: string,
+                                                    phoneNumber: string, email: string, request: express.Request) {
+    const user: User = undefined;
+    const audit = {
+      action: "tryRegisterAlreadyExistingUser",
+      actionResult: "user already eixsts",
+      additionalData: name + ", " + prename + ", " + phoneNumber + ", " + email,
+      user,
+    };
+    await this.userAuditRepo(manager).save(audit, {data: request});
+  }
+
+  private async tryUserConfirmationUserAlreadyExistsAudit(manager: EntityManager, userNotConfirmed: UserNotConfirmed, request: express.Request) {
+    const user: User = undefined;
+    const audit = {
+      action: "tryUserConfirmationUserAlreadyExists",
+      actionResult: "user already eixsts",
+      additionalData: userNotConfirmed.name + ", " + userNotConfirmed.prename + ", " + userNotConfirmed.phoneNumber + ", " + userNotConfirmed.email,
+      user,
+    };
+    await this.userAuditRepo(manager).save(audit, {data: request});
+  }
+
+  private async userConfirmationTokenNotValidAudit(manager: EntityManager, userNotConfirmed: UserNotConfirmed, request: express.Request) {
+    const user: User = undefined;
+    const audit = {
+      action: "userConfirmationTokenNotValid",
+      actionResult: "no valid token",
+      additionalData: userNotConfirmed.name + ", " + userNotConfirmed.prename + ", " + userNotConfirmed.phoneNumber + ", " + userNotConfirmed.email,
+      user,
+    };
+    await this.userAuditRepo(manager).save(audit, {data: request});
   }
 
   private async sendResetToken(user: User, token: string) {
@@ -241,22 +394,47 @@ export class SecurityController {
       domain = "https://88.99.118.38:3002";
     }
     const link = `${domain}resetPassword/${token}`;
-    await this.mailService.sendMail(user.email, "Citrus - Passwort zurücksetzen",
+    await this.mailService.sendMail(user.email, "Früchtebestellung - Passwort zurücksetzen",
       "Hallo\r\n\r\n" +
-      "Du erhältst dieses Mail weil du (oder jemand anderes) für den Citrus-Benutzer '" + user.email +
+      "Du erhältst dieses Mail weil du (oder jemand anderes) für den Früchtebestellung-Benutzer '" + user.email +
       "' eine Passwort zurücksetzen Anfrage gestellt hat.\r\n\r\n" +
       "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.\r\n" +
       "Der Link ist zwei Stunden gültig.\r\n\r\n" + link + "\r\n\r\n" +
       "Wenn du dieses Mail irrtümlich erhalten hast, kannst du es ignorieren.\r\n\r\n" +
-      "Webmaster Citrus",
+      "Webmaster Früchtebestellung",
       "<h3>Hallo</h3>" +
-      "<p>Du erhältst dieses Mail weil du (oder jemand anderes) für den Citrus Benutzer '" + user.email +
+      "<p>Du erhältst dieses Mail weil du (oder jemand anderes) für den Früchtebestellung Benutzer '" + user.email +
       "' eine Passwort zurücksetzen Anfrage gestellt hat.<br/>" +
       "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.<br/>" +
       "Der Link ist zwei Stunden gültig.</p>" +
       "<a href='" + link + "'>" + link + "</a>" +
       "<p>Wenn Sie dieses Mail irrtümlich erhalten haben, können Sie es ignorieren.</p>" +
-      "<p>Webmaster Citrus</p>");
+      "<p>Webmaster Früchtebestellung</p>");
+  }
+
+  private async sendActivationToken(userNotConfirmed: UserNotConfirmed) {
+    let domain = "http://localhost:4200/";
+    if (this.env === "production") {
+      domain = "https://88.99.118.38:3002";
+    }
+    const link = `${domain}userConfirmation/${userNotConfirmed.token}`;
+    console.info(link);
+    await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Benutzer aktivieren",
+      "Hallo\r\n\r\n" +
+      "Du erhältst dieses Mail weil du (oder jemand anderes) den Früchtebestellung-Benutzer mit der Emailadresse '" + userNotConfirmed.email +
+      "' erstellt hat.\r\n\r\n" +
+      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.\r\n" +
+      "Der Link ist zwei Stunden gültig.\r\n\r\n" + link + "\r\n\r\n" +
+      "Wenn du dieses Mail irrtümlich erhalten hast, kannst du es ignorieren.\r\n\r\n" +
+      "Webmaster Früchtebestellung",
+      "<h3>Hallo</h3>" +
+      "<p>Du erhältst dieses Mail weil du (oder jemand anderes) den Früchtebestellung-Benutzer mit der Emailadresse '" + userNotConfirmed.email +
+      "' erstellt hat.<br/>" +
+      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.<br/>" +
+      "Der Link ist zwei Stunden gültig.</p>" +
+      "<a href='" + link + "'>" + link + "</a>" +
+      "<p>Wenn Sie dieses Mail irrtümlich erhalten haben, können Sie es ignorieren.</p>" +
+      "<p>Webmaster Früchtebestellung</p>");
   }
 }
 
