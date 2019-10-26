@@ -393,7 +393,7 @@ export class SecurityController {
     if (this.env === "production") {
       domain = "https://shop.el-refugio-denia.com";
     }
-    const link = `${domain}resetPassword/${token}`;
+    const link = `${domain}/resetPassword/${token}`;
     await this.mailService.sendMail(user.email, "Früchtebestellung - Passwort zurücksetzen",
       "Hallo\r\n\r\n" +
       "Sie erhalten dieses E-Mail weil Sie (oder jemand anderes) für den Früchtebestellung-Benutzer '" + user.email +
@@ -413,11 +413,11 @@ export class SecurityController {
   }
 
   private async sendActivationToken(userNotConfirmed: UserNotConfirmed) {
-    let domain = "http://localhost:4200/";
+    let domain = "http://localhost:4200";
     if (this.env === "production") {
-      domain = "https://shop.el-refugio-denia.com";
+      domain = "https://shop.el-refugio-denia.com/";
     }
-    const link = `${domain}userConfirmation/${userNotConfirmed.token}`;
+    const link = `${domain}/userConfirmation/${userNotConfirmed.token}`;
     await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Benutzer aktivieren",
       "Hallo\r\n\r\n" +
       "Sie erhalten diese E-Mail weil Sie (oder jemand anderes) den Früchtebestellung-Benutzer mit der E-Mailadresse '" + userNotConfirmed.email +
