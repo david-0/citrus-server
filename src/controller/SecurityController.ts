@@ -396,19 +396,19 @@ export class SecurityController {
     const link = `${domain}resetPassword/${token}`;
     await this.mailService.sendMail(user.email, "Früchtebestellung - Passwort zurücksetzen",
       "Hallo\r\n\r\n" +
-      "Du erhältst dieses Mail weil du (oder jemand anderes) für den Früchtebestellung-Benutzer '" + user.email +
-      "' eine Passwort zurücksetzen Anfrage gestellt hat.\r\n\r\n" +
-      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.\r\n" +
+      "Sie erhalten dieses E-Mail weil Sie (oder jemand anderes) für den Früchtebestellung-Benutzer '" + user.email +
+      "' eine Passwort zurücksetzen Anfrage gestellt haben.\r\n\r\n" +
+      "Bitte klicken Sie auf den folgenden Link oder kopieren Sie ihn in ihren Browser um den Vorgang abzuschliessen.\r\n" +
       "Der Link ist zwei Stunden gültig.\r\n\r\n" + link + "\r\n\r\n" +
-      "Wenn du dieses Mail irrtümlich erhalten hast, kannst du es ignorieren.\r\n\r\n" +
+      "Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie ignorieren.\r\n\r\n" +
       "Webmaster Früchtebestellung",
       "<h3>Hallo</h3>" +
-      "<p>Du erhältst dieses Mail weil du (oder jemand anderes) für den Früchtebestellung Benutzer '" + user.email +
-      "' eine Passwort zurücksetzen Anfrage gestellt hat.<br/>" +
-      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.<br/>" +
+      "<p>Sie erhalten diese E-Mail weil Sie (oder jemand anderes) für den Früchtebestellung-Benutzer '" + user.email +
+      "' eine Passwort zurücksetzen Anfrage gestellt haben.<br/>" +
+      "Bitte klicken Sie auf den folgenden Link oder kopieren Sie ihn in ihren Browser um den Vorgang abzuschliessen.<br/>" +
       "Der Link ist zwei Stunden gültig.</p>" +
       "<a href='" + link + "'>" + link + "</a>" +
-      "<p>Wenn Sie dieses Mail irrtümlich erhalten haben, können Sie es ignorieren.</p>" +
+      "<p>Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie ignorieren.</p>" +
       "<p>Webmaster Früchtebestellung</p>");
   }
 
@@ -418,22 +418,21 @@ export class SecurityController {
       domain = "https://88.99.118.38:3002";
     }
     const link = `${domain}userConfirmation/${userNotConfirmed.token}`;
-    console.info(link);
     await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Benutzer aktivieren",
       "Hallo\r\n\r\n" +
-      "Du erhältst dieses Mail weil du (oder jemand anderes) den Früchtebestellung-Benutzer mit der Emailadresse '" + userNotConfirmed.email +
-      "' erstellt hat.\r\n\r\n" +
-      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.\r\n" +
+      "Sie erhalten diese E-Mail weil Sie (oder jemand anderes) den Früchtebestellung-Benutzer mit der E-Mailadresse '" + userNotConfirmed.email +
+      "' erstellt haben.\r\n\r\n" +
+      "Bitte klicken Sie auf den folgenden Link oder kopieren Sie ihn in ihren Browser um den Vorgang abzuschliessen.\r\n" +
       "Der Link ist zwei Stunden gültig.\r\n\r\n" + link + "\r\n\r\n" +
-      "Wenn du dieses Mail irrtümlich erhalten hast, kannst du es ignorieren.\r\n\r\n" +
+      "Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie ignorieren.\r\n\r\n" +
       "Webmaster Früchtebestellung",
       "<h3>Hallo</h3>" +
-      "<p>Du erhältst dieses Mail weil du (oder jemand anderes) den Früchtebestellung-Benutzer mit der Emailadresse '" + userNotConfirmed.email +
-      "' erstellt hat.<br/>" +
-      "Bitte klicke auf den folgenden Link oder kopiere ihn in deinen Browser um den Vorgang abzuschliessen.<br/>" +
+      "<p>Sie erhalten diese E-Mail weil Sie (oder jemand anderes) den Früchtebestellung-Benutzer mit der E-Mailadresse '" + userNotConfirmed.email +
+      "' erstellt haben.<br/>" +
+      "Bitte klicken Sie auf den folgenden Link oder kopieren Sie ihn in ihren Browser um den Vorgang abzuschliessen.<br/>" +
       "Der Link ist zwei Stunden gültig.</p>" +
       "<a href='" + link + "'>" + link + "</a>" +
-      "<p>Wenn Sie dieses Mail irrtümlich erhalten haben, können Sie es ignorieren.</p>" +
+      "<p>Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie  ignorieren.</p>" +
       "<p>Webmaster Früchtebestellung</p>");
   }
 }
