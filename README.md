@@ -36,8 +36,23 @@ setfacl -m u:davidl:rx /etc/letsencrypt/archive
 setfacl -m u:davidl:rx /etc/letsencrypt/live
 setfacl -m u:davidl:r /etc/letsencrypt/archive/shop.el-refugio-denia.com/privkey1.pem
 
+## pre and post hooks
+cat > /etc/letsencrypt/renewal-hooks/pre/stopCitrusServer.sh << EOF
+#!/bin/bash
 
+cd /home/alixon/usr/davidl/website/citrus/citrus-server 
+su davidl -c "forever stop dist/app.js"
 
+EOF
+chmod 700 /etc/letsencrypt/renewal-hooks/pre/stopCitrusServer.sh
 
+cat > /etc/letsencrypt/renewal-hooks/post/startCitrusServer.sh << EOF
+#!/bin/bash
 
+cd /home/alixon/usr/davidl/website/citrus/citrus-server 
+export NODE_ENV=production
+su davidl -c "forever start dist/app.js"
+
+EOF
+chmod 700 /etc/letsencrypt/renewal-hooks/post/startCitrusServer.sh
 

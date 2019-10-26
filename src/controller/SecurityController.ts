@@ -391,7 +391,7 @@ export class SecurityController {
   private async sendResetToken(user: User, token: string) {
     let domain = "http://localhost:4200/";
     if (this.env === "production") {
-      domain = "https://88.99.118.38:3002";
+      domain = "https://shop.el-refugio-denia.com";
     }
     const link = `${domain}resetPassword/${token}`;
     await this.mailService.sendMail(user.email, "Früchtebestellung - Passwort zurücksetzen",
@@ -415,7 +415,7 @@ export class SecurityController {
   private async sendActivationToken(userNotConfirmed: UserNotConfirmed) {
     let domain = "http://localhost:4200/";
     if (this.env === "production") {
-      domain = "https://88.99.118.38:3002";
+      domain = "https://shop.el-refugio-denia.com";
     }
     const link = `${domain}userConfirmation/${userNotConfirmed.token}`;
     await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Benutzer aktivieren",
