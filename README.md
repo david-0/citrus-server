@@ -31,6 +31,11 @@ ln -s /etc/letsencrypt/live/shop.el-refugio-denia.com/cert.pem
 ln -s /etc/letsencrypt/live/shop.el-refugio-denia.com/privkey.pem
 ln -s /etc/letsencrypt/live/shop.el-refugio-denia.com/chain.pem
 
+## chmod permissions 
+setfacl -m u:davidl:rx /etc/letsencrypt/archive
+setfacl -m u:davidl:rx /etc/letsencrypt/live
+setfacl -m u:davidl:r /etc/letsencrypt/archive/shop.el-refugio-denia.com/privkey1.pem
+
 
 
 
