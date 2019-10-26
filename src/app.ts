@@ -124,7 +124,7 @@ class Server {
   }
 
   private redirectToHttps(req: express.Request, res: express.Response, next: express.NextFunction) {
-    res.redirect("https://88.99.118.38:444" + req.url);
+    res.redirect("https://shop.el-refugio-denia.com" + req.url);
   }
 
   private config(): void {
@@ -137,8 +137,8 @@ class Server {
     this.jwtConfig = new JwtConfiguration(this.env);
     if (this.env === "production") {
       this.jwtConfig.initProd("../certificate/jwt/private-key.pem", "../certificate/jwt/public-key.pem");
-      this.portHttps = process.env.PORT || 444;
-      this.portHttp = process.env.PORT_HTTP || 81;
+      this.portHttps = process.env.PORT || 443;
+      this.portHttp = process.env.PORT_HTTP || 80;
       LOGGER.info(`PRODUCTION-MODE, use private/public keys.`);
     } else {
       LOGGER.info(`DEVELOPMENT-MODE, use shared secret.`);
@@ -180,7 +180,7 @@ class Server {
 
   private routes(): void {
     let corsOptions = {};
-    if (this.env !== "producation") {
+    if (this.env !== "production") {
       corsOptions = {
         allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
         methods: "POST, GET, PATCH, DELETE, PUT",
