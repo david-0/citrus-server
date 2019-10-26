@@ -211,7 +211,7 @@ class Server {
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),
       defaultErrorHandler: false,
       middlewares: [
-        CustomErrorHandler,
+        // CustomErrorHandler,
         SuppressNextMiddlewareHandler,
       ],
     });
