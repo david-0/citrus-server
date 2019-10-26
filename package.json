@@ -11,8 +11,8 @@
     "start": "webpack-dev-server",
     "build": "gulp build",
     "run": "gulp run",
-    "reload": "export NODE_DEV && git reset --hard && git clean -fd && git pull && forever stop dist/app.js && npm ci && npm run build && export NODE_ENV=production && forever start dist/app.js",
-    "full-reload": "export NODE_DEV && git reset --hard && git clean -fd && git pull && forever stop dist/app.js && rm -rf node_modules && npm ci && npm run build && export NODE_ENV=production && forever start dist/app.js",
+    "reload": "export NODE_DEV= && git reset --hard && git clean -fd && git pull && forever stop dist/app.js && npm ci && npm run build && export NODE_ENV=production && forever start dist/app.js",
+    "full-reload": "export NODE_DEV= && git reset --hard && git clean -fd && git pull && forever stop dist/app.js && rm -rf node_modules && npm ci && npm run build && export NODE_ENV=production && forever start dist/app.js",
     "test": "gulp unittest",
     "integration-test": "gulp integration-test"
   },
