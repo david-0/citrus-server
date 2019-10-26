@@ -6,7 +6,7 @@ export class UserAudit {
   @PrimaryGeneratedColumn()
   public id?: number;
 
-  @ManyToOne(type => User, user => user.audits)
+  @ManyToOne(type => User, user => user.audits, {onDelete: "CASCADE"})
   public user: User;
 
   @Column()
