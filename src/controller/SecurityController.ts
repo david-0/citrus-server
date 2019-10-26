@@ -415,7 +415,7 @@ export class SecurityController {
   private async sendActivationToken(userNotConfirmed: UserNotConfirmed) {
     let domain = "http://localhost:4200";
     if (this.env === "production") {
-      domain = "https://shop.el-refugio-denia.com/";
+      domain = "https://shop.el-refugio-denia.com";
     }
     const link = `${domain}/userConfirmation/${userNotConfirmed.token}`;
     await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Benutzer aktivieren",
