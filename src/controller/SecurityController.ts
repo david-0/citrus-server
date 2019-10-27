@@ -401,7 +401,8 @@ export class SecurityController {
       "Bitte klicken Sie auf den folgenden Link oder kopieren Sie ihn in ihren Browser um den Vorgang abzuschliessen.\r\n" +
       "Der Link ist zwei Stunden gültig.\r\n\r\n" + link + "\r\n\r\n" +
       "Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie ignorieren.\r\n\r\n" +
-      "Webmaster Früchtebestellung",
+      "Freundlich Grüsse\r\n" +
+      "Ihr Früchtebestellungs Team",
       "<h3>Hallo</h3>" +
       "<p>Sie erhalten diese E-Mail weil Sie (oder jemand anderes) für den Früchtebestellung-Benutzer '" + user.email +
       "' eine Passwort zurücksetzen Anfrage gestellt haben.<br/>" +
@@ -409,7 +410,8 @@ export class SecurityController {
       "Der Link ist zwei Stunden gültig.</p>" +
       "<a href='" + link + "'>" + link + "</a>" +
       "<p>Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie ignorieren.</p>" +
-      "<p>Webmaster Früchtebestellung</p>");
+      "<p>Freundliche Grüsse</p>" +
+      "<p>Ihr Früchtebestellungs Team</p>");
   }
 
   private async sendActivationToken(userNotConfirmed: UserNotConfirmed) {
@@ -418,22 +420,24 @@ export class SecurityController {
       domain = "https://shop.el-refugio-denia.com";
     }
     const link = `${domain}/userConfirmation/${userNotConfirmed.token}`;
-    await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Benutzer aktivieren",
-      "Hallo\r\n\r\n" +
-      "Sie erhalten diese E-Mail weil Sie (oder jemand anderes) den Früchtebestellung-Benutzer mit der E-Mailadresse '" + userNotConfirmed.email +
-      "' erstellt haben.\r\n\r\n" +
-      "Bitte klicken Sie auf den folgenden Link oder kopieren Sie ihn in ihren Browser um den Vorgang abzuschliessen.\r\n" +
+    await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Konto Aktivierung",
+      "Bestätigen Sie Ihre Registrierung\r\n\r\n" +
+      "Guten Tag " + userNotConfirmed.email + "\r\n" +
+      "Schön, dass Sie sich bei der Früchtebestellung registeriert haben.\r\n" +
+      "Bitte bestätigen sie noch ihre Registrierung, damit sie unsere Dienste Nutzen können.\r\n" +
       "Der Link ist zwei Stunden gültig.\r\n\r\n" + link + "\r\n\r\n" +
       "Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie ignorieren.\r\n\r\n" +
-      "Webmaster Früchtebestellung",
-      "<h3>Hallo</h3>" +
-      "<p>Sie erhalten diese E-Mail weil Sie (oder jemand anderes) den Früchtebestellung-Benutzer mit der E-Mailadresse '" + userNotConfirmed.email +
-      "' erstellt haben.<br/>" +
-      "Bitte klicken Sie auf den folgenden Link oder kopieren Sie ihn in ihren Browser um den Vorgang abzuschliessen.<br/>" +
-      "Der Link ist zwei Stunden gültig.</p>" +
-      "<a href='" + link + "'>" + link + "</a>" +
-      "<p>Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie  ignorieren.</p>" +
-      "<p>Webmaster Früchtebestellung</p>");
+      "Freundlich Grüsse\r\n" +
+      "Ihr Früchtebestellungs Team",
+      "<h2>Bestätigen Sie Ihre Registrierung</h2>" +
+      "<h3>Guten Tag " + userNotConfirmed.email + "</h3>" +
+      "<p>Schön, dass Sie sich bei der Früchtebestellung registeriert haben.</p>" +
+      "<p>Bitte bestätigen sie noch ihre Registrierung, damit sie unsere Dienste Nutzen können.</p>" +
+      "<p>Der Link ist zwei Stunden gültig.</p>" +
+      "<a href='" + link + "'>Bestätigen</a>" +
+      "<p>Wenn Sie diese E-Mail irrtümlich erhalten haben, können Sie sie ignorieren.</p>" +
+      "<p>Freundliche Grüsse</p>" +
+      "<p>Ihr Früchtebestellungs Team</p>");
   }
 }
 
