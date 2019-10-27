@@ -76,7 +76,7 @@ class Server {
     createConnection().then(async connection => {
       new ResetTokenEvictor().schedule(0);
       new UserNotConfirmedEvictor().schedule(0);
-      new StartupNotifier().notify("david.leuenberger@gmx.ch");
+      new StartupNotifier().notify("david.leuenberger@gmx.ch", this.env);
       this.routes();
       this.staticRoutes();
       this.defaultRoute();
