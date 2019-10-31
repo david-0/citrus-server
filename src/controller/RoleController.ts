@@ -14,51 +14,51 @@ export class RoleController {
 
   @Transaction()
   @Get("/:id([0-9]+)")
-  public get(@EntityFromParam("id") role: Role) {
-    return role;
+  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return await this.roleRepo(manager).findOne(id);
   }
 
   @Transaction()
   @Get()
-  public getAll(@TransactionManager() manager: EntityManager) {
-    return this.roleRepo(manager).find();
+  public async getAll(@TransactionManager() manager: EntityManager) {
+    return await this.roleRepo(manager).find();
   }
 
   @Transaction()
   @Get("/withUsers/:id([0-9]+)")
-  public getWithUsers(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.roleRepo(manager).findOne(id, {relations: ["users"]});
+  public async getWithUsers(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return await this.roleRepo(manager).findOne(id, {relations: ["users"]});
   }
 
   @Transaction()
   @Get("/withUsers")
-  public getAllWithUsers(@TransactionManager() manager: EntityManager) {
-    return this.roleRepo(manager).find({relations: ["users"]});
+  public async getAllWithUsers(@TransactionManager() manager: EntityManager) {
+    return await this.roleRepo(manager).find({relations: ["users"]});
   }
 
   @Transaction()
   @Delete("/withUsers/:id([0-9]+)")
-  public deleteWithUsers(@TransactionManager() manager: EntityManager, @EntityFromParam("id") role: Role) {
-    return this.roleRepo(manager).remove(role);
+  public async deleteWithUsers(@TransactionManager() manager: EntityManager, @EntityFromParam("id") role: Role) {
+    return await this.roleRepo(manager).remove(role);
   }
 
   @Transaction()
   @Put("/:id([0-9]+)")
-  public update(@TransactionManager() manager: EntityManager,
-                @EntityFromParam("id") role: Role,
-                @EntityFromBody() newRole: Role) {
-    return this.roleRepo(manager).save(this.roleRepo(manager).merge(role, newRole));
+  public async update(@TransactionManager() manager: EntityManager,
+                      @EntityFromParam("id") role: Role,
+                      @EntityFromBody() newRole: Role) {
+    return await this.roleRepo(manager).save(this.roleRepo(manager).merge(role, newRole));
   }
 
   @Transaction()
   @Post()
-  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() role: Role) {
-    return this.roleRepo(manager).save(role);
+  public async save(@TransactionManager() manager: EntityManager, @EntityFromBody() role: Role) {
+    return await this.roleRepo(manager).save(role);
   }
 
   @Transaction()
   @Delete("/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") role: Role) {
-    return this.roleRepo(manager).remove(role);
+  public async delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") role: Role) {
+    return await this.roleRepo(manager).remove(role);
   }
 }
