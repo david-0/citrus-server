@@ -1,7 +1,9 @@
 import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
+import {Container} from "typedi";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Role} from "../entity/Role";
+import {UrlService} from "../utils/UrlService";
 
 @Authorized("admin")
 @JsonController("/api/role")
@@ -49,7 +51,6 @@ export class RoleController {
                       @EntityFromBody() newRole: Role) {
     return await this.roleRepo(manager).save(this.roleRepo(manager).merge(role, newRole));
   }
-
   @Transaction()
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @EntityFromBody() role: Role) {

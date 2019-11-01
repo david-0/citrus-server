@@ -27,12 +27,12 @@ import {UnitOfMeasurementController} from "./controller/UnitOfMeasurementControl
 import {UserController} from "./controller/UserController";
 import {User} from "./entity/User";
 import {SocketService} from "./socket/SocketService";
-import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 
 import {JwtConfiguration} from "./utils/JwtConfiguration";
 import {ResetTokenEvictor} from "./utils/ResetTokenEvictor";
 import {StartupNotifier} from "./utils/StartupNotifier";
 import {SuppressNextMiddlewareHandler} from "./utils/SuppressNextMiddlewareHandler";
+import {UrlService} from "./utils/UrlService";
 import {UserNotConfirmedEvictor} from "./utils/UserNotConfirmedEvictor";
 
 const LOGGER: Logger = getLogger("Server");
@@ -59,6 +59,8 @@ class Server {
   private socketService: SocketService;
   private jwtConfig: JwtConfiguration;
 
+  private url: string;
+
   constructor() {
 
     configure({
@@ -76,12 +78,12 @@ class Server {
     createConnection().then(async connection => {
       new ResetTokenEvictor().schedule(0);
       new UserNotConfirmedEvictor().schedule(0);
-      new StartupNotifier().notify("david.leuenberger@gmx.ch", this.env);
       this.routes();
       this.staticRoutes();
       this.defaultRoute();
       this.createServer();
       this.listen();
+      new StartupNotifier().notify("david.leuenberger@gmx.ch", this.env + ":" + this.port);
     }).catch(err => {
       LOGGER.error("Create Connection error: {}", err);
     });
@@ -230,6 +232,9 @@ class Server {
   // Start HTTP server listening
   private listen(): void {
     this.server.listen(this.port);
+
+    const urlService = Container.get(UrlService);
+    urlService.setState(this.env, this.protocol, this.host, this.port);
 
     // add error handler
     this.server.on("error", this.logError);

@@ -3,6 +3,7 @@ import * as express from "express";
 import {sign} from "jsonwebtoken";
 import * as moment from "moment";
 import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req, Res} from "routing-controllers";
+import {Container} from "typedi";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {ResetToken} from "../entity/ResetToken";
 import {Role} from "../entity/Role";
@@ -11,6 +12,7 @@ import {UserAudit} from "../entity/UserAudit";
 import {UserNotConfirmed} from "../entity/UserNotConfirmed";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
 import {MailService} from "../utils/MailService";
+import {UrlService} from "../utils/UrlService";
 import uuid = require("uuid");
 
 declare var process: any;
@@ -389,10 +391,7 @@ export class SecurityController {
   }
 
   private async sendResetToken(user: User, token: string) {
-    let domain = "http://localhost:4200/";
-    if (this.env === "production") {
-      domain = "https://shop.el-refugio-denia.com";
-    }
+    const domain = Container.get(UrlService).createUrl();
     const link = `${domain}/resetPassword/${token}`;
     await this.mailService.sendMail(user.email, "Früchtebestellung - Passwort zurücksetzen",
       "Hallo\r\n\r\n" +
@@ -415,10 +414,7 @@ export class SecurityController {
   }
 
   private async sendActivationToken(userNotConfirmed: UserNotConfirmed) {
-    let domain = "http://localhost:4200";
-    if (this.env === "production") {
-      domain = "https://shop.el-refugio-denia.com";
-    }
+    const domain = Container.get(UrlService).createUrl();
     const link = `${domain}/userConfirmation/${userNotConfirmed.token}`;
     await this.mailService.sendMail(userNotConfirmed.email, "Früchtebestellung - Konto Aktivierung",
       "Bestätigen Sie Ihre Registrierung\r\n\r\n" +
