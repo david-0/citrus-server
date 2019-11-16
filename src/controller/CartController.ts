@@ -58,7 +58,7 @@ export class CartController {
     order.totalPrice = this.computeTotalPrice(order);
     const savedOrder = await manager.getRepository(Order).save(order);
     const orderWithDependencies = await manager.getRepository(Order).findOne(savedOrder.id,
-      { relations: ["plannedCheckout", "user", "location", "orderItems", "orderItems.article", "orderItems.article.unitOfMeasurement"] });
+      {relations: ["plannedCheckout", "user", "location", "orderItems", "orderItems.article", "orderItems.article.unitOfMeasurement"]});
     await this.sendOrderConfirmation(orderWithDependencies);
     return savedOrder;
   }
@@ -96,10 +96,10 @@ export class CartController {
       order.location.zipcode + " " + order.location.city + "\r\n\r\n" +
       "Freundlich Grüsse\r\n" +
       "Ihr Früchtebestellungs Team",
-      "<h2>Sehr geehrte Kundin, sehr geehrter Kunde</h2>" +
-      "<h3>Vielen Dank für Ihre Bestellung.</h3>" +
-      "<tr><th>Anzahl</th><th></th><th>Beschreibung</th><th>Preis</th></tr>" +
-      orderHtmlTable +
+      "<h3>Sehr geehrte Kundin, sehr geehrter Kunde</h3>" +
+      "<p>Vielen Dank für Ihre Bestellung.</p>" +
+      "<table><tr><th>Anzahl</th><th></th><th>Beschreibung</th><th>Preis</th></tr>" +
+       orderHtmlTable + "</table>" +
       "<p>Abholung der Früchte: </p>" +
       "<p>Zeit: zwischen " + this.formatDate(order.plannedCheckout.fromDate) + " und " + this.formatDate(order.plannedCheckout.toDate) + "</p>" +
       "<p>Ort: " + order.location.description + ", " + order.location.street + " " + order.location.number +
