@@ -72,23 +72,27 @@ export class CartController {
   }
 
   private async sendOrderConfirmation(order: Order) {
-    let orderTextTable = "";
-    let orderHtmlTable = "";
+    let orderTextTable = "Menge".padStart(7) + " " + "".padEnd(8) + "Beschreibung".padEnd(36) + "Preis".padStart(8) + "\r\n";
+    orderTextTable += "".padEnd(60, "-") + "\r\n";
+    let orderHtmlTable = "<tr><th>Menge</th><th></th><th>Beschreibung</th><th></th><th>Preis</th></tr>";
     for (const orderItem of order.orderItems) {
       const textLine = ("" + orderItem.quantity).padStart(7) + " " + orderItem.article.unitOfMeasurement.shortcut.padEnd(8) +
-        orderItem.article.description.padEnd(32) + "CHF " + Number(orderItem.copiedPrice * orderItem.quantity).toFixed(2);
-      orderTextTable += textLine + "\r\n\r\n";
+        orderItem.article.description.padEnd(32) + "CHF " +
+        ("" + Number(orderItem.copiedPrice * orderItem.quantity).toFixed(2)).padStart(8);
+      orderTextTable += textLine + "\r\n";
       const htmlLine = "<tr><td align='right'>" + orderItem.quantity + "</td><td>" + orderItem.article.unitOfMeasurement.shortcut +
-        "</td><td>" + orderItem.article.description + "</td><td>CHF</td><td  align='right'>" + Number(orderItem.copiedPrice * orderItem.quantity).toFixed(2) + "</td></tr>";
+        "</td><td>" + orderItem.article.description + "</td><td>CHF</td><td  align='right'>" +
+        Number(orderItem.copiedPrice * orderItem.quantity).toFixed(2) + "</td></tr>";
       orderHtmlTable += htmlLine;
     }
-    const textTotal = "CHF ".padStart(52) + order.totalPrice + "\r\n\r\n\r\n";
-    orderTextTable += textTotal;
-    const htmlTotal = "<tr><td></td><td></td><td>Total</td><td>CHF " + order.totalPrice + "</td></tr>";
+    orderTextTable += "".padEnd(60, "-") + "\r\n";
+    orderTextTable += "".padStart(16) + "Total".padEnd(32) + "CHF " + ("" + Number(order.totalPrice).toFixed(2)).padStart(8) + "\r\n";
+    orderTextTable += "".padEnd(48) + "".padEnd(12, "=") + "\r\n\r\n";
+    const htmlTotal = "<tr><td></td><td></td><td>Total</td><td>CHF</td><td align='right'>" + Number(order.totalPrice).toFixed(2) + "</td></tr>";
     orderHtmlTable += htmlTotal;
     await this.mailService.sendMail(order.user.email, "Bestellbestätigung",
       "Sehr geehrte Kundin, sehr geehrter Kunde,\r\n\r\n" +
-      "Vielen Dank für Ihre Bestellung.\r\n\r\n" +
+      "Vielen Dank für Ihre Bestellung.\r\n" +
       orderTextTable +
       "Abholung der Früchte: " +
       "Zeit: zwischen " + this.formatDate(order.plannedCheckout.fromDate) + " und " + this.formatDate(order.plannedCheckout.toDate) + "\r\n" +
@@ -98,7 +102,7 @@ export class CartController {
       "Ihr Früchtebestellungs Team",
       "<h3>Sehr geehrte Kundin, sehr geehrter Kunde</h3>" +
       "<p>Vielen Dank für Ihre Bestellung.</p>" +
-      "<table><tr><th>Anzahl</th><th></th><th>Beschreibung</th><th></th><th>Preis</th></tr>" +
+      "<table>" +
       orderHtmlTable + "</table>" +
       "<p>Abholung der Früchte: </p>" +
       "<p>Zeit: zwischen " + this.formatDate(order.plannedCheckout.fromDate) + " und " + this.formatDate(order.plannedCheckout.toDate) + "</p>" +
