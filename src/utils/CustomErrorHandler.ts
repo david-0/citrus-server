@@ -45,14 +45,9 @@ export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
       // set http status
       if (error instanceof HttpError && error.httpCode) {
         response.status(error.httpCode);
-      } else {
+      } else if (error instanceof Error) {
         this.LOGGER.error(error.stack);
-        response.status(500);
-      }
-
-      if (error instanceof Error) {
         const developmentMode: boolean = process.env.NODE_ENV === "development";
-
         // set response error fields
         if (error.name && (developmentMode || error.message)) { // show name only if in development mode and if error message exist too
           responseObject.name = error.name;
@@ -63,8 +58,13 @@ export class CustomErrorHandler implements ExpressErrorMiddlewareInterface {
         if (error.stack && developmentMode) {
           responseObject.stack = error.stack;
         }
+        response.status(500);
       } else if (typeof error === "string") {
         responseObject.message = error;
+        response.status(500);
+      } else {
+        responseObject.message = JSON.stringify(error);
+        response.status(500);
       }
     }
     response.send(JSON.stringify(responseObject));

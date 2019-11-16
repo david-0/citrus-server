@@ -34,6 +34,7 @@ import {StartupNotifier} from "./utils/StartupNotifier";
 import {SuppressNextMiddlewareHandler} from "./utils/SuppressNextMiddlewareHandler";
 import {UrlService} from "./utils/UrlService";
 import {UserNotConfirmedEvictor} from "./utils/UserNotConfirmedEvictor";
+import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -213,7 +214,7 @@ class Server {
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),
       defaultErrorHandler: false,
       middlewares: [
-        // CustomErrorHandler,
+        CustomErrorHandler,
         SuppressNextMiddlewareHandler,
       ],
     });
