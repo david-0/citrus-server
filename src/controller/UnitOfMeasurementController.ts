@@ -14,8 +14,8 @@ export class UnitOfMeasurementController {
 
   @Transaction()
   @Get("/:id([0-9]+)")
-  public get(@EntityFromParam("id") unitOfMeasurement: UnitOfMeasurement) {
-    return unitOfMeasurement;
+  public get(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    return this.unitOfMeasurementRepo(manager).findOne(id);
   }
 
   @Transaction()
