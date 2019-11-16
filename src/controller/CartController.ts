@@ -76,15 +76,15 @@ export class CartController {
     let orderHtmlTable = "";
     for (const orderItem of order.orderItems) {
       const textLine = ("" + orderItem.quantity).padStart(7) + " " + orderItem.article.unitOfMeasurement.shortcut.padEnd(8) +
-        orderItem.article.description.padEnd(32) + "CHF " + (orderItem.copiedPrice * orderItem.quantity);
+        orderItem.article.description.padEnd(32) + "CHF " + Number(orderItem.copiedPrice * orderItem.quantity).toFixed(2);
       orderTextTable += textLine + "\r\n\r\n";
-      const htmlLine = "<tr><td>" + orderItem.quantity + "</td><td>" + orderItem.article.unitOfMeasurement.shortcut +
-        "</td><td>" + orderItem.article.description + "</td><td>CHF " + (orderItem.copiedPrice * orderItem.quantity) + "</td></tr>";
+      const htmlLine = "<tr><td align='right'>" + orderItem.quantity + "</td><td>" + orderItem.article.unitOfMeasurement.shortcut +
+        "</td><td>" + orderItem.article.description + "</td><td>CHF</td><td  align='right'>" + Number(orderItem.copiedPrice * orderItem.quantity).toFixed(2) + "</td></tr>";
       orderHtmlTable += htmlLine;
     }
     const textTotal = "CHF ".padStart(52) + order.totalPrice + "\r\n\r\n\r\n";
     orderTextTable += textTotal;
-    const htmlTotal = "<tr><td></td><td></td><td></td><td>CHF " + order.totalPrice + "</td></tr>";
+    const htmlTotal = "<tr><td></td><td></td><td>Total</td><td>CHF " + order.totalPrice + "</td></tr>";
     orderHtmlTable += htmlTotal;
     await this.mailService.sendMail(order.user.email, "Bestellbestätigung",
       "Sehr geehrte Kundin, sehr geehrter Kunde,\r\n\r\n" +
@@ -98,8 +98,8 @@ export class CartController {
       "Ihr Früchtebestellungs Team",
       "<h3>Sehr geehrte Kundin, sehr geehrter Kunde</h3>" +
       "<p>Vielen Dank für Ihre Bestellung.</p>" +
-      "<table><tr><th>Anzahl</th><th></th><th>Beschreibung</th><th>Preis</th></tr>" +
-       orderHtmlTable + "</table>" +
+      "<table><tr><th>Anzahl</th><th></th><th>Beschreibung</th><th></th><th>Preis</th></tr>" +
+      orderHtmlTable + "</table>" +
       "<p>Abholung der Früchte: </p>" +
       "<p>Zeit: zwischen " + this.formatDate(order.plannedCheckout.fromDate) + " und " + this.formatDate(order.plannedCheckout.toDate) + "</p>" +
       "<p>Ort: " + order.location.description + ", " + order.location.street + " " + order.location.number +
@@ -109,6 +109,7 @@ export class CartController {
   }
 
   private formatDate(date: Date): string {
-    return date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes();
+    return date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " +
+      ("" + date.getHours()).padStart(2, "0") + ":" + ("" + date.getMinutes()).padStart(2, "0");
   }
 }
