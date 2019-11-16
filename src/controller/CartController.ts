@@ -8,10 +8,16 @@ import {OpeningHour} from "../entity/OpeningHour";
 import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
 import {User} from "../entity/User";
+import {MailService} from "../utils/MailService";
 
 @Authorized()
 @JsonController("/api/cart")
 export class CartController {
+  private mailService: MailService;
+
+  constructor() {
+    this.mailService = new MailService("../configuration/smtp.json");
+  }
 
   @Post()
   @Transaction()
@@ -50,7 +56,11 @@ export class CartController {
       }
     }
     order.totalPrice = this.computeTotalPrice(order);
-    return await manager.getRepository(Order).save(order);
+    const savedOrder = await manager.getRepository(Order).save(order);
+    const orderWithDependencies = await manager.getRepository(Order).findOne(savedOrder.id,
+      { relations: ["plannedCheckout", "user", "location", "orderItems", "orderItems.article", "orderItems.article.unitOfMeasurement"] });
+    await this.sendOrderConfirmation(orderWithDependencies);
+    return savedOrder;
   }
 
   private computeTotalPrice(order: Order) {
@@ -59,5 +69,46 @@ export class CartController {
       totalPrice += +i.copiedPrice * +i.quantity;
     });
     return totalPrice;
+  }
+
+  private async sendOrderConfirmation(order: Order) {
+    let orderTextTable = "";
+    let orderHtmlTable = "";
+    for (const orderItem of order.orderItems) {
+      const textLine = ("" + orderItem.quantity).padStart(7) + " " + orderItem.article.unitOfMeasurement.shortcut.padEnd(8) +
+        orderItem.article.description.padEnd(32) + "CHF " + (orderItem.copiedPrice * orderItem.quantity);
+      orderTextTable += textLine + "\r\n\r\n";
+      const htmlLine = "<tr><td>" + orderItem.quantity + "</td><td>" + orderItem.article.unitOfMeasurement.shortcut +
+        "</td><td>" + orderItem.article.description + "</td><td>CHF " + (orderItem.copiedPrice * orderItem.quantity) + "</td></tr>";
+      orderHtmlTable += htmlLine;
+    }
+    const textTotal = "CHF ".padStart(52) + order.totalPrice + "\r\n\r\n\r\n";
+    orderTextTable += textTotal;
+    const htmlTotal = "<tr><td></td><td></td><td></td><td>CHF " + order.totalPrice + "</td></tr>";
+    orderHtmlTable += htmlTotal;
+    await this.mailService.sendMail(order.user.email, "Bestellbestätigung",
+      "Sehr geehrte Kundin, sehr geehrter Kunde,\r\n\r\n" +
+      "Vielen Dank für Ihre Bestellung.\r\n\r\n" +
+      orderTextTable +
+      "Abholung der Früchte: " +
+      "Zeit: zwischen " + this.formatDate(order.plannedCheckout.fromDate) + " und " + this.formatDate(order.plannedCheckout.toDate) + "\r\n" +
+      "Ort: " + order.location.description + ", " + order.location.street + " " + order.location.number + ", " +
+      order.location.zipcode + " " + order.location.city + "\r\n\r\n" +
+      "Freundlich Grüsse\r\n" +
+      "Ihr Früchtebestellungs Team",
+      "<h2>Sehr geehrte Kundin, sehr geehrter Kunde</h2>" +
+      "<h3>Vielen Dank für Ihre Bestellung.</h3>" +
+      "<tr><th>Anzahl</th><th></th><th>Beschreibung</th><th>Preis</th></tr>" +
+      orderHtmlTable +
+      "<p>Abholung der Früchte: </p>" +
+      "<p>Zeit: zwischen " + this.formatDate(order.plannedCheckout.fromDate) + " und " + this.formatDate(order.plannedCheckout.toDate) + "</p>" +
+      "<p>Ort: " + order.location.description + ", " + order.location.street + " " + order.location.number +
+      ", " + order.location.zipcode + " " + order.location.city + "</p>" +
+      "<p>Freundliche Grüsse</p>" +
+      "<p>Ihr Früchtebestellungs Team</p>");
+  }
+
+  private formatDate(date: Date): string {
+    return date.getDay() + "." + date.getMonth() + "." + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes();
   }
 }
