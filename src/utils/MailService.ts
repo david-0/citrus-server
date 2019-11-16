@@ -49,5 +49,24 @@ export class MailService {
     }
     return undefined;
   }
+  public async sendMailTextOnly(to: string, subject: string, text: string): Promise<SentMessageInfo | undefined> {
+    if (this.initialized) {
+      const transporter = nodemailer.createTransport({
+        auth: {
+          pass: this.password,
+          user: this.user,
+        },
+        host: this.host,
+        port: this.port,
+      });
+      return await transporter.sendMail({
+        from: this.from,
+        subject,
+        text,
+        to,
+      });
+    }
+    return undefined;
+  }
 
 }
