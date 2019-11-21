@@ -112,12 +112,10 @@ export class CartController {
   }
 
   private formatDate(date: Date): string {
-    return moment(date).format("DD.MM.YYYY");
-//    return date.getDay() + "." + date.getMonth() + "." + date.getFullYear();
+    return moment.utc(date).format("DD.MM.YYYY");
   }
 
   private formatTime(date: Date): string {
-    return moment(date).format("HH:mm");
-//    return ("" + (date.getHours() + 1)).padStart(2, "0") + ":" + ("" + date.getMinutes()).padStart(2, "0");
+    return moment.utc(date).format("HH:mm");
   }
 }
