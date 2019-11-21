@@ -89,8 +89,7 @@ export class CartController {
     orderTextTable += "".padEnd(60, "-") + "\r\n";
     orderTextTable += "".padStart(16) + "Total".padEnd(32) + "CHF " + ("" + Number(order.totalPrice).toFixed(2)).padStart(8) + "\r\n";
     orderTextTable += "".padEnd(48) + "".padEnd(12, "=") + "\r\n";
-    await this.mailService.sendMailTextOnly(order.user.email, "Bestellbestätigung",
-      "Sehr geehrte(r) " + order.user.prename + " " + order.user.name + ",\r\n\r\n" +
+    const text = "Sehr geehrte(r) " + order.user.prename + " " + order.user.name + ",\r\n\r\n" +
       "Vielen Dank für Ihre Bestellung.\r\n\r\n" +
       "    " + order.user.prename + " " + order.user.name + "\r\n" +
       "    " + order.user.phone + "\r\n" +
@@ -107,15 +106,15 @@ export class CartController {
       "Bemerkung: " + order.location.comment + "\r\n" +
       "\r\n" +
       "Freundliche Grüsse\r\n" +
-      "Ihr Früchtebestellungs Team"
-    );
+      "Ihr Früchtebestellungs Team";
+    await this.mailService.sendMailTextOnly(order.user.email, "Bestellbestätigung", text);
   }
 
   private formatDate(date: Date): string {
-    return moment.utc(date).local().format("DD.MM.YYYY");
+    return moment.utc(date).add(60, 'minutes').format("DD.MM.YYYY");
   }
 
   private formatTime(date: Date): string {
-    return moment.utc(date).local().format("HH:mm");
+    return moment.utc(date).add(60, 'minutes').format("HH:mm");
   }
 }
