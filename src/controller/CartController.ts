@@ -100,12 +100,12 @@ export class CartController {
       "Die Früchte können von Ihnen wie folgt abgeholt werden: \r\n" +
       "Abholstandort: " + order.location.description + "\r\n" +
       "Datum: " + this.formatDate(order.plannedCheckout.fromDate) + "\r\n" +
-      "Zeit: zwischen " + this.formatTime(order.plannedCheckout.fromDate) + " und " + this.formatTime(order.plannedCheckout.toDate) + "\r\n" +
+      "Zeit:  zwischen " + this.formatTime(order.plannedCheckout.fromDate) + " und " + this.formatTime(order.plannedCheckout.toDate) + "\r\n" +
       "Adresse: " + order.location.street + " " + order.location.number + "\r\n " +
-      "".padEnd(9) + order.location.zipcode + " " + order.location.city + "\r\n" +
+      "".padEnd(8) + order.location.zipcode + " " + order.location.city + "\r\n" +
       "Bemerkung: " + order.location.comment + "\r\n" +
       "\r\n" +
-      "Freundlich Grüsse\r\n" +
+      "Freundliche Grüsse\r\n" +
       "Ihr Früchtebestellungs Team"
     );
   }
