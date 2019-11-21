@@ -112,10 +112,10 @@ export class CartController {
   }
 
   private formatDate(date: Date): string {
-    return moment.utc(date).format("DD.MM.YYYY");
+    return moment.utc(date).local().format("DD.MM.YYYY");
   }
 
   private formatTime(date: Date): string {
-    return moment.utc(date).format("HH:mm");
+    return moment.utc(date).local().format("HH:mm");
   }
 }
