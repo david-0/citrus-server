@@ -1,5 +1,6 @@
 import {CartDto} from "citrus-common";
 import {Request} from "express";
+import * as moment from "moment";
 import {Authorized, Body, CurrentUser, JsonController, Post, Req} from "routing-controllers";
 import {EntityManager, Transaction, TransactionManager} from "typeorm";
 import {ArticleStock} from "../entity/ArticleStock";
@@ -111,10 +112,12 @@ export class CartController {
   }
 
   private formatDate(date: Date): string {
-    return date.getDay() + "." + date.getMonth() + "." + date.getFullYear();
+    return moment(date).format("DD.MM.YYYY");
+//    return date.getDay() + "." + date.getMonth() + "." + date.getFullYear();
   }
 
   private formatTime(date: Date): string {
-    return ("" + (date.getHours() + 1)).padStart(2, "0") + ":" + ("" + date.getMinutes()).padStart(2, "0");
+    return moment(date).format("HH:mm");
+//    return ("" + (date.getHours() + 1)).padStart(2, "0") + ":" + ("" + date.getMinutes()).padStart(2, "0");
   }
 }
