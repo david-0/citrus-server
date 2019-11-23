@@ -261,7 +261,7 @@ export class SecurityController {
   }
 
   private async checkLogin(user: User, password: string): Promise<any> {
-    if (!!user) {
+    if (!!user && user.password.length > 0) {
       const ok: boolean = await bcrypt.compare(password, user.password);
       if (ok) {
         return user;
