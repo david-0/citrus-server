@@ -39,6 +39,9 @@ export class ArticleStock {
   @Column()
   public reservedQuantity: number;
 
+  @Column()
+  public soldOut: boolean;
+
   @OneToMany(type => ArticleCheckIn, checkin => checkin.articleStock)
   public checkIns: ArticleCheckIn[];
 
