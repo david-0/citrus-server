@@ -2,7 +2,6 @@ import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique} fr
 import {Article} from "./Article";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
-import {OrderItem} from "./OrderItem";
 import {Location} from "./Location";
 
 /**
@@ -39,7 +38,7 @@ export class ArticleStock {
   @Column()
   public reservedQuantity: number;
 
-  @Column()
+  @Column( {default : "false"})
   public soldOut: boolean;
 
   @OneToMany(type => ArticleCheckIn, checkin => checkin.articleStock)
