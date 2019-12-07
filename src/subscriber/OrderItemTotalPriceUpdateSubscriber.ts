@@ -1,11 +1,4 @@
-import {
-  EntityManager,
-  EntitySubscriberInterface,
-  EventSubscriber,
-  InsertEvent,
-  RemoveEvent,
-  UpdateEvent,
-} from "typeorm";
+import {EntityManager, EntitySubscriberInterface, EventSubscriber, InsertEvent, UpdateEvent} from "typeorm";
 import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
 
