@@ -5,7 +5,6 @@ import {Form} from "multiparty";
 import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {isNullOrUndefined} from "util";
 import {Image} from "../entity/Image";
 
 @JsonController("/api/image")
@@ -23,7 +22,7 @@ export class ImageController {
              @EntityFromParam("id") image: Image,
              @Res() response: Response) {
     response.contentType(image.contentType);
-    response.status(200).send(image.image);
+    return image.image;
   }
 
   @Transaction()
