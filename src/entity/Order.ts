@@ -13,6 +13,9 @@ export class Order {
   @Column()
   public date: Date;
 
+  @Column({default : ""})
+  public comment: string;
+
   @ManyToOne(type => User, user => user.orders)
   public user: User;
 

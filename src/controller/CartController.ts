@@ -32,6 +32,7 @@ export class CartController {
     order.user = user;
     order.checkedOut = false;
     order.orderItems = [];
+    order.comment = cartDto.comment;
     order.location = await manager.getRepository(Location).findOne(cartDto.location.id);
     if (cartDto.openingHourOfPlannedCheckout) {
       order.plannedCheckout = await manager.getRepository(OpeningHour).findOne(cartDto.openingHourOfPlannedCheckout.id);
