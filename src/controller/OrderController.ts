@@ -1,4 +1,4 @@
-import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
+import {Authorized, CurrentUser, Delete, Get, JsonController, Post, Put} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
 import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Location} from "../entity/Location";
@@ -28,16 +28,17 @@ export class OrderController {
 
   @Transaction()
   @Post()
-  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() order: Order) {
-    return this.orderRepo(manager).save(order);
+  public save(@CurrentUser({required: true}) userId: number, @TransactionManager() manager: EntityManager, @EntityFromBody() order: Order) {
+    return this.orderRepo(manager).save(order, {data: userId});
   }
 
   @Transaction()
   @Put("/:id([0-9]+)")
-  public update(@TransactionManager() manager: EntityManager,
+  public update(@CurrentUser({required: true}) userId: number,
+                @TransactionManager() manager: EntityManager,
                 @EntityFromParam("id") order: Order,
                 @EntityFromBody() changedOrder: Order) {
-    return this.orderRepo(manager).save(this.orderRepo(manager).merge(order, changedOrder));
+    return this.orderRepo(manager).save(this.orderRepo(manager).merge(order, changedOrder), {data: userId});
   }
 
   @Transaction()
@@ -95,16 +96,17 @@ export class OrderController {
 
   @Post("/withAll")
   @Transaction()
-  public saveWithAll(@TransactionManager() manager: EntityManager, @EntityFromBody() order: Order) {
-    return this.orderRepo(manager).save(order);
+  public saveWithAll(@CurrentUser({required: true}) userId: number, @TransactionManager() manager: EntityManager, @EntityFromBody() order: Order) {
+    return this.orderRepo(manager).save(order, {data: userId});
   }
 
   @Put("/withAll/:id([0-9]+)")
   @Transaction()
-  public updateWithAll(@TransactionManager() manager: EntityManager,
+  public updateWithAll(@CurrentUser({required: true}) userId: number,
+                       @TransactionManager() manager: EntityManager,
                        @EntityFromParam("id") order: Order,
                        @EntityFromBody() changedOrder: Order) {
-    return this.orderRepo(manager).save(this.orderRepo(manager).merge(order, changedOrder));
+    return this.orderRepo(manager).save(this.orderRepo(manager).merge(order, changedOrder), {data: userId});
   }
 
   @Delete("/withAll/:id([0-9]+)")
