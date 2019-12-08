@@ -1,3 +1,6 @@
+# TypeOrm Schema Migration
+npm run typeorm:cli -- migration:generate -n QuantityMigration
+
 # citrus-server
 Citrus-Server
 

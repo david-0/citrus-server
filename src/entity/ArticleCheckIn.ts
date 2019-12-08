@@ -1,4 +1,5 @@
 import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {ColumnNumericTransformer} from "../utils/ColumnNumericTransformer";
 import {ArticleStock} from "./ArticleStock";
 import {User} from "./User";
 
@@ -14,7 +15,7 @@ export class ArticleCheckIn {
   @ManyToOne(type => ArticleStock, articleStock => articleStock.checkIns)
   public articleStock: ArticleStock;
 
-  @Column()
+  @Column("decimal", {precision: 10, scale: 1, transformer: new ColumnNumericTransformer()})
   public quantity: number;
 
   @Column()

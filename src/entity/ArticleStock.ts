@@ -1,4 +1,5 @@
 import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
+import {ColumnNumericTransformer} from "../utils/ColumnNumericTransformer";
 import {Article} from "./Article";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
@@ -25,7 +26,7 @@ export class ArticleStock {
    *     <li>minus all OrderItem[checkedOut=true] quantities</li>
    * </ul>
    */
-  @Column()
+  @Column("decimal", {precision: 10, scale: 1, transformer: new ColumnNumericTransformer()})
   public quantity: number;
 
   /**
@@ -35,7 +36,7 @@ export class ArticleStock {
    *     <li>plus all Checkout quantities(in the future)</li>
    * </ul>
    */
-  @Column()
+  @Column("decimal", {precision: 10, scale: 1, transformer: new ColumnNumericTransformer()})
   public reservedQuantity: number;
 
   @Column( {default : "false"})

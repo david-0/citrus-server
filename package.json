@@ -14,7 +14,8 @@
     "reload": "export NODE_DEV= && git reset --hard && git clean -fd && git pull && forever stop dist/app.js && npm ci && npm run build && export NODE_ENV=production && forever start dist/app.js",
     "full-reload": "export NODE_DEV= && git reset --hard && git clean -fd && git pull && forever stop dist/app.js && rm -rf node_modules && npm ci && npm run build && export NODE_ENV=production && forever start dist/app.js",
     "test": "gulp unittest",
-    "integration-test": "gulp integration-test"
+    "integration-test": "gulp integration-test",
+    "typeorm:cli": "ts-node ./node_modules/typeorm/cli -f ./ormconfig.json"
   },
   "keywords": [],
   "author": "",
@@ -39,7 +40,7 @@
     "@types/uuid": "^3.4.6",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
-    "citrus-common": "^0.4.25",
+    "citrus-common": "^0.4.26",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "express": "^4.17.1",

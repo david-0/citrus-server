@@ -1,4 +1,5 @@
 import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {ColumnNumericTransformer} from "../utils/ColumnNumericTransformer";
 import {Article} from "./Article";
 import {Order} from "./Order";
 
@@ -17,10 +18,10 @@ export class OrderItem {
   /**
    * price per Unit
    */
-  @Column("decimal", {precision: 10, scale: 2})
+  @Column("decimal", {precision: 10, scale: 2, transformer: new ColumnNumericTransformer()})
   public copiedPrice: number;
 
-  @Column()
+  @Column("decimal", {precision: 10, scale: 1, transformer: new ColumnNumericTransformer()})
   public quantity: number;
   // desiredQuantity
   // provConfirmedQuantity

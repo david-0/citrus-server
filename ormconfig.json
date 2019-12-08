@@ -4,7 +4,7 @@
   "username": "citrus",
   "password": "citrus",
   "database": "citrus",
-  "synchronize": true,
+  "synchronize": false,
   "logging": false,
   "entities": [
     "dist/entity/*.js"

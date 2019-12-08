@@ -49,13 +49,13 @@ export class CartController {
         });
       if (articleStock.length === 1) {
         // const available = articleStock[0].quantity - articleStock[0].reservedQuantity;
-        const requested = cartItem.quantity;
+        const requested = +cartItem.quantity;
         // if (available < requested) {
         //   throw new Error(`Article (id: ${cartItem.article.id}) at location (id: ${cartDto.location.id}) not enough in stock. Available: ${available}, requested: ${requested}`);
         // }
         const item = new OrderItem();
         item.article = articleStock[0].article;
-        item.copiedPrice = cartItem.price;
+        item.copiedPrice = +cartItem.price;
         item.quantity = requested;
         order.orderItems.push(item);
       } else {
