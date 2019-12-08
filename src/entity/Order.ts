@@ -16,11 +16,11 @@ export class Order {
   @Column({default : ""})
   public comment: string;
 
-  @ManyToOne(type => User, user => user.orders)
-  public user: User;
-
   @ManyToOne(type => Location, location => location.orders, {nullable: true})
   public location: Location;
+
+  @ManyToOne(type => User, user => user.orders)
+  public user: User;
 
   @OneToMany(type => OrderItem, item => item.order, {cascade: true})
   public orderItems: OrderItem[];
