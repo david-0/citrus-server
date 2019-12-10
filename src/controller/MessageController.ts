@@ -35,10 +35,9 @@ export class MessageController {
     for (const userFromClient of message.receivers) {
       const user = await this.userRepo(manager).findOne(userFromClient.id);
       messageEntity.receivers.push(user);
-      sendMessageInfos.push({
-        message: await this.mailService.sendMailTextOnly(user.email, message.subject, message.content),
-        user,
-      });
+      const msg = await this.mailService.sendMailTextOnly(user.email, message.subject, message.content)
+        .catch(error => JSON.stringify({message: error.message, stack: error.stack}));
+      sendMessageInfos.push({user, message: msg});
     }
     messageEntity.responses = JSON.stringify(sendMessageInfos);
     return this.messageRepo(manager).save(messageEntity, {data: userId});
