@@ -40,7 +40,6 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
     await manager.getRepository(ArticleStock).save(stock);
   }
 
-
   private async remove(manager: EntityManager, entity: OrderItem) {
     entity = await this.ensureOrderAndArticleLoaded(entity, manager);
     const stock = await this.loadArticleStock(manager, entity.article.id, entity.order.location.id);

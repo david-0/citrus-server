@@ -18,6 +18,7 @@ import {ArticleStockController} from "./controller/ArticleStockController";
 import {CartController} from "./controller/CartController";
 import {ImageController} from "./controller/ImageController";
 import {LocationController} from "./controller/LocationController";
+import {MessageController} from "./controller/MessageController";
 import {OpeningHourController} from "./controller/OpeningHourController";
 import {OrderArchiveController} from "./controller/OrderArchiveController";
 import {OrderController} from "./controller/OrderController";
@@ -212,6 +213,7 @@ class Server {
         UnitOfMeasurementController,
         UserController,
         SecurityController,
+        MessageController,
       ],
       cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),

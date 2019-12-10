@@ -2,6 +2,7 @@ import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn
 import {Address} from "./Address";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
+import {Message} from "./Message";
 import {Order} from "./Order";
 import {ResetToken} from "./ResetToken";
 import {Role} from "./Role";
@@ -52,4 +53,12 @@ export class User {
 
   @OneToMany(type => Address, address => address.user)
   public addresses: Address[];
+
+  @ManyToMany(type => Message, message => message.receivers)
+  @JoinTable()
+  public receivedMessages: Message[];
+
+  @OneToMany(type => Message, message => message.sendUser)
+  public sentMessages: Message[];
+
 }
