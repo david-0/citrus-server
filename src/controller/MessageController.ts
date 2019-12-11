@@ -15,7 +15,7 @@ export class MessageController {
   private messageRepo: (manager: EntityManager) => Repository<Message>;
 
   constructor() {
-    this.mailService = new MailService("../../configuration/smtp.json");
+    this.mailService = new MailService("../configuration/smtp.json");
     this.userRepo = manager => manager.getRepository(User);
     this.messageRepo = manager => manager.getRepository(Message);
   }
@@ -36,7 +36,7 @@ export class MessageController {
       const user = await this.userRepo(manager).findOne(userFromClient.id);
       messageEntity.receivers.push(user);
       const msg = await this.mailService.sendMailTextOnly(user.email, message.subject, message.content)
-        .catch(error => JSON.stringify({message: error.message, stack: error.stack}));
+        .catch(error => ({message: error.message, stack: error.stack}));
       sendMessageInfos.push({user, message: msg});
     }
     messageEntity.responses = JSON.stringify(sendMessageInfos);
