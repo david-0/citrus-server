@@ -13,7 +13,7 @@ import {UserNotConfirmed} from "../entity/UserNotConfirmed";
 import {JwtConfiguration} from "../utils/JwtConfiguration";
 import {MailService} from "../utils/MailService";
 import {UrlService} from "../utils/UrlService";
-import uuid = require("uuid");
+import { v4 as uuid } from 'uuid';
 
 declare var process: any;
 
