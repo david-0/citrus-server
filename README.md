@@ -21,14 +21,18 @@ pm2 install pm2-logrotate
 ## postgre sql configuration
 apt update
 apt install postgresql
-
+```
 sudo -u postgres -i
 createuser -P citrus
 createdb -O citrus citrus
 \q
+```
 
 ### insert initial admin user
-register user with the frontend
+Start server to create the databasetables.
+
+and register user with the frontend
+```
 sudo -u postgres -i
 psql citrus
 insert into role (id,name) values ('1','admin');
@@ -36,6 +40,7 @@ insert into role (id,name) values ('2','sale');
 insert into role (id,name) values ('3','guest');
 insert into role (id,name) values ('4','store');
 insert into user_roles_role ("userId", "roleId") values ('1', '1');
+```
 
 ## install nodejs
 curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash -
