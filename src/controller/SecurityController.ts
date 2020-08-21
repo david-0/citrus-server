@@ -23,7 +23,7 @@ export class SecurityController {
   private jwtConfig: JwtConfiguration;
   private mailService: MailService;
 
-  private env: string;
+  private readonly  env: string;
 
   private userAuditRepo: (manager: EntityManager) => Repository<UserAudit>;
 
@@ -82,11 +82,11 @@ export class SecurityController {
     const resetToken = await this.findResetTokenByToken(manager, body.token);
     if (resetToken && resetToken.user) {
       await this.updatePassword(resetToken.user.id, body.password, manager);
-      this.changePasswordWithTokenAudit(manager, "success", resetToken.user, request);
+      await this.changePasswordWithTokenAudit(manager, "success", resetToken.user, request);
       await manager.getRepository(ResetToken).remove(resetToken);
       return resetToken.user;
     }
-    this.changePasswordWithTokenAudit(manager, "token not valid", resetToken.user, request);
+    await this.changePasswordWithTokenAudit(manager, "token not valid", resetToken.user, request);
     return Promise.reject(new HttpError(403, "Token not valid"));
   }
 
@@ -102,9 +102,9 @@ export class SecurityController {
       resetToken.validTo = moment().add(2, "h").toDate();
       const insertResult = await manager.getRepository(ResetToken).insert(resetToken);
       await this.sendResetToken(user, resetToken.token);
-      this.sendResetTokenAudit(manager, user, body.email, request);
+      await this.sendResetTokenAudit(manager, user, body.email, request);
     } else {
-      this.sendResetTokenAudit(manager, user, body.email, request);
+      await this.sendResetTokenAudit(manager, user, body.email, request);
     }
     return Promise.resolve(true);
   }
@@ -116,7 +116,7 @@ export class SecurityController {
     const existingUser = await this.findUserbyEmail(manager, body.email);
     const existingUserNotConfirmed = await this.findUserNotConfirmedByEmail(manager, body.email);
     if (existingUser || existingUserNotConfirmed) {
-      this.tryRegisterAlreadyExistingUserAudit(manager, body.name, body.prename, body.phoneNumber, body.email, request);
+      await this.tryRegisterAlreadyExistingUserAudit(manager, body.name, body.prename, body.phoneNumber, body.email, request);
       return Promise.resolve(1);
     }
     const newUser = new UserNotConfirmed();
@@ -129,10 +129,10 @@ export class SecurityController {
     try {
       await manager.getRepository(UserNotConfirmed).save(newUser);
       await this.sendActivationToken(newUser);
-      this.registerUserAudit(manager, newUser, request);
+      await this.registerUserAudit(manager, newUser, request);
       return Promise.resolve(0);
     } catch (e) {
-      this.registerUserWithExceptionAudit(manager, newUser, request, e);
+      await this.registerUserWithExceptionAudit(manager, newUser, request, e);
       return Promise.resolve(2);
     }
   }
@@ -186,11 +186,11 @@ export class SecurityController {
     const userPassword = await this.getUserPassword(userId, manager);
     const ok: boolean = await bcrypt.compare(currentPassword, userPassword.password);
     if (!ok) {
-      this.changeMyPasswordAudit(manager, "password failed", user, request);
+      await this.changeMyPasswordAudit(manager, "password failed", user, request);
       return Promise.reject(new HttpError(403, "password not changed"));
     }
     await this.updatePassword(user.id, password, manager);
-    this.changeMyPasswordAudit(manager, "success", user, request);
+    await this.changeMyPasswordAudit(manager, "success", user, request);
     return user;
   }
 
