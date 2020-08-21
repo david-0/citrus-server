@@ -79,7 +79,7 @@ class Server {
 
     useContainer(Container);
     createConnection().then(async connection => {
-      connection.runMigrations({transaction: "each"});
+      await connection.runMigrations({transaction: "each"});
       new ResetTokenEvictor().schedule(0);
       new UserNotConfirmedEvictor().schedule(0);
       this.routes();
