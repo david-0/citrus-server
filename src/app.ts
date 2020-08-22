@@ -37,6 +37,7 @@ import {SuppressNextMiddlewareHandler} from "./utils/SuppressNextMiddlewareHandl
 import {UrlService} from "./utils/UrlService";
 import {UserNotConfirmedEvictor} from "./utils/UserNotConfirmedEvictor";
 import {CustomErrorHandler} from "./utils/CustomErrorHandler";
+import {DeliveryNoteController} from "./controller/DeliveryNoteController";
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -214,6 +215,7 @@ class Server {
         UserController,
         SecurityController,
         MessageController,
+        DeliveryNoteController,
       ],
       cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),
