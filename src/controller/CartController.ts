@@ -41,6 +41,9 @@ export class CartController {
       const articleStock = await manager.getRepository(ArticleStock)
         .find({
           relations: ["article", "location"],
+          order: {
+            id: "ASC"
+          },
           where:
             {
               article: {id: cartItem.article.id},

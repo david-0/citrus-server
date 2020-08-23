@@ -23,6 +23,9 @@ export class ArticleCheckOutController {
         "articleStock.location",
         "doneUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 
@@ -38,6 +41,9 @@ export class ArticleCheckOutController {
         "articleStock.location",
         "doneUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 

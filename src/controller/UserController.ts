@@ -21,7 +21,11 @@ export class UserController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.userRepo(manager).find();
+    return this.userRepo(manager).find({
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()
@@ -33,7 +37,12 @@ export class UserController {
   @Transaction()
   @Get("/withRoles")
   public getAllWithRoles(@TransactionManager() manager: EntityManager) {
-    return this.userRepo(manager).find({relations: ["roles"]});
+    return this.userRepo(manager).find({
+      relations: ["roles"],
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()

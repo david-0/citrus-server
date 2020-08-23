@@ -20,7 +20,11 @@ export class ArticleStockController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.articleStockRepo(manager).find();
+    return this.articleStockRepo(manager).find({
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()
@@ -34,7 +38,12 @@ export class ArticleStockController {
   @Authorized("admin")
   @Get("/withArticle")
   public getAllWithStock(@TransactionManager() manager: EntityManager) {
-    return this.articleStockRepo(manager).find({relations: ["article"]});
+    return this.articleStockRepo(manager).find({
+      relations: ["article"],
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()
@@ -44,6 +53,9 @@ export class ArticleStockController {
     return this.articleStockRepo(manager).findOne(id, {
       relations: ["article", "article.unitOfMeasurement",
         "checkIns", "checkOuts", "location"],
+      order: {
+        id: "ASC"
+      },
     });
   }
 
@@ -54,6 +66,9 @@ export class ArticleStockController {
     return this.articleStockRepo(manager).find({
       relations: ["article", "article.unitOfMeasurement",
         "checkIns", "checkOuts", "location"],
+      order: {
+        id: "ASC"
+      },
     });
   }
 

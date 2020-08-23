@@ -23,7 +23,12 @@ export class OrderController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.orderRepo(manager).find();
+    return this.orderRepo(manager).find({
+        order: {
+          id: "ASC"
+        },
+      }
+    );
   }
 
   @Transaction()
@@ -61,6 +66,9 @@ export class OrderController {
         "plannedCheckout",
         "checkingOutUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 
@@ -91,6 +99,9 @@ export class OrderController {
         "plannedCheckout",
         "checkingOutUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 

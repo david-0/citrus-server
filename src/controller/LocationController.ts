@@ -22,7 +22,12 @@ export class LocationController {
   @Authorized("admin")
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.locationRepo(manager).find();
+    return this.locationRepo(manager).find({
+        order: {
+          id: "ASC"
+        },
+      }
+    );
   }
 
   @Transaction()
@@ -67,7 +72,12 @@ export class LocationController {
   @Authorized("admin")
   @Get("/withAll")
   public getAllWithAll(@TransactionManager() manager: EntityManager) {
-    return this.locationRepo(manager).find({relations: ["articleStocks", "openingHours"]});
+    return this.locationRepo(manager).find({
+      relations: ["articleStocks", "openingHours"],
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()

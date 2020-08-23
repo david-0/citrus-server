@@ -21,7 +21,11 @@ export class UnitOfMeasurementController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.unitOfMeasurementRepo(manager).find();
+    return this.unitOfMeasurementRepo(manager).find({
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()

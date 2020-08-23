@@ -25,6 +25,9 @@ export class ArticleCheckInController {
         "articleStock.location",
         "doneUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 
@@ -40,6 +43,9 @@ export class ArticleCheckInController {
         "articleStock.location",
         "doneUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 

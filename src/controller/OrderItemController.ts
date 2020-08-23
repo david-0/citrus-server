@@ -21,7 +21,11 @@ export class OrderItemController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.orderItemRepo(manager).find();
+    return this.orderItemRepo(manager).find({
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()

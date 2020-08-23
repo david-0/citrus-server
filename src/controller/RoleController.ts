@@ -23,7 +23,11 @@ export class RoleController {
   @Transaction()
   @Get()
   public async getAll(@TransactionManager() manager: EntityManager) {
-    return await this.roleRepo(manager).find();
+    return await this.roleRepo(manager).find({
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()

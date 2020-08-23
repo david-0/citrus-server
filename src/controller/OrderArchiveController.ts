@@ -24,17 +24,17 @@ export class OrderArchiveController {
   @Get("/:id([0-9]+)")
   public async get(@TransactionManager() manager: EntityManager,
                    @Param("id") id: number) {
-    return this.converToDto(await this.orderArchiveRepo(manager).findOne(id));
+    return this.convertToDto(await this.orderArchiveRepo(manager).findOne(id));
   }
 
   @Transaction()
   @Get()
   public async getAll(@TransactionManager() manager: EntityManager) {
      const orderArchiveList = await this.orderArchiveRepo(manager).find();
-     return orderArchiveList.map(o => this.converToDto(o));
+     return orderArchiveList.map(o => this.convertToDto(o));
   }
 
-  private converToDto(orderArchive: OrderArchive): OrderArchiveDto {
+  private convertToDto(orderArchive: OrderArchive): OrderArchiveDto {
     return new OrderArchiveDto(orderArchive.id, orderArchive.archiveDate,
       JSON.parse(orderArchive.archiveUser), JSON.parse(orderArchive.order));
   }
@@ -60,6 +60,9 @@ export class OrderArchiveController {
         "plannedCheckout",
         "checkingOutUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
     const archiveOrder = new OrderArchive();
     archiveOrder.archiveDate = new Date();

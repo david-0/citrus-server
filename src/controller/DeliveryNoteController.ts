@@ -160,6 +160,9 @@ export class DeliveryNoteController {
         "plannedCheckout",
         "checkingOutUser",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 

@@ -20,7 +20,12 @@ export class ArticleController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.articleRepo(manager).find({relations: ["unitOfMeasurement"]});
+    return this.articleRepo(manager).find({
+      relations: ["unitOfMeasurement"],
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()
@@ -34,6 +39,9 @@ export class ArticleController {
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
       ],
+      order: {
+        id: "ASC"
+      },
       where: {inSale: true},
     });
   }
@@ -51,6 +59,9 @@ export class ArticleController {
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 
@@ -67,6 +78,9 @@ export class ArticleController {
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 
@@ -82,6 +96,9 @@ export class ArticleController {
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 
@@ -98,6 +115,9 @@ export class ArticleController {
         "articleStocks.article.unitOfMeasurement",
         "articleStocks.checkIns",
       ],
+      order: {
+        id: "ASC"
+      },
     });
   }
 

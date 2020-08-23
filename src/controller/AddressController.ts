@@ -21,7 +21,11 @@ export class AddressController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.addressRepo(manager).find();
+    return this.addressRepo(manager).find({
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()
@@ -33,7 +37,12 @@ export class AddressController {
   @Transaction()
   @Get("/withUser")
   public getAllWithUser(@TransactionManager() manager: EntityManager) {
-    return this.addressRepo(manager).find({relations: ["user"]});
+    return this.addressRepo(manager).find({
+      relations: ["user"],
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()

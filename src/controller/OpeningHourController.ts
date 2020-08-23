@@ -21,7 +21,11 @@ export class OpeningHourController {
   @Transaction()
   @Get()
   public getAll(@TransactionManager() manager: EntityManager) {
-    return this.openingHourRepo(manager).find();
+    return this.openingHourRepo(manager).find({
+      order: {
+        id: "ASC"
+      },
+    });
   }
 
   @Transaction()
