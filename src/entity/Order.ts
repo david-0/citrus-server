@@ -40,4 +40,7 @@ export class Order {
 
   @ManyToOne(type => User, user => user.orders, {nullable: true})
   public checkingOutUser: User;
+
+  @Column({nullable: true})
+  public deliveryNoteCreated: Date;
 }

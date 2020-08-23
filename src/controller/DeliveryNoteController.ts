@@ -41,8 +41,11 @@ export class DeliveryNoteController {
     let myDoc = new doc({bufferPages: true, autoFirstPage: false});
     myDoc.pipe(response);
 
+    const currentDate = new Date();
+
     for (const orderId of orderIds) {
-      const order = await this.getOrder(orderId, manager);
+      let order = await this.getOrder(orderId, manager);
+      await this.updateDeliveryDate(order, currentDate, manager);
       myDoc.addPage({
         margin: 0,
         size: [595, 839]
@@ -52,6 +55,11 @@ export class DeliveryNoteController {
     }
     myDoc.end();
     return;
+  }
+
+  private async updateDeliveryDate(order: OrderDto, currentDate: Date, manager: EntityManager) {
+    order.deliveryNoteCreated = currentDate;
+    await this.orderRepo(manager).save(order);
   }
 
   private printContent(myDoc: PDFKit.PDFDocument, order: OrderDto, pagePart: number, currentUser: UserDto) {
