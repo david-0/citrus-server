@@ -43,18 +43,26 @@ export class DeliveryNoteController {
 
     const currentDate = new Date();
 
-    for (const orderId of orderIds) {
-      let order = await this.getOrder(orderId, manager);
+    for (let index in orderIds) {
+      const orderId = orderIds[index];
+      const order = await this.getOrder(orderId, manager);
       await this.updateDeliveryDate(order, currentDate, manager);
-      myDoc.addPage({
-        margin: 0,
-        size: [595, 839]
-      });
-      this.printContent(myDoc, order, 0, currentUser);
-      this.printContent(myDoc, order, 1, currentUser);
+      if (this.isEven(+index)) {
+        myDoc.addPage({
+          margin: 0,
+          size: [595, 839]
+        });
+        this.printContent(myDoc, order, 0, currentUser);
+      } else {
+        this.printContent(myDoc, order, 1, currentUser);
+      }
     }
     myDoc.end();
     return;
+  }
+
+  private isEven(n: number): boolean {
+    return n % 2 == 0;
   }
 
   private async updateDeliveryDate(order: OrderDto, currentDate: Date, manager: EntityManager) {
