@@ -38,6 +38,7 @@ import {UrlService} from "./utils/UrlService";
 import {UserNotConfirmedEvictor} from "./utils/UserNotConfirmedEvictor";
 import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 import {DeliveryNoteController} from "./controller/DeliveryNoteController";
+import {ConfirmationController} from "./controller/ConfirmationController";
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -216,6 +217,7 @@ class Server {
         SecurityController,
         MessageController,
         DeliveryNoteController,
+        ConfirmationController,
       ],
       cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),
