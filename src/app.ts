@@ -78,7 +78,7 @@ class Server {
     this.app.use(compression());
     this.config();
     this.socketService = new SocketService();
-    process.env.TZ('Europe/zurich')
+    process.env.TZ = 'Europe/zurich';
 
     useContainer(Container);
     createConnection().then(async connection => {
