@@ -69,10 +69,10 @@ export class ConfirmationController {
   }
 
   private formatDate(date: Date): string {
-    return moment.utc(date).local().format("DD.MM.YYYY");
+    return moment.utc(date).add(1, "hour").local().format("DD.MM.YYYY");
   }
 
   private formatTime(date: Date): string {
-    return moment.utc(date).local().format("HH:mm");
+    return moment.utc(date).add(1, "hour").local().format("HH:mm");
   }
 }
