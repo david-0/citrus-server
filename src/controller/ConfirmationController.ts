@@ -1,6 +1,6 @@
 import {CartDto} from "citrus-common";
 import {Request} from "express";
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import {Authorized, Body, CurrentUser, JsonController, Post, Req} from "routing-controllers";
 import {EntityManager, Transaction, TransactionManager} from "typeorm";
 import {ArticleStock} from "../entity/ArticleStock";

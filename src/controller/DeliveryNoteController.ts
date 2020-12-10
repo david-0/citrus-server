@@ -7,7 +7,7 @@ import {User} from "../entity/User";
 import {MailService} from "../utils/MailService";
 import {Order} from "../entity/Order";
 import doc = require("pdfkit");
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import {of} from "rxjs";
 
 @Authorized("admin")
