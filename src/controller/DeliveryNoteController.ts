@@ -116,7 +116,7 @@ export class DeliveryNoteController {
       myDoc.text(item.article.description, this.margin + this.padding + this.convert(25), yCurrentLine, {
         width: this.convert(70),
       });
-      myDoc.text((item.copiedPrice / item.article.saleUnit).toFixed(2) + " CHF/" + item.article.unitOfMeasurement.shortcut,
+      myDoc.text((item.copiedPrice).toFixed(2) + " CHF/" + item.article.unitOfMeasurement.shortcut,
         this.margin + this.padding + this.convert(95), yCurrentLine, {
           width: this.convert(40),
           align: "right"
