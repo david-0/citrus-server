@@ -49,6 +49,7 @@ export class MailService {
     }
     return undefined;
   }
+
   public async sendMailTextOnly(to: string, subject: string, text: string): Promise<SentMessageInfo | undefined> {
     if (this.initialized) {
       const transporter = nodemailer.createTransport({
@@ -65,6 +66,8 @@ export class MailService {
         text,
         to,
       });
+    } else {
+      this.LOGGER.info("TO: "+to+" SUBJECT: "+subject+" CONTENT: " + text);
     }
     return undefined;
   }
