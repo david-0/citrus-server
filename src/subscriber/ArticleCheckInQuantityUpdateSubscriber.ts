@@ -32,7 +32,7 @@ export class ArticleCheckInQuantityUpdateSubscriber implements EntitySubscriberI
 
   public async afterUpdate(event: UpdateEvent<ArticleCheckIn>) {
     this.LOGGER.info("start after update, entity: " + JSON.stringify(event.entity));
-    await this.add(event.manager, event.entity);
+    await this.add(event.manager, <ArticleCheckIn> event.entity);
     this.LOGGER.info("end after update");
   }
 

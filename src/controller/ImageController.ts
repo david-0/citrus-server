@@ -38,7 +38,7 @@ export class ImageController {
   public async save(@TransactionManager() manager: EntityManager, @Req() request: Request) {
     const form = new Form();
     const image = new Image();
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       form.parse(request, (err, fields, files) => {
         if (files.fileKey) {
           image.contentType = getType(files.fileKey[0].originalFilename);

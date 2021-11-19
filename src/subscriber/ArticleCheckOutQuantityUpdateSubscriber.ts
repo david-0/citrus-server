@@ -24,7 +24,7 @@ export class ArticleCheckOutQuantityUpdateSubscriber implements EntitySubscriber
   }
 
   public async afterUpdate(event: UpdateEvent<ArticleCheckOut>) {
-    await this.add(event.manager, event.entity);
+    await this.add(event.manager, <ArticleCheckOut> event.entity);
   }
 
   public async beforeRemove(event: RemoveEvent<ArticleCheckOut>) {

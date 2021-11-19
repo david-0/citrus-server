@@ -24,7 +24,7 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
   }
 
   public async afterUpdate(event: UpdateEvent<OrderItem>) {
-    await this.add(event.manager, event.entity);
+    await this.add(event.manager, <OrderItem> event.entity);
   }
 
   public async beforeRemove(event: RemoveEvent<OrderItem>) {

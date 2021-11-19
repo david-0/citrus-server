@@ -13,7 +13,7 @@ export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInte
   }
 
   public async afterUpdate(event: UpdateEvent<OrderItem>) {
-    await this.updateAfter(event.manager, event.entity);
+    await this.updateAfter(event.manager, <OrderItem> event.entity);
   }
 
   private async updateAfter(manager: EntityManager, entity: OrderItem) {

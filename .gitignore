@@ -63,3 +63,5 @@ src/**/*.js.map
 .idea/**/*
 
 /dist/
+
+.vscode/**/*

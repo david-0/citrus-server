@@ -1,12 +1,12 @@
-import {isUndefined} from "util";
 import {GenericSocket} from "./GenericSocket";
+import {Server} from "socket.io";
 
 export class SocketService {
   private genericSockets: Map<string, GenericSocket> = new Map<string, GenericSocket>();
   private initialized: boolean = false;
-  private io: SocketIO.Server;
+  private io: Server;
 
-  public init(io: SocketIO.Server) {
+  public init(io: Server) {
     this.io = io;
     this.genericSockets.forEach((value: GenericSocket, key: string) => {
       value.init(this.io);
@@ -25,7 +25,7 @@ export class SocketService {
 
   public getSocket(namespace: string): GenericSocket {
     const genericSocket: GenericSocket = this.genericSockets.get(namespace);
-    if (isUndefined(genericSocket )) {
+    if (genericSocket === undefined ) {
       throw new Error(`socket for namespace ${namespace} not defined.`);
     }
     return genericSocket;
@@ -33,7 +33,7 @@ export class SocketService {
 
   public unregisterSocket(namespace: string) {
     const genericSocket = this.genericSockets.get(namespace);
-    if (!isUndefined(genericSocket)) {
+    if (!(genericSocket === undefined)) {
       this.genericSockets.get(namespace).close();
       this.genericSockets.delete(namespace);
     }

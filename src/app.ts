@@ -9,7 +9,7 @@ import {configure, getLogger, Logger} from "log4js";
 import * as path from "path";
 import "reflect-metadata";
 import {Action, useExpressServer} from "routing-controllers";
-import {Container} from "typedi";
+import {Container} from "typeorm-typedi-extensions";
 import {createConnection, useContainer} from "typeorm";
 import {AddressController} from "./controller/AddressController";
 import {ArticleCheckInController} from "./controller/ArticleCheckInController";
@@ -40,6 +40,8 @@ import {UserNotConfirmedEvictor} from "./utils/UserNotConfirmedEvictor";
 import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 import {DeliveryNoteController} from "./controller/DeliveryNoteController";
 import {ConfirmationController} from "./controller/ConfirmationController";
+import {Server as SocketIdServer} from "socket.io";
+
 
 const LOGGER: Logger = getLogger("Server");
 
@@ -54,7 +56,7 @@ class Server {
 
   public app: express.Express;
   private server: any;
-  private io: SocketIO.Server;
+  private io: SocketIdServer;
   private root: string;
   private port: number;
   private protocol: string;

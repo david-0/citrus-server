@@ -251,7 +251,7 @@ export class SecurityController {
   }
 
   private requiresAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
-    const valid: boolean = req.user && (req.user.roles.map((r: Role) => r.name)
+    const valid: boolean = req.user && (req.requestUser.roles.map((r: Role) => r.name)
       .filter((n: string) => n === "admin"));
     if (valid) {
       next();
@@ -440,7 +440,7 @@ export class SecurityController {
 declare global {
   namespace Express {
     export interface Request {
-      user?: any;
+      requestUser?: any;
     }
   }
 }
