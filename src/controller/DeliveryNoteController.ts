@@ -35,7 +35,8 @@ export class DeliveryNoteController {
                                   @Res() response: express.Response): Promise<any> {
     let currentUser: UserDto = await this.userRepo(manager).findOne(userId);
     response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-    response.attachment("Lieferschein_" + orderIds.join(",") + ".pdf");
+//    response.attachment("Lieferschein_" + orderIds.join(",") + ".pdf");
+    response.attachment("Lieferschein.pdf");
     response.contentType('application/pdf');
 
     let myDoc = new doc({bufferPages: true, autoFirstPage: false});
