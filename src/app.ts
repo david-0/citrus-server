@@ -41,6 +41,7 @@ import {CustomErrorHandler} from "./utils/CustomErrorHandler";
 import {DeliveryNoteController} from "./controller/DeliveryNoteController";
 import {ConfirmationController} from "./controller/ConfirmationController";
 import {Server as SocketIdServer} from "socket.io";
+import { MessageTemplateController } from "./controller/MessageTemplateController";
 
 
 const LOGGER: Logger = getLogger("Server");
@@ -221,8 +222,9 @@ class Server {
         UserController,
         SecurityController,
         MessageController,
+        MessageTemplateController,
         DeliveryNoteController,
-        ConfirmationController,
+        ConfirmationController,        
       ],
       cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),

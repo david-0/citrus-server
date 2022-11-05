@@ -95,3 +95,8 @@ su davidl -c "forever start dist/app.js"
 EOF
 chmod 700 /etc/letsencrypt/renewal-hooks/post/startCitrusServer.sh
 
+## Update datebase schema
+# Build code to js files
+npm run build
+# create schema update files 
+$(npm bin)/typeorm migration:generate -n addMessageTemplate
