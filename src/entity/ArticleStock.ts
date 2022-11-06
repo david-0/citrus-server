@@ -42,6 +42,9 @@ export class ArticleStock {
   @Column( {default : "false"})
   public soldOut: boolean;
 
+  @Column( {default : "false"})
+  public visible: boolean;
+
   @OneToMany(type => ArticleCheckIn, checkin => checkin.articleStock)
   public checkIns: ArticleCheckIn[];
 
