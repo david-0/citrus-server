@@ -46,6 +46,18 @@ export class LocationController {
   }
 
   @Transaction()
+  @Get("/withOpeningHoursStocksAndArticle")
+  public getAllWithOpeningHoursStocksAndArticle(@TransactionManager() manager: EntityManager) {
+    const result = this.locationRepo(manager).createQueryBuilder("l")
+      .leftJoinAndSelect("l.openingHours", "o")
+      .leftJoinAndSelect("l.articleStocks", "s")
+      .leftJoinAndSelect("s.article", "a")
+      .orderBy({"o.fromDate": "ASC"})
+      .getMany();
+    return result;
+  }
+
+  @Transaction()
   @Authorized("admin")
   @Post("/withOpeningHours")
   public saveWithOpeningHours(@TransactionManager() manager: EntityManager, @EntityFromBody() location: Location) {
