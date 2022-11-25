@@ -42,6 +42,7 @@ import {DeliveryNoteController} from "./controller/DeliveryNoteController";
 import {ConfirmationController} from "./controller/ConfirmationController";
 import {Server as SocketIdServer} from "socket.io";
 import { MessageTemplateController } from "./controller/MessageTemplateController";
+import { ArticleInventoryTransferController } from "./controller/ArticleInventoryTransferController";
 
 
 const LOGGER: Logger = getLogger("Server");
@@ -224,7 +225,8 @@ class Server {
         MessageController,
         MessageTemplateController,
         DeliveryNoteController,
-        ConfirmationController,        
+        ConfirmationController, 
+        ArticleInventoryTransferController,       
       ],
       cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),
