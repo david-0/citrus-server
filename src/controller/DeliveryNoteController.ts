@@ -1,14 +1,14 @@
 // @ts-ignore
-import {UserDto, OrderDto} from "citrus-common";
+import { UserDto, OrderDto } from "citrus-common";
 import * as express from "express";
-import {Authorized, Body, CurrentUser, JsonController, Post, Req, Res} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {User} from "../entity/User";
-import {MailService} from "../utils/MailService";
-import {Order} from "../entity/Order";
+import { Authorized, Body, CurrentUser, JsonController, Post, Req, Res } from "routing-controllers";
+import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
+import { User } from "../entity/User";
+import { MailService } from "../utils/MailService";
+import { Order } from "../entity/Order";
 import doc = require("pdfkit");
 import * as moment from "moment-timezone";
-import {of} from "rxjs";
+import { of } from "rxjs";
 
 @Authorized("admin")
 @JsonController("/api/deliveryNote")
@@ -28,27 +28,33 @@ export class DeliveryNoteController {
 
   @Post()
   @Transaction()
-  public async returnDeliveryNote(@CurrentUser({required: true}) userId: number,
-                                  @TransactionManager() manager: EntityManager,
-                                  @Req() request: express.Request,
-                                  @Body() orderIds: number[],
-                                  @Res() response: express.Response): Promise<any> {
+  public async returnDeliveryNote(@CurrentUser({ required: true }) userId: number,
+    @TransactionManager() manager: EntityManager,
+    @Req() request: express.Request,
+    @Body() orderIds: number[],
+    @Res() response: express.Response): Promise<any> {
     let currentUser: UserDto = await this.userRepo(manager).findOne(userId);
     response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-//    response.attachment("Lieferschein_" + orderIds.join(",") + ".pdf");
+    //    response.attachment("Lieferschein_" + orderIds.join(",") + ".pdf");
     response.attachment("Lieferschein.pdf");
     response.contentType('application/pdf');
 
-    let myDoc = new doc({bufferPages: true, autoFirstPage: false});
+    let myDoc = new doc({ bufferPages: true, autoFirstPage: false });
     myDoc.pipe(response);
 
     const currentDate = new Date();
 
-    for (let index in orderIds) {
-      const orderId = orderIds[index];
-      const order = await this.getOrder(orderId, manager);
+    const orders = await this.loadOrders(orderIds, manager);
+    orders.sort((a, b) => this.comparator(a,b)); 
+
+    let lastLocationId = undefined;
+    let page = 0;
+    for (let order of orders) {
       await this.updateDeliveryDate(order, currentDate, manager);
-      if (this.isEven(+index)) {
+      if (lastLocationId !== order.location.id && !this.isEven(page)) {
+        page++;
+      }
+      if (this.isEven(+page)) {
         myDoc.addPage({
           margin: 0,
           size: [595, 839]
@@ -57,9 +63,36 @@ export class DeliveryNoteController {
       } else {
         this.printContent(myDoc, order, 1, currentUser);
       }
+      page++;
+      lastLocationId = order.location.id;
     }
     myDoc.end();
     return;
+  }
+
+  private comparator(a: OrderDto, b: OrderDto ) {
+    const comparedLocationId = a.location.id - b.location.id;
+    if (comparedLocationId != 0) {
+      return comparedLocationId;
+    }
+    const comparedName = a.user.name.localeCompare(b.user.name);
+    if (comparedName != 0) {
+      return comparedName;
+    }
+    const comparedPrename = a.user.prename.localeCompare(b.user.prename);
+    if (comparedPrename != 0) {
+      return comparedPrename;
+    }
+    const comparedId = a.id - b.id;
+    return comparedId;
+  }
+
+  private async loadOrders(orderIds: number[], manager: EntityManager): Promise<OrderDto[]> {
+    let result = [];
+    for (let orderId of orderIds) {
+      result.push(await this.getOrder(orderId, manager));
+    }
+    return result;
   }
 
   private isEven(n: number): boolean {
@@ -119,9 +152,9 @@ export class DeliveryNoteController {
       });
       myDoc.text((item.copiedPrice).toFixed(2) + " CHF/" + item.article.unitOfMeasurement.shortcut,
         this.margin + this.padding + this.convert(95), yCurrentLine, {
-          width: this.convert(40),
-          align: "right"
-        });
+        width: this.convert(40),
+        align: "right"
+      });
       myDoc.text((item.copiedPrice * item.quantity).toFixed(2) + " CHF", this.margin + this.padding + this.convert(130), yCurrentLine, {
         width: this.convert(39),
         align: 'right'
@@ -131,7 +164,7 @@ export class DeliveryNoteController {
     const yTotalLine = this.margin + offset + this.padding + 235;
     myDoc.moveTo(this.margin + this.padding, yTotalLine - 5).lineTo(this.margin + width - this.padding, yTotalLine - 5).stroke();
     myDoc.fontSize(16)
-      .text("Gesamtpreis Bestellung:", this.margin + this.padding, yTotalLine, {width: this.convert(105)})
+      .text("Gesamtpreis Bestellung:", this.margin + this.padding, yTotalLine, { width: this.convert(105) })
       .font("Helvetica-Bold")
       .text((order.totalPrice).toFixed(2) + " CHF", this.margin + this.padding + this.convert(130), yTotalLine, {
         width: this.convert(39),
