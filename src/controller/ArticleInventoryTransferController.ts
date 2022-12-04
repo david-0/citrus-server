@@ -1,7 +1,6 @@
 import { ArticleInventoryTransferDto } from "citrus-common";
 import { Authorized, Body, JsonController, Post } from "routing-controllers";
 import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
-import { EntityFromBody } from "typeorm-routing-controllers-extensions";
 import { ArticleCheckIn } from "../entity/ArticleCheckIn";
 import { ArticleStock } from "../entity/ArticleStock";
 
@@ -55,7 +54,7 @@ export class ArticleInventoryTransferController {
       checkInReceiver.quantity = checkInReceiver.quantity + +transfer.quantity;
       await this.articleCheckInRepo(manager).save(checkInSender);
       await this.articleCheckInRepo(manager).save(checkInReceiver);
-      resolve("ok");
+      resolve("saved");
     });
   }
 }

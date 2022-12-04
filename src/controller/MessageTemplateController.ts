@@ -1,6 +1,7 @@
-import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
+import { MessageTemplateDto } from "citrus-common";
+import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
+import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
+import { MessageTemplateConverter } from "../converter/MessageTemplateConverter";
 import { MessageTemplate } from "../entity/MessageTemplate";
 
 @JsonController("/api/messageTemplate")
@@ -14,40 +15,42 @@ export class MessageTemplateController {
   @Transaction()
   @Authorized("admin")
   @Get("/:id([0-9]+)")
-  public get(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const t = this.messageTemplateRepo(manager).findOne(id);
-    return t;
+  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<MessageTemplateDto> {
+    return MessageTemplateConverter.toDto(await this.messageTemplateRepo(manager).findOne(id));
   }
 
   @Transaction()
   @Authorized("admin")
   @Post()
-  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() messageTemplate: MessageTemplate) {
-    return this.messageTemplateRepo(manager).save(messageTemplate);
+  public async save(@TransactionManager() manager: EntityManager, @Body() messageTemplate: MessageTemplate): Promise<MessageTemplateDto> {
+    const m = MessageTemplateConverter.toEntity(messageTemplate);
+    return MessageTemplateConverter.toDto(await this.messageTemplateRepo(manager).save(m));
   }
 
   @Transaction()
   @Put("/:id([0-9]+)")
-  public update(@TransactionManager() manager: EntityManager,
-                @EntityFromParam("id") messageTemplte: MessageTemplate,
-                @EntityFromBody() newMessageTemplate: MessageTemplate) {
-    return this.messageTemplateRepo(manager).save(this.messageTemplateRepo(manager).merge(messageTemplte, newMessageTemplate));
+  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() newMessageTemplate: MessageTemplate): Promise<MessageTemplateDto> {
+    const a = MessageTemplateConverter.toEntity(newMessageTemplate);
+    a.id = +id;
+    return MessageTemplateConverter.toDto(await this.messageTemplateRepo(manager).save(a));
   }
 
   @Transaction()
   @Get()
-  public getAll(@TransactionManager() manager: EntityManager) {
-    return this.messageTemplateRepo(manager).find({
+  public async getAll(@TransactionManager() manager: EntityManager): Promise<MessageTemplateDto[]> {
+    return MessageTemplateConverter.toDtos(await this.messageTemplateRepo(manager).find({
       order: {
         id: "ASC"
       },
-    });
+    }));
   }
 
   @Transaction()
   @Authorized("admin")
   @Delete("/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") messageTemplate: MessageTemplate) {
-    return this.messageTemplateRepo(manager).remove(messageTemplate);
+  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    const messageTemplate = new MessageTemplate();
+    messageTemplate.id = +id;
+    return MessageTemplateConverter.toDto(await this.messageTemplateRepo(manager).remove(messageTemplate));
   }
 }

@@ -1,7 +1,8 @@
-import {Authorized, Delete, Get, JsonController, Post, Put} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {OpeningHour} from "../entity/OpeningHour";
+import { OpeningHourDto } from "citrus-common";
+import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
+import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
+import { OpeningHourConverter } from "../converter/OpeningHourConverter";
+import { OpeningHour } from "../entity/OpeningHour";
 
 @Authorized("admin")
 @JsonController("/api/openingHour")
@@ -14,37 +15,40 @@ export class OpeningHourController {
 
   @Transaction()
   @Get("/:id([0-9]+)")
-  public get(@EntityFromParam("id") openingHour: OpeningHour) {
-    return openingHour;
+  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OpeningHourDto> {
+    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).findOne(id));
   }
 
   @Transaction()
   @Get()
-  public getAll(@TransactionManager() manager: EntityManager) {
-    return this.openingHourRepo(manager).find({
+  public async getAll(@TransactionManager() manager: EntityManager): Promise<OpeningHourDto[]> {
+    return OpeningHourConverter.toDtos(await this.openingHourRepo(manager).find({
       order: {
         id: "ASC"
       },
-    });
+    }));
   }
 
   @Transaction()
   @Post()
-  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() openingHour: OpeningHour) {
-    return this.openingHourRepo(manager).save(openingHour);
+  public async save(@TransactionManager() manager: EntityManager, @Body() newOpeningHour: OpeningHour): Promise<OpeningHourDto> {
+    const openingHour = OpeningHourConverter.toEntity(newOpeningHour);
+    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).save(openingHour));
   }
 
   @Transaction()
   @Put("/:id([0-9]+)")
-  public update(@TransactionManager() manager: EntityManager,
-                @EntityFromParam("id") openingHour: OpeningHour,
-                @EntityFromBody() changedOpeningHour: OpeningHour) {
-    return this.openingHourRepo(manager).save(this.openingHourRepo(manager).merge(openingHour, changedOpeningHour));
+  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedOpeningHour: OpeningHour): Promise<OpeningHourDto> {
+    const o = OpeningHourConverter.toEntity(changedOpeningHour);
+    o.id = +id;
+    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).save(o));
   }
 
   @Transaction()
   @Delete("/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") openingHour: OpeningHour) {
-    return this.openingHourRepo(manager).remove(openingHour);
+  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OpeningHourDto> {
+    const openingHour = new OpeningHour();
+    openingHour.id = +id;
+    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).remove(openingHour));
   }
 }

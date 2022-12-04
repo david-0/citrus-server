@@ -1,7 +1,8 @@
-import {Authorized, CurrentUser, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {ArticleCheckOut} from "../entity/ArticleCheckOut";
+import { ArticleCheckOutDto } from "citrus-common";
+import { Authorized, Body, CurrentUser, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
+import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
+import { ArticleCheckOutConverter } from "../converter/ArticleCheckOutConverter";
+import { ArticleCheckOut } from "../entity/ArticleCheckOut";
 
 @JsonController("/api/articleCheckOut")
 export class ArticleCheckOutController {
@@ -14,8 +15,8 @@ export class ArticleCheckOutController {
   @Transaction()
   @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
-  public getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.articleCheckOutRepo(manager).findOne(id, {
+  public async getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleCheckOutDto> {
+    return ArticleCheckOutConverter.toDto(await this.articleCheckOutRepo(manager).findOne(id, {
       relations: [
         "articleStock",
         "articleStock.article",
@@ -23,17 +24,14 @@ export class ArticleCheckOutController {
         "articleStock.location",
         "doneUser",
       ],
-      order: {
-        id: "ASC"
-      },
-    });
+    }));
   }
 
   @Transaction()
   @Authorized("admin")
   @Get("/withAll")
-  public getAllWithAll(@TransactionManager() manager: EntityManager) {
-    return this.articleCheckOutRepo(manager).find({
+  public async getAllWithAll(@TransactionManager() manager: EntityManager): Promise<ArticleCheckOutDto[]> {
+    return ArticleCheckOutConverter.toDtos(await this.articleCheckOutRepo(manager).find({
       relations: [
         "articleStock",
         "articleStock.article",
@@ -44,36 +42,32 @@ export class ArticleCheckOutController {
       order: {
         id: "ASC"
       },
-    });
+    }));
   }
 
   @Transaction()
   @Authorized(["admin", "store"])
   @Post("/withAll")
-  public save(@TransactionManager() manager: EntityManager,
-              @EntityFromBody() article: ArticleCheckOut,
-              @CurrentUser({required: true}) userId: number) {
-    return this.articleCheckOutRepo(manager).save(article, {data: userId});
+  public async save(@TransactionManager() manager: EntityManager, @Body() article: ArticleCheckOut, @CurrentUser({ required: true }) userId: number): Promise<ArticleCheckOutDto> {
+    const a = ArticleCheckOutConverter.toEntity(article);
+    return ArticleCheckOutConverter.toDto(await this.articleCheckOutRepo(manager).save(a, { data: userId }));
   }
 
   @Transaction()
   @Authorized("admin")
   @Put("/withAll/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager,
-                      @EntityFromParam("id") articleCheckOut: ArticleCheckOut,
-                      @EntityFromBody() changeArticleCheckOut: ArticleCheckOut,
-                      @CurrentUser({required: true}) userId: number) {
-    return await this.articleCheckOutRepo(manager).save(
-      await this.articleCheckOutRepo(manager).merge(articleCheckOut, changeArticleCheckOut), {data: userId}
-    );
+  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changeArticleCheckOut: ArticleCheckOut, @CurrentUser({ required: true }) userId: number): Promise<ArticleCheckOutDto> {
+    const a = ArticleCheckOutConverter.toEntity(changeArticleCheckOut);
+    a.id = +id;
+    return ArticleCheckOutConverter.toDto(await this.articleCheckOutRepo(manager).save(a));
   }
 
   @Transaction()
   @Authorized("admin")
   @Delete("/withAll/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager,
-                @EntityFromParam("id") article: ArticleCheckOut,
-                @CurrentUser({required: true}) userId: number) {
-    return this.articleCheckOutRepo(manager).remove(article, {data: userId});
+  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number, @CurrentUser({ required: true }) userId: number): Promise<ArticleCheckOutDto> {
+    const checkOut = new ArticleCheckOut();
+    checkOut.id = +id;
+    return ArticleCheckOutConverter.toDto(await this.articleCheckOutRepo(manager).remove(checkOut, { data: userId }));
   }
 }

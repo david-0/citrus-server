@@ -1,7 +1,8 @@
-import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {Address} from "../entity/Address";
+import { AddressDto } from "citrus-common";
+import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
+import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
+import { AddressConverter } from "../converter/AddressConverter";
+import { Address } from "../entity/Address";
 
 @Authorized("admin")
 @JsonController("/api/address")
@@ -14,14 +15,14 @@ export class AddressController {
 
   @Transaction()
   @Get("/:id([0-9]+)")
-  public get(@EntityFromParam("id") address: Address) {
-    return address;
+  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<AddressDto> {
+    return AddressConverter.toDto(await this.addressRepo(manager).findOne(id));
   }
 
   @Transaction()
   @Get()
-  public getAll(@TransactionManager() manager: EntityManager) {
-    return this.addressRepo(manager).find({
+  public async getAll(@TransactionManager() manager: EntityManager): Promise<AddressDto[]> {
+    return await this.addressRepo(manager).find({
       order: {
         id: "ASC"
       },
@@ -30,39 +31,44 @@ export class AddressController {
 
   @Transaction()
   @Get("/withUser/:id([0-9]+)")
-  public getWithUser(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.addressRepo(manager).findOne(id, {relations: ["user"]});
+  public async getWithUser(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<AddressDto> {
+    return AddressConverter.toDto(await this.addressRepo(manager).findOne(id, {
+      relations: ["user"],
+    }));
   }
 
   @Transaction()
   @Get("/withUser")
-  public getAllWithUser(@TransactionManager() manager: EntityManager) {
-    return this.addressRepo(manager).find({
-      relations: ["user"],
-      order: {
-        id: "ASC"
-      },
-    });
+  public async getAllWithUser(@TransactionManager() manager: EntityManager): Promise<AddressDto[]> {
+    return AddressConverter.toDtos(
+      await this.addressRepo(manager).find({
+        relations: ["user"],
+        order: {
+          id: "ASC"
+        },
+      }));
   }
 
   @Transaction()
   @Post("/withUser")
-  public saveWithUser(@TransactionManager() manager: EntityManager, @EntityFromBody() address: Address) {
-    return this.addressRepo(manager).save(address);
+  public async saveWithUser(@TransactionManager() manager: EntityManager, @Body() newAddressBody: Address): Promise<AddressDto> {
+    const address = AddressConverter.toEntity(newAddressBody);
+    return AddressConverter.toDto(await this.addressRepo(manager).save(address));
   }
 
   @Transaction()
   @Put("/withUser/:id([0-9]+)")
-  public updateWithUser(@TransactionManager() manager: EntityManager,
-                        @EntityFromParam("id") address: Address,
-                        @EntityFromBody() newAddress: Address) {
-    const repo = this.addressRepo(manager);
-    return repo.save(repo.merge(address, newAddress));
+  public async updateWithUser(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedAddress: Address): Promise<AddressDto> {
+    const a = AddressConverter.toEntity(changedAddress);
+    a.id = +id;
+    return AddressConverter.toDto(await this.addressRepo(manager).save(a));
   }
 
   @Transaction()
   @Delete("/withUser/:id([0-9]+)")
-  public deleteWithUser(@TransactionManager() manager: EntityManager, @EntityFromParam("id") address: Address) {
-    return this.addressRepo(manager).remove(address);
+  public async deleteWithUser(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<AddressDto> {
+    const address = new Address();
+    address.id = +id;
+    return AddressConverter.toDto(await this.addressRepo(manager).remove(address));
   }
 }

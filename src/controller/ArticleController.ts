@@ -1,7 +1,8 @@
-import {Authorized, Delete, Get, JsonController, Param, Post, Put} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {EntityFromBody, EntityFromParam} from "typeorm-routing-controllers-extensions";
-import {Article} from "../entity/Article";
+import { ArticleDto } from "citrus-common";
+import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
+import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
+import { ArticleConverter } from "../converter/ArticleConverter";
+import { Article } from "../entity/Article";
 
 @JsonController("/api/article")
 export class ArticleController {
@@ -13,25 +14,25 @@ export class ArticleController {
 
   @Transaction()
   @Get("/:id([0-9]+)")
-  public get(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.articleRepo(manager).findOne(id, {relations: ["unitOfMeasurement"]});
+  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
+    return ArticleConverter.toDto(await this.articleRepo(manager).findOne(id, { relations: ["unitOfMeasurement"] }));
   }
 
   @Transaction()
   @Get()
-  public getAll(@TransactionManager() manager: EntityManager) {
-    return this.articleRepo(manager).find({
+  public async getAll(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
+    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
       relations: ["unitOfMeasurement"],
       order: {
         id: "ASC"
       },
-    });
+    }));
   }
 
   @Transaction()
   @Get("/inSale")
-  public getAllInSale(@TransactionManager() manager: EntityManager) {
-    return this.articleRepo(manager).find({
+  public async getAllInSale(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
+    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
       relations: [
         "unitOfMeasurement",
         "articleStocks",
@@ -42,15 +43,15 @@ export class ArticleController {
       order: {
         id: "ASC"
       },
-      where: {inSale: true},
-    });
+      where: { inSale: true },
+    }));
   }
 
   @Transaction()
   @Authorized("admin")
   @Get("/withStock/:id([0-9]+)")
-  public getWithStock(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.articleRepo(manager).findOne(id, {
+  public async getWithStock(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
+    return ArticleConverter.toDto(await this.articleRepo(manager).findOne(id, {
       relations: [
         "unitOfMeasurement",
         "articleStocks",
@@ -62,14 +63,14 @@ export class ArticleController {
       order: {
         id: "ASC"
       },
-    });
+    }));
   }
 
   @Transaction()
   @Authorized("admin")
   @Get("/withStock")
-  public getAllWithStock(@TransactionManager() manager: EntityManager) {
-    return this.articleRepo(manager).find({
+  public async getAllWithStock(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
+    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
       relations: [
         "unitOfMeasurement",
         "articleStocks",
@@ -81,13 +82,13 @@ export class ArticleController {
       order: {
         id: "ASC"
       },
-    });
+    }));
   }
 
   @Transaction()
   @Get("/withAll/:id([0-9]+)")
-  public getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    return this.articleRepo(manager).findOne(id, {
+  public async getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
+    return ArticleConverter.toDto(await this.articleRepo(manager).findOne(id, {
       relations: [
         "unitOfMeasurement",
         "articleStocks",
@@ -99,14 +100,14 @@ export class ArticleController {
       order: {
         id: "ASC"
       },
-    });
+    }));
   }
 
   @Transaction()
   @Authorized("admin")
   @Get("/withAll")
-  public getAllWithAll(@TransactionManager() manager: EntityManager) {
-    return this.articleRepo(manager).find({
+  public async getAllWithAll(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
+    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
       relations: [
         "unitOfMeasurement",
         "articleStocks",
@@ -118,29 +119,41 @@ export class ArticleController {
       order: {
         id: "ASC"
       },
-    });
+    }));
+  }
+
+  @Transaction()
+  @Authorized("admin")
+  @Delete("/withAll/:id([0-9]+)")
+  public async deleteWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
+    const article = new Article();
+    article.id = +id;
+    return ArticleConverter.toDto(await this.articleRepo(manager).remove(article));
   }
 
   @Transaction()
   @Authorized("admin")
   @Post()
-  public save(@TransactionManager() manager: EntityManager, @EntityFromBody() article: Article) {
-    return this.articleRepo(manager).save(article);
+  public async save(@TransactionManager() manager: EntityManager, @Body() article: Article): Promise<ArticleDto> {
+    const a = ArticleConverter.toEntity(article);
+    return ArticleConverter.toDto(await this.articleRepo(manager).save(a));
   }
 
   @Transaction()
   @Authorized("admin")
   @Put("/:id([0-9]+)")
-  public update(@TransactionManager() manager: EntityManager,
-                @EntityFromParam("id") article: Article,
-                @EntityFromBody() newArticle: Article) {
-    return this.articleRepo(manager).save(this.articleRepo(manager).merge(article, newArticle));
+  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() newArticle: Article): Promise<ArticleDto> {
+    const a = ArticleConverter.toEntity(newArticle);
+    a.id = +id;
+    return ArticleConverter.toDto(await this.articleRepo(manager).save(a));
   }
 
   @Transaction()
   @Authorized("admin")
   @Delete("/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") article: Article) {
-    return this.articleRepo(manager).remove(article);
+  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
+    const article = new Article();
+    article.id = +id;
+    return ArticleConverter.toDto(await this.articleRepo(manager).remove(article));
   }
 }

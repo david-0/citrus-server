@@ -4,7 +4,6 @@ import {getType} from "mime";
 import {Form} from "multiparty";
 import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {EntityFromParam} from "typeorm-routing-controllers-extensions";
 import {Image} from "../entity/Image";
 
 @JsonController("/api/image")
@@ -18,19 +17,20 @@ export class ImageController {
 
   @Transaction()
   @Get("/:id([0-9]+)")
-  public get(@TransactionManager() manager: EntityManager,
-             @EntityFromParam("id") image: Image,
+  public async get(@TransactionManager() manager: EntityManager,
+             @Param("id") id: number,
              @Res() response: Response) {
+    const image = await this.imageRepo(manager).findOne(id);
     response.contentType(image.contentType);
     return image.image;
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get()
-  public getAll(@TransactionManager() manager: EntityManager) {
-    return this.imageRepo(manager).find();
-  }
+  // @Transaction()
+  // @Authorized("admin")
+  // @Get()
+  // public getAll(@TransactionManager() manager: EntityManager) {
+  //   return this.imageRepo(manager).find();
+  // }
 
   @Transaction()
   @Authorized("admin")
@@ -70,7 +70,9 @@ export class ImageController {
   @Transaction()
   @Authorized("admin")
   @Delete("/:id([0-9]+)")
-  public delete(@TransactionManager() manager: EntityManager, @EntityFromParam("id") picture: Image) {
-    return this.imageRepo(manager).remove(picture);
+  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
+    const picture = new Image();
+    picture.id = +id;
+    return await this.imageRepo(manager).remove(picture);
   }
 }

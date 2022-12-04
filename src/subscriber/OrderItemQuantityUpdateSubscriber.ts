@@ -33,7 +33,7 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
 
   private async add(manager: EntityManager, entity: OrderItem) {
     entity = await this.ensureOrderAndArticleLoaded(entity, manager);
-    const stock = await this.loadArticleStock(manager, entity.article.id, entity.order.location.id);
+    const stock = await this. loadArticleStock(manager, entity.article.id, entity.order.location.id);
     if (!entity.order.checkedOut) {
       stock.reservedQuantity += +entity.quantity;
     }
@@ -50,7 +50,7 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
   }
 
   private async ensureOrderAndArticleLoaded(entity: OrderItem, manager: EntityManager) {
-    if (!entity.article || !entity.order) {
+    if (!entity.article || !entity.order || !entity.order.id || !entity.order.location || !entity.order.location.id ) {
       entity = await manager.getRepository(OrderItem).findOne(entity.id, {
         relations: [
           "article",
