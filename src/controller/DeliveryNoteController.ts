@@ -7,8 +7,8 @@ import { User } from "../entity/User";
 import { MailService } from "../utils/MailService";
 import { Order } from "../entity/Order";
 import doc = require("pdfkit");
-import * as moment from "moment-timezone";
 import { of } from "rxjs";
+import { DateTime } from "luxon";
 
 @Authorized("admin")
 @JsonController("/api/deliveryNote")
@@ -208,11 +208,12 @@ export class DeliveryNoteController {
     });
   }
 
-  private formatDate(date: Date): string {
-    return moment.utc(date).add(1, "hour").local().format("DD.MM.YYYY");
+  private formatDate(date: Date): string {    
+    return DateTime.fromJSDate(date).toFormat('dd.LL.yyyy');
   }
 
   private formatTime(date: Date): string {
-    return moment.utc(date).add(1, "hour").local().format("HH:mm");
+    return DateTime.fromJSDate(date).toLocal().toFormat('HH:mm');
   }
+
 }

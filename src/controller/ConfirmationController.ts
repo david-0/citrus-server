@@ -1,14 +1,7 @@
-import {CartDto} from "citrus-common";
-import {Request} from "express";
-import * as moment from "moment-timezone";
-import {Authorized, Body, CurrentUser, JsonController, Post, Req} from "routing-controllers";
+import { DateTime } from "luxon";
+import {Authorized, Body,  JsonController, Post} from "routing-controllers";
 import {EntityManager, Transaction, TransactionManager} from "typeorm";
-import {ArticleStock} from "../entity/ArticleStock";
-import {Location} from "../entity/Location";
-import {OpeningHour} from "../entity/OpeningHour";
 import {Order} from "../entity/Order";
-import {OrderItem} from "../entity/OrderItem";
-import {User} from "../entity/User";
 import {MailService} from "../utils/MailService";
 
 @Authorized("admin")
@@ -68,11 +61,11 @@ export class ConfirmationController {
     await this.mailService.sendMailTextOnly(order.user.email, "Bestellbestätigung", text);
   }
 
-  private formatDate(date: Date): string {
-    return moment.utc(date).add(1, "hour").local().format("DD.MM.YYYY");
+  private formatDate(date: Date): string {    
+    return DateTime.fromJSDate(date).toFormat('dd.LL.yyyy');
   }
 
   private formatTime(date: Date): string {
-    return moment.utc(date).add(1, "hour").local().format("HH:mm");
+    return DateTime.fromJSDate(date).toLocal().toFormat('HH:mm');
   }
 }

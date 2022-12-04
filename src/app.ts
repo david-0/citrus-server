@@ -3,7 +3,6 @@ import * as express from "express";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as moment from "moment-timezone";
 import {verify, VerifyErrors} from "jsonwebtoken";
 import {configure, getLogger, Logger} from "log4js";
 import * as path from "path";
@@ -43,6 +42,7 @@ import {ConfirmationController} from "./controller/ConfirmationController";
 import {Server as SocketIdServer} from "socket.io";
 import { MessageTemplateController } from "./controller/MessageTemplateController";
 import { ArticleInventoryTransferController } from "./controller/ArticleInventoryTransferController";
+import { Settings } from "luxon";
 
 
 const LOGGER: Logger = getLogger("Server");
@@ -84,7 +84,7 @@ class Server {
     this.config();
     this.socketService = new SocketService();
     process.env.TZ = 'Europe/zurich';
-    moment.tz.setDefault('Europe/zurich');
+    Settings.defaultZone = "Europe/zurich";
 
     useContainer(Container);
     createConnection().then(async connection => {

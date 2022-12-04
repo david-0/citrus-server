@@ -1,7 +1,6 @@
 import * as bcrypt from "bcryptjs";
 import * as express from "express";
 import {sign} from "jsonwebtoken";
-import * as moment from "moment";
 import {Authorized, Body, CurrentUser, HttpError, JsonController, Param, Post, Req, Res} from "routing-controllers";
 import {Container} from "typedi";
 import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
@@ -14,6 +13,7 @@ import {JwtConfiguration} from "../utils/JwtConfiguration";
 import {MailService} from "../utils/MailService";
 import {UrlService} from "../utils/UrlService";
 import { v4 as uuid } from 'uuid';
+import { DateTime, Duration } from "luxon";
 
 declare var process: any;
 
@@ -99,7 +99,7 @@ export class SecurityController {
       const resetToken = new ResetToken();
       resetToken.user = user;
       resetToken.token = uuid();
-      resetToken.validTo = moment().add(2, "h").toDate();
+      resetToken.validTo = DateTime.now().plus({hours: 2}).toJSDate();
       const insertResult = await manager.getRepository(ResetToken).insert(resetToken);
       await this.sendResetToken(user, resetToken.token);
       await this.sendResetTokenAudit(manager, user, body.email, request);
@@ -125,7 +125,7 @@ export class SecurityController {
     newUser.email = body.email;
     newUser.phoneNumber = body.phoneNumber;
     newUser.token = uuid();
-    newUser.validTo = moment().add(2, "h").toDate();
+    newUser.validTo = DateTime.now().plus({hours: 2}).toJSDate();
     try {
       await manager.getRepository(UserNotConfirmed).save(newUser);
       await this.sendActivationToken(newUser);

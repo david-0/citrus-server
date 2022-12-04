@@ -71,6 +71,7 @@ export class LocationController {
   @Put("/withOpeningHours/:id([0-9]+)")
   public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedLocation: Location): Promise<LocationDto> {
     const a = LocationConverter.toEntity(changedLocation);
+    delete a.articleStocks;
     a.id = +id;
     return LocationConverter.toDto(await this.locationRepo(manager).save(a));
   }
