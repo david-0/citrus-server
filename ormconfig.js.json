@@ -1,0 +1,23 @@
+{
+  "name": "default",
+  "type": "postgres",
+  "username": "citrus",
+  "password": "citrus",
+  "database": "citrus",
+  "synchronize": false,
+  "logging": false,
+  "entities": [
+    "dist/entity/*.js"
+  ],
+  "subscribers": [
+    "dist/subscriber/*.js"
+  ],
+  "migrations": [
+    "dist/migration/*.js"
+  ],
+  "cli": {
+    "entitiesDir": "src/entity",
+    "migrationsDir": "src/migration",
+    "subscribersDir": "src/subscriber"
+  }
+}
