@@ -62,8 +62,9 @@ export class LocationController {
   @Authorized("admin")
   @Post("/withOpeningHours")
   public async saveWithOpeningHours(@TransactionManager() manager: EntityManager, @Body() newLocation: Location): Promise<LocationDto> {
-    const location = LocationConverter.toEntity(newLocation);
-    return LocationConverter.toDto(await this.locationRepo(manager).save(location));
+    const a = LocationConverter.toEntity(newLocation);
+    delete a.articleStocks;
+    return LocationConverter.toDto(await this.locationRepo(manager).save(a));
   }
 
   @Transaction()
@@ -99,8 +100,9 @@ export class LocationController {
   @Authorized("admin")
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() location: Location): Promise<LocationDto> {
-    const l = LocationConverter.toEntity(location);
-    return LocationConverter.toDto(await this.locationRepo(manager).save(l));
+    const a = LocationConverter.toEntity(location);
+    delete a.articleStocks;
+    return LocationConverter.toDto(await this.locationRepo(manager).save(a));
   }
 
   @Transaction()

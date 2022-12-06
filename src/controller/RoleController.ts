@@ -59,6 +59,7 @@ export class RoleController {
   public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedRole: Role): Promise<RoleDto> {
     const a = RoleConverter.toEntity(changedRole);
     a.id = +id;
+    delete a.users;
     return RoleConverter.toDto(await this.roleRepo(manager).save(a));
   }
 
@@ -66,6 +67,7 @@ export class RoleController {
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() newRole: Role): Promise<RoleDto> {
     const role = RoleConverter.toEntity(newRole);
+    delete role.users;
     return RoleConverter.toDto(await this.roleRepo(manager).save(role));
   }
 

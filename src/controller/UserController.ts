@@ -50,6 +50,12 @@ export class UserController {
   @Post("/withRoles")
   public async saveWithRoles(@TransactionManager() manager: EntityManager, @Body() newUser: User): Promise<UserDto> {
     const user = UserConverter.toEntity(newUser);
+    delete user.articleCheckIns;
+    delete user.articleCheckOuts;
+    delete user.audits;
+    delete user.orders;
+    delete user.ordersCheckingOutUser;
+    delete user.addresses;
     return UserConverter.toDto(await this.userRepo(manager).save(user));
   }
 
@@ -58,6 +64,12 @@ export class UserController {
   public async updateWithRoles(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedUser: User) {
     const a = UserConverter.toEntity(changedUser);
     a.id = +id;
+    delete a.articleCheckIns;
+    delete a.articleCheckOuts;
+    delete a.audits;
+    delete a.orders;
+    delete a.ordersCheckingOutUser;
+    delete a.addresses;
     return UserConverter.toDto(await this.userRepo(manager).save(a));
   }
 
@@ -98,15 +110,27 @@ export class UserController {
   @Transaction()
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() newUser: User) {
-    const user = UserConverter.toEntity(newUser);
-    return UserConverter.toDto(await this.userRepo(manager).save(user));
+    const a = UserConverter.toEntity(newUser);
+    delete a.articleCheckIns;
+    delete a.articleCheckOuts;
+    delete a.audits;
+    delete a.orders;
+    delete a.ordersCheckingOutUser;
+    delete a.addresses;
+    return UserConverter.toDto(await this.userRepo(manager).save(a));
   }
 
   @Transaction()
   @Delete("/:id([0-9]+)")
   public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const user = new User();
-    user.id = +id;
-    return UserConverter.toDto(await this.userRepo(manager).remove(user));
+    const a = new User();
+    a.id = +id;
+    delete a.articleCheckIns;
+    delete a.articleCheckOuts;
+    delete a.audits;
+    delete a.orders;
+    delete a.ordersCheckingOutUser;
+    delete a.addresses;
+    return UserConverter.toDto(await this.userRepo(manager).remove(a));
   }
 }

@@ -78,6 +78,8 @@ export class ArticleStockController {
   @Post("/withAll")
   public async saveWithAll(@TransactionManager() manager: EntityManager, @Body() articleStock: ArticleStock): Promise<ArticleStockDto> {
     const a = ArticleStockConverter.toEntity(articleStock);
+    delete a.checkIns;
+    delete a.checkOuts;
     return ArticleStockConverter.toDto(await this.articleStockRepo(manager).save(a));
   }
 
@@ -87,6 +89,8 @@ export class ArticleStockController {
   public async updateWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changeArticleStock: ArticleStock): Promise<ArticleStockDto> {
     const a = ArticleStockConverter.toEntity(changeArticleStock);
     a.id = +id;
+    delete a.checkIns;
+    delete a.checkOuts;
     return ArticleStockConverter.toDto(await this.articleStockRepo(manager).save(a));
   }
 
@@ -104,6 +108,8 @@ export class ArticleStockController {
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() articleStock: ArticleStock) : Promise<ArticleStockDto>{
     const a = ArticleStockConverter.toEntity(articleStock);
+    delete a.checkIns;
+    delete a.checkOuts;
     return ArticleStockConverter.toDto(await this.articleStockRepo(manager).save(a));
   }
 

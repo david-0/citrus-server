@@ -44,16 +44,17 @@ export class UnitOfMeasurementController {
   @Transaction()
   @Delete("/withArticles/:id([0-9]+)")
   public async deleteWithArticles(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<UnitOfMeasurementDto> {
-    const unitOfMeasurement = new UnitOfMeasurement();
-    unitOfMeasurement.id = +id;
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).remove(unitOfMeasurement));
+    const a = new UnitOfMeasurement();
+    a.id = +id;
+    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).remove(a));
   }
 
   @Transaction()
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() newUnitOfMeasurement: UnitOfMeasurement): Promise<UnitOfMeasurementDto> {
-    const unitOfMeasurement = UnitOfMeasurementConverter.toEntity(newUnitOfMeasurement);
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).save(unitOfMeasurement));
+    const a = UnitOfMeasurementConverter.toEntity(newUnitOfMeasurement);
+    delete a.articles;
+    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).save(a));
   }
 
   @Transaction()
@@ -61,14 +62,15 @@ export class UnitOfMeasurementController {
   public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedUnitOfMeasurement: UnitOfMeasurement): Promise<UnitOfMeasurementDto> {
     const a = UnitOfMeasurementConverter.toEntity(changedUnitOfMeasurement);
     a.id = +id;
+    delete a.articles;
     return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).save(a));
   }
 
   @Transaction()
   @Delete("/:id([0-9]+)")
   public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const unitOfMeasurement = new UnitOfMeasurement();
-    unitOfMeasurement.id = +id;
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).remove(unitOfMeasurement));
+    const a = new UnitOfMeasurement();
+    a.id = +id;
+    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).remove(a));
   }
 }

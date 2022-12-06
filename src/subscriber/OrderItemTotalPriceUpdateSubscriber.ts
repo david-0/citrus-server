@@ -24,7 +24,7 @@ export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInte
   }
 
   private async reloadOrder(entity: OrderItem, manager: EntityManager) {
-    if (!entity.order) {
+    if (!entity.order || !entity.order.id) {
       entity = await manager.getRepository(OrderItem).findOne(entity.id, {
         relations: [
           "order",

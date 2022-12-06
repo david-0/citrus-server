@@ -136,6 +136,7 @@ export class ArticleController {
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() article: Article): Promise<ArticleDto> {
     const a = ArticleConverter.toEntity(article);
+    delete a.articleStocks; // do not save stocks
     return ArticleConverter.toDto(await this.articleRepo(manager).save(a));
   }
 
@@ -145,6 +146,7 @@ export class ArticleController {
   public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() newArticle: Article): Promise<ArticleDto> {
     const a = ArticleConverter.toEntity(newArticle);
     a.id = +id;
+    delete a.articleStocks; // do not save stocks
     return ArticleConverter.toDto(await this.articleRepo(manager).save(a));
   }
 
