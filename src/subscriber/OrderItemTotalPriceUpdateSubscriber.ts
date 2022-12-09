@@ -1,4 +1,4 @@
-import {EntityManager, EntitySubscriberInterface, EventSubscriber, InsertEvent, UpdateEvent} from "typeorm";
+import {EntityManager, EntityRepository, EntitySubscriberInterface, EventSubscriber, InsertEvent, RemoveEvent, UpdateEvent} from "typeorm";
 import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
 
@@ -9,30 +9,34 @@ export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInte
   }
 
   public async afterInsert(event: InsertEvent<OrderItem>) {
-    await this.updateAfter(event.manager, event.entity);
+    await this.updateAfter(event.manager, event.entity.id);
   }
 
   public async afterUpdate(event: UpdateEvent<OrderItem>) {
-    await this.updateAfter(event.manager, <OrderItem> event.entity);
+    await this.updateAfter(event.manager, event.entity.id);
   }
 
-  private async updateAfter(manager: EntityManager, entity: OrderItem) {
-    entity = await this.reloadOrder(entity, manager);
-    let totalPrice = this.getTotalPrice(entity.order.orderItems, entity.id);
+  public async beforeRemove(event: RemoveEvent<OrderItem>) {
+    const entity = await this.reloadOrder(event.entityId, event.manager);
+    let totalPrice = this.getTotalPrice(entity.order.orderItems, event.entityId);
+    await this.updateTotalPrice(event.manager, entity.order.id, totalPrice);
+  }
+
+  private async updateAfter(manager: EntityManager, orderItemId: number) {
+    const entity = await this.reloadOrder(orderItemId, manager);
+    let totalPrice = this.getTotalPrice(entity.order.orderItems, orderItemId);
     totalPrice += +entity.copiedPrice * +entity.quantity;
     await this.updateTotalPrice(manager, entity.order.id, totalPrice);
   }
 
-  private async reloadOrder(entity: OrderItem, manager: EntityManager) {
-    if (!entity.order || !entity.order.id) {
-      entity = await manager.getRepository(OrderItem).findOne(entity.id, {
+  private async reloadOrder(orderItemId: number, manager: EntityManager): Promise<OrderItem> {
+    const r = await manager.getRepository(OrderItem).findOne(orderItemId, {
         relations: [
           "order",
           "order.orderItems",
         ],
       });
-    }
-    return entity;
+    return r;
   }
 
   private getTotalPrice(items: OrderItem[], excludeItemId: number) {

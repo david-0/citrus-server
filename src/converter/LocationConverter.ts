@@ -42,12 +42,12 @@ export class LocationConverter {
         result.zipcode = input.zipcode;
         result.city = input.city;
         result.description = input.description;
-        if (input.articleStocks !== undefined && input.articleStocks !== null) {
-            result.articleStocks = ArticleStockConverter.toEntities(input.articleStocks);
-        }
-        if (input.openingHours !== undefined && input.openingHours !== null) {
-            result.openingHours = OpeningHourConverter.toEntities(input.openingHours);
-        }
+        return result;
+    }
+
+    public static createIdObj(id: number) {
+        const result = new Location();
+        result.id = id;
         return result;
     }
 }

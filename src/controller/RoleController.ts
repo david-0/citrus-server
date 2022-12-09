@@ -66,16 +66,16 @@ export class RoleController {
   @Transaction()
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() newRole: Role): Promise<RoleDto> {
-    const role = RoleConverter.toEntity(newRole);
-    delete role.users;
-    return RoleConverter.toDto(await this.roleRepo(manager).save(role));
+    const a = RoleConverter.toEntity(newRole);
+    delete a.users;
+    return RoleConverter.toDto(await this.roleRepo(manager).save(a));
   }
 
   @Transaction()
   @Delete("/:id([0-9]+)")
   public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const role = new Role();
-    role.id = +id;
-    return RoleConverter.toDto(await this.roleRepo(manager).remove(role));
+    const a = new Role();
+    a.id = +id;
+    return RoleConverter.toDto(await this.roleRepo(manager).remove(a));
   }
 }

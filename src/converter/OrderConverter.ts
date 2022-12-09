@@ -1,5 +1,6 @@
 import { OrderDto } from "citrus-common";
 import { Order } from "../entity/Order";
+import { ConverterUtil } from "./ConverterUtil";
 import { LocationConverter } from "./LocationConverter";
 import { OpeningHourConverter } from "./OpeningHourConverter";
 import { OrderItemConverter } from "./OrderItemConverter";
@@ -46,25 +47,20 @@ export class OrderConverter {
         result.id = input.id;
         result.date = input.date;
         result.comment = input.comment;
-        if (input.location !== undefined && input.location !== null) {
-            result.location = LocationConverter.toEntity(input.location);
-        }
-        if (input.user !== undefined && input.user !== null) {
-            result.user = UserConverter.toEntity(input.user);
-        }
-        if (input.orderItems !== undefined && input.orderItems !== null) {
-            result.orderItems = OrderItemConverter.toEntities(input.orderItems);
-        }
+        ConverterUtil.updateObjRef(input, result, id => LocationConverter.createIdObj(id), a => a.location, v => v.id, (w, u) => w.location = u);
+        ConverterUtil.updateObjRef(input, result,id => UserConverter.createIdObj(id), a => a.user, v => v.id, (w, u) => w.user = u);
         result.totalPrice = input.totalPrice;
-        if (input.plannedCheckout !== undefined && input.plannedCheckout !== null) {
-            result.plannedCheckout = OpeningHourConverter.toEntity(input.plannedCheckout);
-        }
+        ConverterUtil.updateObjRef(input, result,id => OpeningHourConverter.createIdObj(id), a => a.plannedCheckout, v => v.id, (w, u) => w.plannedCheckout = u);
         result.checkedOut = input.checkedOut;
         result.checkedOutDate = input.checkedOutDate;
-        if (input.checkingOutUser !== undefined && input.checkingOutUser !== null) {
-            result.checkingOutUser = UserConverter.toEntity(input.checkingOutUser);
-        }
+        ConverterUtil.updateObjRef(input, result, id => UserConverter.createIdObj(id), a => a.checkingOutUser, v => v.id, (w, u) => w.checkingOutUser = u);
         result.deliveryNoteCreated = input.deliveryNoteCreated;  
+        return result;
+    }
+
+    public static createIdObj(id: number) {
+        const result = new Order();
+        result.id = id;
         return result;
     }
 }

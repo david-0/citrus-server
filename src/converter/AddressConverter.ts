@@ -1,5 +1,7 @@
 import { AddressDto } from "citrus-common";
 import { Address } from "../entity/Address";
+import { User } from "../entity/User";
+import { ConverterUtil } from "./ConverterUtil";
 import { UserConverter } from "./UserConverter";
 
 export class AddressConverter {
@@ -34,11 +36,7 @@ export class AddressConverter {
     public static toEntity(input: AddressDto): Address {
         const result = new Address();
         result.id = input.id;
-        if (input.user !== undefined && input.user !== null) {
-            result.user = UserConverter.toEntity(input.user);
-        } else {
-            delete result.user;
-        }
+        ConverterUtil.updateObjRef(input, result, id => UserConverter.createIdObj(id), a => a.user, v => v.id, (w, u) => w.user = u);
         result.description = input.description;
         result.name = input.name;
         result.prename = input.prename;

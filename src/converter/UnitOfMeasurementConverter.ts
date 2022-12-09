@@ -27,9 +27,12 @@ export class UnitOfMeasurementConverter {
         result.id = input.id;
         result.shortcut = input.shortcut;
         result.description = input.description;
-        if (input.articles !== undefined && input.articles !== null) {
-            result.articles = ArticleConverter.toEntities(input.articles);
-        }
+        return result;
+    }
+
+    public static createIdObj(id: number) {
+        const result = new UnitOfMeasurement();
+        result.id = id;
         return result;
     }
 }

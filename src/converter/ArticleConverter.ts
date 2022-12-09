@@ -1,6 +1,7 @@
 import { ArticleDto } from "citrus-common";
 import { Article } from "../entity/Article";
 import { ArticleStockConverter } from "./ArticleStockConverter";
+import { ConverterUtil } from "./ConverterUtil";
 import { UnitOfMeasurementConverter } from "./UnitOfMeasurementConverter";
 
 export class ArticleConverter {
@@ -40,12 +41,13 @@ export class ArticleConverter {
         result.price = input.price;
         result.inSale = input.inSale;
         result.saleUnit = input.saleUnit;
-        if (input.unitOfMeasurement !== undefined && input.unitOfMeasurement !== null) {
-            result.unitOfMeasurement = UnitOfMeasurementConverter.toEntity(input.unitOfMeasurement);
-        }
-        if (input.articleStocks !== undefined && input.articleStocks !== null) {
-            result.articleStocks = ArticleStockConverter.toEntities(input.articleStocks);
-        }
+        ConverterUtil.updateObjRef(input, result, id => UnitOfMeasurementConverter.createIdObj(id), a => a.unitOfMeasurement, v => v.id, (w, u) => w.unitOfMeasurement = u);
+        return result;
+    }
+
+    public static createIdObj(id: number) {
+        const result = new Article();
+        result.id = id;
         return result;
     }
 }

@@ -4,6 +4,7 @@ import { EntityManager, Repository, Transaction, TransactionManager } from "type
 import { OrderArchiveConverter } from "../converter/OrderArchiveConverter";
 import { Order } from "../entity/Order";
 import { OrderArchive } from "../entity/OrderArchive";
+import { OrderItem } from "../entity/OrderItem";
 import { User } from "../entity/User";
 
 @Authorized("admin")
@@ -62,8 +63,12 @@ export class OrderArchiveController {
     archiveOrder.archiveDate = new Date();
     archiveOrder.archiveUser = JSON.stringify(user);
     archiveOrder.order = JSON.stringify(order);
-    const saved = await this.orderArchiveRepo(manager).save(archiveOrder);
-    await this.orderRepo(manager).delete(order.id);
+    await this.orderArchiveRepo(manager).save(archiveOrder);
+
+    for (const item of order.orderItems) {
+      await manager.getRepository(OrderItem).remove(item);
+    }
+    await this.orderRepo(manager).remove(order);
     return order.id;
   }
 

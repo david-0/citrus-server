@@ -25,4 +25,10 @@ export class MessageTemplateConverter {
         result.content = input.content;
         return result;
     }
+
+    public static createIdObj(id: number) {
+        const result = new MessageTemplate();
+        result.id = id;
+        return result;
+    }
 }

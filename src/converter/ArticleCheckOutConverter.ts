@@ -1,6 +1,7 @@
 import { ArticleCheckOutDto } from "citrus-common";
 import { ArticleCheckOut } from "../entity/ArticleCheckOut";
 import { ArticleStockConverter } from "./ArticleStockConverter";
+import { ConverterUtil } from "./ConverterUtil";
 import { UserConverter } from "./UserConverter";
 
 export class ArticleCheckOutConverter {
@@ -33,17 +34,13 @@ export class ArticleCheckOutConverter {
     public static toEntity(input: ArticleCheckOutDto): ArticleCheckOut {
         const result = new ArticleCheckOut();
         result.id = input.id;
-        if (input.articleStock !== undefined && input.articleStock !== null) {
-            result.articleStock = ArticleStockConverter.toEntity(input.articleStock);
-        }
+        ConverterUtil.updateObjRef(input,result, id => ArticleStockConverter.createIdObj(id), a => a.articleStock, v => v.id, (w, u) => w.articleStock = u);
         result.quantity = input.quantity;
         result.plannedDate = input.plannedDate;
         result.comment = input.comment;
         result.done = input.done;
         result.doneDate = input.doneDate;
-        if (input.doneUser !== undefined && input.doneUser !== null) {
-            result.doneUser = UserConverter.toEntity(input.doneUser);
-        }
+        ConverterUtil.updateObjRef(input, result, id => UserConverter.createIdObj(id), a => a.doneUser, v => v.id, (w, u) => w.doneUser = u);
         return result;
     }
 }

@@ -25,9 +25,6 @@ export class RoleConverter {
         const result = new Role();
         result.id = input.id;
         result.name = input.name;
-        if (input.users !== undefined && input.users !== null) {
-            result.users = UserConverter.toEntities(input.users);
-        }
         return result;
     }
 }

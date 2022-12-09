@@ -132,9 +132,5 @@ export class OrderController {
       await manager.getRepository(OrderItem).remove(item);
     }
     return OrderConverter.toDto(await this.orderRepo(manager).remove(extendedOrder));
-
-    // const order = new Order();
-    // order.id = +id;
-    // return OrderConverter.toDto(await this.orderRepo(manager).remove(order));
   }
 }

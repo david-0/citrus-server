@@ -1,5 +1,6 @@
 import { OpeningHourDto } from "citrus-common";
 import { OpeningHour } from "../entity/OpeningHour";
+import { ConverterUtil } from "./ConverterUtil";
 import { LocationConverter } from "./LocationConverter";
 import { OrderConverter } from "./OrderConverter";
 
@@ -20,7 +21,6 @@ export class OpeningHourConverter {
         if (input.location !== undefined && input.location !== null) {
             result.location = LocationConverter.toDto(input.location);
         }
-
         return result;
     }
 
@@ -29,9 +29,13 @@ export class OpeningHourConverter {
         result.id = input.id;
         result.fromDate = input.fromDate;
         result.toDate = input.toDate;
-        if (input.location !== undefined && input.location !== null) {
-            result.location = LocationConverter.toEntity(input.location);
-        }
+        ConverterUtil.updateObjRef(input, result, id => LocationConverter.createIdObj(id), a => a.location, v => v.id, (w, u) => w.location = u);
+        return result;
+    }
+
+    public static createIdObj(id: number) {
+        const result = new OpeningHour();
+        result.id = id;
         return result;
     }
 }

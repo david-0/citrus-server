@@ -38,4 +38,10 @@ export class UserConverter {
     }
     return result;
   }
+
+  public static createIdObj(id: number): User {
+    const result = new User();
+    result.id = id;
+    return result;
+  }
 }
