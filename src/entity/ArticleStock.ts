@@ -25,6 +25,7 @@ export class ArticleStock {
    *     <li>minus all Checkout quantities (in the past)</li>
    *     <li>minus all OrderItem[checkedOut=true] quantities</li>
    * </ul>
+   * When a Order is archived, then it is marked as checkedOut=true and the quantities are removed from the articleStock.
    */
   @Column("decimal", {precision: 10, scale: 1, transformer: new ColumnNumericTransformer()})
   public quantity: number;

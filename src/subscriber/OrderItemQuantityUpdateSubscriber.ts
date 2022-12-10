@@ -36,6 +36,8 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
     const stock = await this. loadArticleStock(manager, entity.article.id, entity.order.location.id);
     if (!entity.order.checkedOut) {
       stock.reservedQuantity += +entity.quantity;
+    } else {
+      stock.quantity -= +entity.quantity;
     }
     await manager.getRepository(ArticleStock).save(stock);
   }
@@ -45,8 +47,10 @@ export class OrderItemQuantityUpdateSubscriber implements EntitySubscriberInterf
     const stock = await this.loadArticleStock(manager, entity.article.id, entity.order.location.id);
     if (!entity.order.checkedOut) {
       stock.reservedQuantity -= +entity.quantity;
+    } else {
+      stock.quantity += +entity.quantity;
     }
-    await manager.getRepository(ArticleStock).save(stock);
+  await manager.getRepository(ArticleStock).save(stock);
   }
 
   private async ensureOrderAndArticleLoaded(entity: OrderItem, manager: EntityManager) {
