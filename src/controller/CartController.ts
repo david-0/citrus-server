@@ -1,4 +1,4 @@
-import {CartDto} from "citrus-common";
+import {CartDto, CartItemDto} from "citrus-common";
 import {Request} from "express";
 import {Authorized, Body, CurrentUser, JsonController, Post, Req} from "routing-controllers";
 import {EntityManager, Transaction, TransactionManager} from "typeorm";
@@ -10,14 +10,17 @@ import {OrderItem} from "../entity/OrderItem";
 import {User} from "../entity/User";
 import {MailService} from "../utils/MailService";
 import {ConfirmationController} from "./ConfirmationController";
+import { OrderStockQuantityUpdater } from "./OrderStockQuantityUpdater";
 
 @Authorized()
 @JsonController("/api/cart")
 export class CartController {
   private mailService: MailService;
+  private stockUpdater: OrderStockQuantityUpdater;
 
   constructor() {
     this.mailService = new MailService("../configuration/smtp.json");
+    this.stockUpdater = new OrderStockQuantityUpdater();
   }
 
   @Post()
@@ -38,18 +41,7 @@ export class CartController {
       order.plannedCheckout = await manager.getRepository(OpeningHour).findOne(cartDto.openingHourOfPlannedCheckout.id);
     }
     for (const cartItem of cartDto.cartItems) {
-      const articleStock = await manager.getRepository(ArticleStock)
-        .find({
-          relations: ["article", "location"],
-          order: {
-            id: "ASC"
-          },
-          where:
-            {
-              article: {id: cartItem.article.id},
-              location: {id: order.location.id},
-            },
-        });
+      const articleStock = await this.loadArticleStock(manager, cartItem, order);
       if (articleStock.length === 1) {
         // const available = articleStock[0].quantity - articleStock[0].reservedQuantity;
         const requested = +cartItem.quantity;
@@ -67,8 +59,23 @@ export class CartController {
     }
     order.totalPrice = this.computeTotalPrice(order);
     const savedOrder = await manager.getRepository(Order).save(order);
+    await this.stockUpdater.addStockQuantityAfterUpdate(manager, order.id);
     await new ConfirmationController().resendConfirmation(manager, savedOrder.id);
     return savedOrder;
+  }
+
+  private async loadArticleStock(manager: EntityManager, cartItem: CartItemDto, order: Order) {
+    return await manager.getRepository(ArticleStock)
+      .find({
+        relations: ["article", "location"],
+        order: {
+          id: "ASC"
+        },
+        where: {
+          article: { id: cartItem.article.id },
+          location: { id: order.location.id },
+        },
+      });
   }
 
   private computeTotalPrice(order: Order) {
