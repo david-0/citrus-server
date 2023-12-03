@@ -1,10 +1,11 @@
 import { OrderDto } from "citrus-common";
 import { Authorized, Body, CurrentUser, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
+import { EntityManager, Repository, Transaction, TransactionManager, UpdateEvent } from "typeorm";
 import { OrderConverter } from "../converter/OrderConverter";
 import { Order } from "../entity/Order";
 import { OrderItem } from "../entity/OrderItem";
 import { OrderStockQuantityUpdater } from "./OrderStockQuantityUpdater";
+import { User } from "../entity/User";
 
 @Authorized("admin")
 @JsonController("/api/order")
@@ -36,9 +37,10 @@ export class OrderController {
   @Transaction()
   @Post()
   public async save(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Body() newOrder: Order): Promise<OrderDto> {
-    const order = OrderConverter.toEntity(newOrder);
-    const savedOrder = await this.orderRepo(manager).save(order, { data: userId });
-    await this.stockUpdater.addStockQuantityAfterUpdate(manager, order.id);
+    const orderToInsert = OrderConverter.toEntity(newOrder);
+    await this.beforeInsert(manager, orderToInsert, userId);
+    const savedOrder = await this.orderRepo(manager).save(orderToInsert, { data: userId });
+    await this.stockUpdater.addStockQuantityAfterUpdate(manager, orderToInsert.id);
     return OrderConverter.toDto(savedOrder);
   }
 
@@ -47,6 +49,7 @@ export class OrderController {
   public async update(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedOrder: Order): Promise<OrderDto> {
     const order = OrderConverter.toEntity(changedOrder);
     order.id = +id;
+    await this.beforeUpdate(manager, order, userId);
     await this.stockUpdater.removeStockQuantityBeforeUpdate(manager, order.id);
     const newOrder = await this.orderRepo(manager).save(order, { data: userId });
     await this.stockUpdater.addStockQuantityAfterUpdate(manager, order.id);
@@ -119,8 +122,9 @@ export class OrderController {
   @Transaction()
   public async saveWithAll(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager,
     @Body() newOrder: Order): Promise<OrderDto> {
-    const order = OrderConverter.toEntity(newOrder);
-    const savedOrder = await this.orderRepo(manager).save(order, { data: userId });
+    const orderToInsert = OrderConverter.toEntity(newOrder);
+    await this.beforeInsert(manager, orderToInsert, userId);
+    const savedOrder = await this.orderRepo(manager).save(orderToInsert, { data: userId });
     await this.stockUpdater.addStockQuantityAfterUpdate(manager, savedOrder.id);
     return OrderConverter.toDto(savedOrder);
   }
@@ -130,7 +134,7 @@ export class OrderController {
   public async updateWithAll(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedOrder: Order): Promise<OrderDto> {
     const a = OrderConverter.toEntity(changedOrder);
     a.id = +id;
-    await this.stockUpdater.removeStockQuantityBeforeUpdate(manager, a.id);
+    await this.beforeUpdate(manager, a, userId);
     const newOrder = await this.orderRepo(manager).save(a, { data: userId });
     await this.stockUpdater.addStockQuantityAfterUpdate(manager, a.id);
     const loaded = await this.orderRepo(manager).findOne(a.id);
@@ -147,5 +151,35 @@ export class OrderController {
       await manager.getRepository(OrderItem).remove(item);
     }
     return OrderConverter.toDto(await this.orderRepo(manager).remove(extendedOrder));
+  }
+
+
+  private async beforeUpdate(manager: EntityManager, modifiedOrder: Order,  userId: number) {
+    await this.updateCheckoutBeforeUpdate(manager, modifiedOrder, userId);
+    await this.updateTotalPriceBeforeUpdate(manager, modifiedOrder);
+  }
+
+  private async updateCheckoutBeforeUpdate(manager: EntityManager, modifiedOrder: Order,  userId: number) {
+    const loadedOrder = await manager.getRepository(Order).findOne(modifiedOrder.id);
+    if (!loadedOrder.checkedOut && modifiedOrder.checkedOut) {
+      const user = await manager.getRepository(User).findOne(userId);
+      modifiedOrder.checkedOutDate = new Date();
+      modifiedOrder.checkingOutUser = user;
+    } else if (loadedOrder.checkedOut && !modifiedOrder.checkedOut) {
+      modifiedOrder.checkedOutDate = null;
+      modifiedOrder.checkingOutUser = null;
+    }
+  }
+  private async updateTotalPriceBeforeUpdate(manager: EntityManager, modifiedOrder: Order) {
+    const loadedOrder = await manager.getRepository(Order).findOne(modifiedOrder.id);
+    modifiedOrder.totalPrice = loadedOrder.totalPrice;
+  }
+
+  private async beforeInsert(manager: EntityManager, orderToInsert: Order,  userId: number) {
+    if (orderToInsert.checkedOut) {
+      const user = await manager.getRepository(User).findOne(userId);
+      orderToInsert.checkedOutDate = new Date();
+      orderToInsert.checkingOutUser = user;
+    }
   }
 }

@@ -2,7 +2,7 @@ import {EntitySubscriberInterface, EventSubscriber, InsertEvent, UpdateEvent,} f
 import {Order} from "../entity/Order";
 import {User} from "../entity/User";
 
-@EventSubscriber()
+// @EventSubscriber()
 export class OrderCheckoutSubscriber implements EntitySubscriberInterface<Order> {
   public listenTo() {
     return Order;
