@@ -2,7 +2,7 @@ import {EntityManager, EntityRepository, EntitySubscriberInterface, EventSubscri
 import {Order} from "../entity/Order";
 import {OrderItem} from "../entity/OrderItem";
 
-@EventSubscriber()
+// @EventSubscriber()
 export class OrderItemTotalPriceUpdateSubscriber implements EntitySubscriberInterface<OrderItem> {
   public listenTo() {
     return OrderItem;

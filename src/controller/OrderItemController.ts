@@ -4,6 +4,7 @@ import { EntityManager, Repository, Transaction, TransactionManager } from "type
 import { OrderItemConverter } from "../converter/OrderItemConverter";
 import { OrderItem } from "../entity/OrderItem";
 import { ArticleStock } from "../entity/ArticleStock";
+import { Order } from "../entity/Order";
 
 @Authorized("admin")
 @JsonController("/api/orderItem")
@@ -35,7 +36,7 @@ export class OrderItemController {
   public async save(@TransactionManager() manager: EntityManager, @Body() newItem: OrderItem): Promise<OrderItemDto> {
     const item = OrderItemConverter.toEntity(newItem);
     const savedItem = await this.orderItemRepo(manager).save(item);
-    await this.updateStockOnInsert(manager, item);
+    await this.updateOnInsert(manager, item);
     return OrderItemConverter.toDto(savedItem);
   }
 
@@ -44,9 +45,9 @@ export class OrderItemController {
   public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedItem: OrderItem): Promise<OrderItemDto> {
     const a = OrderItemConverter.toEntity(changedItem);
     a.id = +id;
-    await this.updateStockOnRemove(manager, a);
+    await this.updateOnRemove(manager, a);
     const saved = await this.orderItemRepo(manager).save(a);
-    await this.updateStockOnInsert(manager, a);
+    await this.updateOnInsert(manager, a);
     return OrderItemConverter.toDto(saved);
   }
 
@@ -55,9 +56,19 @@ export class OrderItemController {
   public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderItemDto> {
     const orderItem = new OrderItem();
     orderItem.id = +id;
-    await this.updateStockOnRemove(manager, orderItem);
+    await this.updateOnRemove(manager, orderItem);
     const saved = await this.orderItemRepo(manager).remove(orderItem);
     return OrderItemConverter.toDto(saved);
+  }
+
+  private async updateOnInsert(manager: EntityManager, entity: OrderItem) {
+    await this.updateStockOnInsert(manager, entity);
+    await this.updateTotalPriceOnInsert(manager, entity);
+  }
+
+  private async updateOnRemove(manager: EntityManager, entity: OrderItem) {
+    await this.updateStockOnRemove(manager, entity);
+    await this.updateTotalPriceOnRemove(manager, entity);
   }
 
   private async updateStockOnInsert(manager: EntityManager, entity: OrderItem) {
@@ -80,6 +91,18 @@ export class OrderItemController {
       stock.quantity += +loadedEntity.quantity;
     }
     await manager.getRepository(ArticleStock).save(stock);
+  }
+  
+  private async updateTotalPriceOnInsert(manager: EntityManager, entity: OrderItem) {
+    const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
+    loadedEntity.order.totalPrice += loadedEntity.quantity * loadedEntity.article.price;
+    await manager.getRepository(Order).save(loadedEntity.order);
+  }
+
+  private async updateTotalPriceOnRemove(manager: EntityManager, entity: OrderItem) {
+    const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
+    loadedEntity.order.totalPrice -= loadedEntity.quantity * loadedEntity.article.price;
+    await manager.getRepository(Order).save(loadedEntity.order);
   }
 
   private async ensureOrderAndArticleLoaded(entity: OrderItem, manager: EntityManager) {
