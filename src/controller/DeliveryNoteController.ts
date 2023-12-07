@@ -192,7 +192,7 @@ export class DeliveryNoteController {
   }
 
   private async getOrder(oderId: number, manager: EntityManager): Promise<OrderDto> {
-    return this.orderRepo(manager).findOne(oderId, {
+    return await this.orderRepo(manager).findOne(oderId, {
       relations: [
         "user",
         "location",
