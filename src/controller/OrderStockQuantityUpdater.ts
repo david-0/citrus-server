@@ -25,10 +25,10 @@ export class OrderStockQuantityUpdater {
       }
     }
   
-    private async updateStockQuantityWhenRemove(manager: EntityManager, eistingOrder: Order) {
-      for (const orderItem of eistingOrder.orderItems) {
-        const stock = await this.loadArticleStock(manager, orderItem.article.id, eistingOrder.location.id);
-        if (!eistingOrder.checkedOut) {
+    private async updateStockQuantityWhenRemove(manager: EntityManager, existingOrder: Order) {
+      for (const orderItem of existingOrder.orderItems) {
+        const stock = await this.loadArticleStock(manager, orderItem.article.id, existingOrder.location.id);
+        if (!existingOrder.checkedOut) {
           stock.reservedQuantity -= +orderItem.quantity;
         } else {
           stock.quantity += +orderItem.quantity;

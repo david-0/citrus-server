@@ -135,6 +135,7 @@ export class OrderController {
     const a = OrderConverter.toEntity(changedOrder);
     a.id = +id;
     await this.beforeUpdate(manager, a, userId);
+    await this.stockUpdater.removeStockQuantityBeforeUpdate(manager, a.id);
     const newOrder = await this.orderRepo(manager).save(a, { data: userId });
     await this.stockUpdater.addStockQuantityAfterUpdate(manager, a.id);
     const loaded = await this.orderRepo(manager).findOne(a.id);
