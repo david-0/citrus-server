@@ -1,8 +1,8 @@
 import { DateTime } from "luxon";
-import {Authorized, Body,  JsonController, Post} from "routing-controllers";
-import {EntityManager, Transaction, TransactionManager} from "typeorm";
-import {Order} from "../entity/Order";
-import {MailService} from "../utils/MailService";
+import { Authorized, Body, JsonController, Post } from "routing-controllers";
+import { EntityManager, Transaction, TransactionManager } from "typeorm";
+import { Order } from "../entity/Order";
+import { MailService } from "../utils/MailService";
 
 @Authorized("admin")
 @JsonController("/api/confirmation")
@@ -17,13 +17,13 @@ export class ConfirmationController {
   @Transaction()
   public async resendOrderConfirmation(
     @TransactionManager() manager: EntityManager,
-    @Body() orderId: {orderId: number}): Promise<boolean> {
+    @Body() orderId: { orderId: number }): Promise<boolean> {
     return this.resendConfirmation(manager, orderId.orderId);
   }
 
   public async resendConfirmation(manager: EntityManager, orderId: number): Promise<boolean> {
     const orderWithDependencies = await manager.getRepository(Order).findOne(orderId,
-      {relations: ["plannedCheckout", "user", "location", "orderItems", "orderItems.article", "orderItems.article.unitOfMeasurement"]});
+      { relations: ["plannedCheckout", "user", "location", "orderItems", "orderItems.article", "orderItems.article.unitOfMeasurement"] });
     await this.sendOrderConfirmation(orderWithDependencies);
     return true;
   }
@@ -40,6 +40,7 @@ export class ConfirmationController {
     orderTextTable += "".padEnd(60, "-") + "\r\n";
     orderTextTable += "".padStart(16) + "Total".padEnd(32) + "CHF " + ("" + Number(order.totalPrice).toFixed(2)).padStart(8) + "\r\n";
     orderTextTable += "".padEnd(48) + "".padEnd(12, "=") + "\r\n";
+    let comment = "Kommentar: " + order.comment + "\r\n" + "\r\n";
     const text = "Sehr geehrte(r) " + order.user.prename + " " + order.user.name + ",\r\n\r\n" +
       "Vielen Dank für Ihre Bestellung.\r\n\r\n" +
       "    " + order.user.prename + " " + order.user.name + "\r\n" +
@@ -48,6 +49,7 @@ export class ConfirmationController {
       "\r\n" +
       "\r\n" +
       orderTextTable + "\r\n" +
+      comment +
       "Die Früchte können von Ihnen wie folgt abgeholt werden: \r\n" +
       "Abholstandort: " + order.location.description + "\r\n" +
       "Datum: " + this.formatDate(order.plannedCheckout.fromDate) + "\r\n" +
@@ -61,7 +63,7 @@ export class ConfirmationController {
     await this.mailService.sendMailTextOnly(order.user.email, "Bestellbestätigung", text);
   }
 
-  private formatDate(date: Date): string {    
+  private formatDate(date: Date): string {
     return DateTime.fromJSDate(date).toFormat('dd.LL.yyyy');
   }
 
