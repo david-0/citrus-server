@@ -40,7 +40,6 @@ import {DeliveryNoteController} from "./controller/DeliveryNoteController";
 import {ConfirmationController} from "./controller/ConfirmationController";
 import {Server as SocketIdServer} from "socket.io";
 import { MessageTemplateController } from "./controller/MessageTemplateController";
-import { ArticleInventoryTransferController } from "./controller/ArticleInventoryTransferController";
 import { Settings } from "luxon";
 
 
@@ -224,7 +223,6 @@ class Server {
         MessageTemplateController,
         DeliveryNoteController,
         ConfirmationController, 
-        ArticleInventoryTransferController,       
       ],
       cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),
