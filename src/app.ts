@@ -10,7 +10,6 @@ import "reflect-metadata";
 import {Action, useExpressServer} from "routing-controllers";
 import {Container} from "typeorm-typedi-extensions";
 import {createConnection, useContainer} from "typeorm";
-import {AddressController} from "./controller/AddressController";
 import {ArticleCheckInController} from "./controller/ArticleCheckInController";
 import {ArticleCheckOutController} from "./controller/ArticleCheckOutController";
 import {ArticleController} from "./controller/ArticleController";
@@ -206,7 +205,6 @@ class Server {
     useExpressServer(this.app, {
       authorizationChecker: async (action: Action, roles: string[]) => this.authorizationChecker(action, roles),
       controllers: [
-        AddressController,
         ArticleController,
         ArticleCheckInController,
         ArticleCheckOutController,

@@ -1,5 +1,4 @@
 import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
-import {Address} from "./Address";
 import {ArticleCheckIn} from "./ArticleCheckIn";
 import {ArticleCheckOut} from "./ArticleCheckOut";
 import {Message} from "./Message";
@@ -47,9 +46,6 @@ export class User {
 
   @OneToMany(type => ArticleCheckOut, checkOut => checkOut.doneUser)
   public articleCheckOuts: ArticleCheckOut[];
-
-  @OneToMany(type => Address, address => address.user)
-  public addresses: Address[];
 
   @ManyToMany(type => Message, message => message.receivers)
   @JoinTable()

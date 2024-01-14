@@ -54,7 +54,6 @@ export class UserController {
     delete user.articleCheckOuts;
     delete user.audits;
     delete user.orders;
-    delete user.addresses;
     return UserConverter.toDto(await this.userRepo(manager).save(user));
   }
 
@@ -67,7 +66,6 @@ export class UserController {
     delete a.articleCheckOuts;
     delete a.audits;
     delete a.orders;
-    delete a.addresses;
     return UserConverter.toDto(await this.userRepo(manager).save(a));
   }
 
@@ -79,8 +77,7 @@ export class UserController {
         "roles",
         "orders",
         "articleCheckIns",
-        "articleCheckOuts",
-        "addresses"]
+        "articleCheckOuts"]
     }));
   }
 
@@ -92,8 +89,7 @@ export class UserController {
         "roles",
         "orders",
         "articleCheckIns",
-        "articleCheckOuts",
-        "addresses"]
+        "articleCheckOuts"]
     }));
   }
 
@@ -113,7 +109,6 @@ export class UserController {
     delete a.articleCheckOuts;
     delete a.audits;
     delete a.orders;
-    delete a.addresses;
     return UserConverter.toDto(await this.userRepo(manager).save(a));
   }
 
@@ -126,7 +121,6 @@ export class UserController {
     delete a.articleCheckOuts;
     delete a.audits;
     delete a.orders;
-    delete a.addresses;
     return UserConverter.toDto(await this.userRepo(manager).remove(a));
   }
 }
