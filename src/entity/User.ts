@@ -42,9 +42,6 @@ export class User {
   @OneToMany(type => Order, order => order.user)
   public orders: Order[];
 
-  @OneToMany(type => Order, order => order.checkingOutUser)
-  public ordersCheckingOutUser: Order[];
-
   @OneToMany(type => ArticleCheckIn, checkIn => checkIn.doneUser)
   public articleCheckIns: ArticleCheckIn[];
 

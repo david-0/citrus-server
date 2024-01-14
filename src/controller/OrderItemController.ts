@@ -74,25 +74,17 @@ export class OrderItemController {
   private async updateStockOnInsert(manager: EntityManager, entity: OrderItem) {
     const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
     const stock = await this.loadArticleStock(manager, entity.article.id, loadedEntity.order.location.id);
-    if (!loadedEntity.order.checkedOut) {
-      stock.reservedQuantity += +entity.quantity;
-    } else {
-      stock.quantity -= +entity.quantity;
-    }
+    stock.reservedQuantity += +entity.quantity;
     await manager.getRepository(ArticleStock).save(stock);
   }
 
   private async updateStockOnRemove(manager: EntityManager, entity: OrderItem) {
     const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
     const stock = await this.loadArticleStock(manager, loadedEntity.article.id, loadedEntity.order.location.id);
-    if (!loadedEntity.order.checkedOut) {
-      stock.reservedQuantity -= +loadedEntity.quantity;
-    } else {
-      stock.quantity += +loadedEntity.quantity;
-    }
+    stock.reservedQuantity -= +loadedEntity.quantity;
     await manager.getRepository(ArticleStock).save(stock);
   }
-  
+
   private async updateTotalPriceOnInsert(manager: EntityManager, entity: OrderItem) {
     const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
     loadedEntity.order.totalPrice += loadedEntity.quantity * loadedEntity.article.price;

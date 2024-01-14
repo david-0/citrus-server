@@ -55,7 +55,6 @@ export class OrderArchiveController {
         "orderItems.article",
         "orderItems.article.unitOfMeasurement",
         "plannedCheckout",
-        "checkingOutUser",
       ],
       order: {
         id: "ASC"

@@ -32,15 +32,6 @@ export class Order {
   @ManyToOne(type => OpeningHour, openingHour => openingHour.orders, {nullable: true})
   public plannedCheckout: OpeningHour;
 
-  @Column()
-  public checkedOut: boolean;
-
-  @Column({nullable: true})
-  public checkedOutDate: Date;
-
-  @ManyToOne(type => User, user => user.orders, {nullable: true})
-  public checkingOutUser: User;
-
   @Column({nullable: true})
   public deliveryNoteCreated: Date;
 }

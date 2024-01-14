@@ -33,7 +33,6 @@ export class CartController {
     const order = new Order();
     order.date = new Date();
     order.user = user;
-    order.checkedOut = false;
     order.orderItems = [];
     order.comment = cartDto.comment;
     order.location = await manager.getRepository(Location).findOne(cartDto.location.id);

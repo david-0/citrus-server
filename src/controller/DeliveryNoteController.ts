@@ -200,7 +200,6 @@ export class DeliveryNoteController {
         "orderItems.article",
         "orderItems.article.unitOfMeasurement",
         "plannedCheckout",
-        "checkingOutUser",
       ],
       order: {
         id: "ASC"

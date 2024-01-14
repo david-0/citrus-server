@@ -18,25 +18,9 @@ export class ArticleStock {
   @ManyToOne(type => Article, article => article.articleStocks)
   public article: Article;
 
-  /**
-   * Stock is a computed(redundant) column with the following formula:
-   * <ul>
-   *     <li>plus all CheckIn quantities (in the past)</li>
-   *     <li>minus all Checkout quantities (in the past)</li>
-   *     <li>minus all OrderItem[checkedOut=true] quantities</li>
-   * </ul>
-   * When a Order is archived, then it is marked as checkedOut=true and the quantities are removed from the articleStock.
-   */
   @Column("decimal", {precision: 10, scale: 1, transformer: new ColumnNumericTransformer()})
   public quantity: number;
 
-  /**
-   * Reserved is a computed(redundant) column with the following formula:
-   * <ul>
-   *     <li>plus all OrderItem[checkedOut=false] quantities</li>
-   *     <li>plus all Checkout quantities(in the future)</li>
-   * </ul>
-   */
   @Column("decimal", {precision: 10, scale: 1, transformer: new ColumnNumericTransformer()})
   public reservedQuantity: number;
 

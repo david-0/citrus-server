@@ -33,11 +33,6 @@ export class OrderConverter {
         if (input.plannedCheckout !== undefined && input.plannedCheckout !== null) {
             result.plannedCheckout = OpeningHourConverter.toDto(input.plannedCheckout);
         }
-        result.checkedOut = input.checkedOut;
-        result.checkedOutDate = input.checkedOutDate;
-        if (input.checkingOutUser !== undefined && input.checkingOutUser !== null) {
-            result.checkingOutUser = UserConverter.toDto(input.checkingOutUser);
-        }
         result.deliveryNoteCreated = input.deliveryNoteCreated;
         return result;
     }
@@ -51,9 +46,6 @@ export class OrderConverter {
         ConverterUtil.updateObjRef(input, result,id => UserConverter.createIdObj(id), a => a.user, v => v.id, (w, u) => w.user = u);
         result.totalPrice = input.totalPrice;
         ConverterUtil.updateObjRef(input, result,id => OpeningHourConverter.createIdObj(id), a => a.plannedCheckout, v => v.id, (w, u) => w.plannedCheckout = u);
-        result.checkedOut = input.checkedOut;
-        result.checkedOutDate = input.checkedOutDate;
-        ConverterUtil.updateObjRef(input, result, id => UserConverter.createIdObj(id), a => a.checkingOutUser, v => v.id, (w, u) => w.checkingOutUser = u);
         result.deliveryNoteCreated = input.deliveryNoteCreated;  
         return result;
     }
