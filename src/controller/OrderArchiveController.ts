@@ -41,7 +41,7 @@ export class OrderArchiveController {
     const user = await this.reloadUserWithRoles(manager, userId);
     const order = await this.reloadOrderWithAll(manager, orderId);
     await this.createArchiveOrderAndSave(user, order, manager);
-    await this.updateStockQuantitiesAndDeleteOrder(order, manager);
+    await this.revertReservationQuantityAndDeleteOrder(order, manager);
     return orderId;
   }
 
@@ -70,9 +70,9 @@ export class OrderArchiveController {
     });
   }
 
-  private async updateStockQuantitiesAndDeleteOrder(order: Order, manager: EntityManager) {
+  private async revertReservationQuantityAndDeleteOrder(order: Order, manager: EntityManager) {
     for (const item of order.orderItems) {
-      await this.removeQuantityFromStock(manager, item, order.location.id);
+      await this.revertReservedQuantity(manager, item, order.location.id);
       await manager.getRepository(OrderItem).remove(item);
     }
     await this.orderRepo(manager).remove(order);
@@ -86,9 +86,9 @@ export class OrderArchiveController {
     await this.orderArchiveRepo(manager).save(archiveOrder);
   }
 
-  private async removeQuantityFromStock(manager: EntityManager, orderItem: OrderItem, locationId: number) {
+  private async revertReservedQuantity(manager: EntityManager, orderItem: OrderItem, locationId: number) {
     const stock = await this.loadArticleStock(manager, orderItem.article.id, locationId);
-    stock.quantity -= +orderItem.quantity;
+    stock.reservedQuantity -= +orderItem.quantity;
     await manager.getRepository(ArticleStock).save(stock);
   }
 
