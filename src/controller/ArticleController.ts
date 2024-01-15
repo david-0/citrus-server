@@ -58,7 +58,6 @@ export class ArticleController {
         "articleStocks.location",
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
-        "articleStocks.checkIns",
       ],
       order: {
         id: "ASC"
@@ -77,7 +76,6 @@ export class ArticleController {
         "articleStocks.location",
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
-        "articleStocks.checkIns",
       ],
       order: {
         id: "ASC"
@@ -95,7 +93,6 @@ export class ArticleController {
         "articleStocks.location",
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
-        "articleStocks.checkIns",
       ],
       order: {
         id: "ASC"
@@ -114,7 +111,6 @@ export class ArticleController {
         "articleStocks.location",
         "articleStocks.article",
         "articleStocks.article.unitOfMeasurement",
-        "articleStocks.checkIns",
       ],
       order: {
         id: "ASC"

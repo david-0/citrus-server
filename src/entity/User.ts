@@ -1,6 +1,4 @@
 import {Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
-import {ArticleCheckIn} from "./ArticleCheckIn";
-import {ArticleCheckOut} from "./ArticleCheckOut";
 import {Message} from "./Message";
 import {Order} from "./Order";
 import {ResetToken} from "./ResetToken";
@@ -40,12 +38,6 @@ export class User {
 
   @OneToMany(type => Order, order => order.user)
   public orders: Order[];
-
-  @OneToMany(type => ArticleCheckIn, checkIn => checkIn.doneUser)
-  public articleCheckIns: ArticleCheckIn[];
-
-  @OneToMany(type => ArticleCheckOut, checkOut => checkOut.doneUser)
-  public articleCheckOuts: ArticleCheckOut[];
 
   @ManyToMany(type => Message, message => message.receivers)
   @JoinTable()

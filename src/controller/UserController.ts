@@ -50,8 +50,6 @@ export class UserController {
   @Post("/withRoles")
   public async saveWithRoles(@TransactionManager() manager: EntityManager, @Body() newUser: User): Promise<UserDto> {
     const user = UserConverter.toEntity(newUser);
-    delete user.articleCheckIns;
-    delete user.articleCheckOuts;
     delete user.audits;
     delete user.orders;
     return UserConverter.toDto(await this.userRepo(manager).save(user));
@@ -62,8 +60,6 @@ export class UserController {
   public async updateWithRoles(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedUser: User) {
     const a = UserConverter.toEntity(changedUser);
     a.id = +id;
-    delete a.articleCheckIns;
-    delete a.articleCheckOuts;
     delete a.audits;
     delete a.orders;
     return UserConverter.toDto(await this.userRepo(manager).save(a));
@@ -75,9 +71,7 @@ export class UserController {
     return UserConverter.toDto(await this.userRepo(manager).findOne(id, {
       relations: [
         "roles",
-        "orders",
-        "articleCheckIns",
-        "articleCheckOuts"]
+        "orders"]
     }));
   }
 
@@ -87,9 +81,7 @@ export class UserController {
     return UserConverter.toDtos(await this.userRepo(manager).find({
       relations: [
         "roles",
-        "orders",
-        "articleCheckIns",
-        "articleCheckOuts"]
+        "orders"]
     }));
   }
 
@@ -105,8 +97,6 @@ export class UserController {
   @Post()
   public async save(@TransactionManager() manager: EntityManager, @Body() newUser: User) {
     const a = UserConverter.toEntity(newUser);
-    delete a.articleCheckIns;
-    delete a.articleCheckOuts;
     delete a.audits;
     delete a.orders;
     return UserConverter.toDto(await this.userRepo(manager).save(a));
@@ -117,8 +107,6 @@ export class UserController {
   public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
     const a = new User();
     a.id = +id;
-    delete a.articleCheckIns;
-    delete a.articleCheckOuts;
     delete a.audits;
     delete a.orders;
     return UserConverter.toDto(await this.userRepo(manager).remove(a));

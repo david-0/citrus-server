@@ -1,8 +1,6 @@
-import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique} from "typeorm";
+import {Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique} from "typeorm";
 import {ColumnNumericTransformer} from "../utils/ColumnNumericTransformer";
 import {Article} from "./Article";
-import {ArticleCheckIn} from "./ArticleCheckIn";
-import {ArticleCheckOut} from "./ArticleCheckOut";
 import {Location} from "./Location";
 
 /**
@@ -29,12 +27,6 @@ export class ArticleStock {
 
   @Column( {default : "false"})
   public visible: boolean;
-
-  @OneToMany(type => ArticleCheckIn, checkin => checkin.articleStock)
-  public checkIns: ArticleCheckIn[];
-
-  @OneToMany(type => ArticleCheckOut, checkout => checkout.articleStock)
-  public checkOuts: ArticleCheckOut[];
 
   @ManyToOne(type => Location, location => location.id)
   public location: Location;

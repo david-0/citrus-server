@@ -1,11 +1,8 @@
 import { ArticleStockDto } from "citrus-common";
 import { ArticleStock } from "../entity/ArticleStock";
-import { ArticleCheckInConverter } from "./ArticleCheckInConverter";
-import { ArticleCheckOutConverter } from "./ArticleCheckOutConverter";
 import { ArticleConverter } from "./ArticleConverter";
 import { ConverterUtil } from "./ConverterUtil";
 import { LocationConverter } from "./LocationConverter";
-import { OrderItemConverter } from "./OrderItemConverter";
 
 export class ArticleStockConverter {
 
@@ -30,12 +27,6 @@ export class ArticleStockConverter {
         result.soldOut = input.soldOut;
         result.visible = input.visible;
 
-        if (input.checkIns !== undefined && input.checkIns !== null) {
-            result.checkIns = ArticleCheckInConverter.toDtos(input.checkIns);
-        }
-        if (input.checkOuts !== undefined && input.checkOuts !== null) {
-            result.checkOuts = ArticleCheckOutConverter.toDtos(input.checkOuts);
-        }
         if (input.location !== undefined && input.location !== null) {
             result.location = LocationConverter.toDto(input.location);
         }

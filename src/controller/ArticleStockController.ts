@@ -53,7 +53,7 @@ export class ArticleStockController {
   public async getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleStockDto> {
     return ArticleStockConverter.toDto(await this.articleStockRepo(manager).findOne(id, {
       relations: ["article", "article.unitOfMeasurement",
-        "checkIns", "checkOuts", "location"],
+        "location"],
       order: {
         id: "ASC"
       },
@@ -66,7 +66,7 @@ export class ArticleStockController {
   public async getAllWithAll(@TransactionManager() manager: EntityManager): Promise<ArticleStockDto[]> {
     return ArticleStockConverter.toDtos(await this.articleStockRepo(manager).find({
       relations: ["article", "article.unitOfMeasurement",
-        "checkIns", "checkOuts", "location"],
+        "location"],
       order: {
         id: "ASC"
       },
@@ -78,8 +78,6 @@ export class ArticleStockController {
   @Post("/withAll")
   public async saveWithAll(@TransactionManager() manager: EntityManager, @Body() articleStock: ArticleStock): Promise<ArticleStockDto> {
     const a = ArticleStockConverter.toEntity(articleStock);
-    delete a.checkIns;
-    delete a.checkOuts;
     return ArticleStockConverter.toDto(await this.articleStockRepo(manager).save(a));
   }
 
@@ -89,8 +87,6 @@ export class ArticleStockController {
   public async updateWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changeArticleStock: ArticleStock): Promise<ArticleStockDto> {
     const a = ArticleStockConverter.toEntity(changeArticleStock);
     a.id = +id;
-    delete a.checkIns;
-    delete a.checkOuts;
     return ArticleStockConverter.toDto(await this.articleStockRepo(manager).save(a));
   }
 
@@ -106,10 +102,8 @@ export class ArticleStockController {
   @Transaction()
   @Authorized("admin")
   @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() articleStock: ArticleStock) : Promise<ArticleStockDto>{
+  public async save(@TransactionManager() manager: EntityManager, @Body() articleStock: ArticleStock): Promise<ArticleStockDto> {
     const a = ArticleStockConverter.toEntity(articleStock);
-    delete a.checkIns;
-    delete a.checkOuts;
     return ArticleStockConverter.toDto(await this.articleStockRepo(manager).save(a));
   }
 
