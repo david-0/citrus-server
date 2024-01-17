@@ -8,7 +8,6 @@ import { OrderArchive } from "../entity/OrderArchive";
 import { OrderItem } from "../entity/OrderItem";
 import { User } from "../entity/User";
 
-@Authorized("admin")
 @JsonController("/api/orderArchive")
 export class OrderArchiveController {
   private orderArchiveRepo: (manager: EntityManager) => Repository<OrderArchive>;
@@ -22,6 +21,7 @@ export class OrderArchiveController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Get("/:id([0-9]+)")
   public async get(@TransactionManager() manager: EntityManager,
     @Param("id") id: number) {
@@ -29,6 +29,7 @@ export class OrderArchiveController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Get()
   public async getAll(@TransactionManager() manager: EntityManager) {
     const orderArchiveList = await this.orderArchiveRepo(manager).find();
@@ -36,6 +37,7 @@ export class OrderArchiveController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Get("/archiving/:id([0-9]+)")
   public async archiveOrder(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Param("id") orderId: number): Promise<number> {
     const user = await this.reloadUserWithRoles(manager, userId);
@@ -43,6 +45,27 @@ export class OrderArchiveController {
     await this.createArchiveOrderAndSave(user, order, manager);
     await this.revertReservationQuantityAndDeleteOrder(order, manager);
     return orderId;
+  }
+
+  @Transaction()
+  @Authorized()
+  @Get("/myOrders")
+  public async myOrders(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager): Promise<OrderArchiveDto[]> {
+    const user = await this.reloadUserWithRoles(manager, userId);
+    const orderArchiveList = await this.orderArchiveRepo(manager).find();
+    return OrderArchiveConverter.toDtos(orderArchiveList)
+      .filter(o => o.order.user.email === user.email)
+      .sort((o1, o2) => o2.order.date.getTime() - o1.order.date.getTime());
+  }
+  @Transaction()
+  @Authorized("admin")
+  @Get("/byUser/:userId([0-9]+)")
+  public async byUser(@Param("userId") userId: number, @TransactionManager() manager: EntityManager): Promise<OrderArchiveDto[]> {
+    const user = await this.reloadUserWithRoles(manager, userId);
+    const orderArchiveList = await this.orderArchiveRepo(manager).find();
+    return OrderArchiveConverter.toDtos(orderArchiveList)
+      .filter(o => o.order.user.email === user.email)
+      .sort((o1, o2) => o2.order.date.getTime() - o1.order.date.getTime());
   }
 
   private async reloadOrderWithAll(manager: EntityManager, orderId: number) {
@@ -105,6 +128,7 @@ export class OrderArchiveController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Delete("/:id([0-9]+)")
   public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderArchiveDto> {
     const orderArchive = new OrderArchive();

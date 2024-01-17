@@ -7,7 +7,6 @@ import { OrderItem } from "../entity/OrderItem";
 import { OrderStockQuantityUpdater } from "./OrderStockQuantityUpdater";
 import { User } from "../entity/User";
 
-@Authorized("admin")
 @JsonController("/api/order")
 export class OrderController {
   private orderRepo: (manager: EntityManager) => Repository<Order>;
@@ -19,12 +18,14 @@ export class OrderController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Get("/:id([0-9]+)")
   public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderDto> {
     return OrderConverter.toDto(await this.orderRepo(manager).findOne(id));
   }
 
   @Transaction()
+  @Authorized("admin")
   @Get()
   public async getAll(@TransactionManager() manager: EntityManager): Promise<OrderDto[]> {
     return OrderConverter.toDtos(await this.orderRepo(manager).find({
@@ -35,6 +36,7 @@ export class OrderController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Post()
   public async save(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Body() newOrder: Order): Promise<OrderDto> {
     const orderToInsert = OrderConverter.toEntity(newOrder);
@@ -44,6 +46,7 @@ export class OrderController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Put("/:id([0-9]+)")
   public async update(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedOrder: Order): Promise<OrderDto> {
     const order = OrderConverter.toEntity(changedOrder);
@@ -57,6 +60,7 @@ export class OrderController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Delete("/:id([0-9]+)")
   public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderDto> {
     const order = new Order();
@@ -66,6 +70,7 @@ export class OrderController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Get("/withAll/:id([0-9]+)")
   public async getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderDto> {
     return OrderConverter.toDto(await this.orderRepo(manager).findOne(id, {
@@ -84,6 +89,7 @@ export class OrderController {
   }
 
   @Transaction()
+  @Authorized("admin")
   @Get("/withAll")
   public async getAllWithAll(@TransactionManager() manager: EntityManager): Promise<OrderDto[]> {
     return OrderConverter.toDtos(await this.orderRepo(manager).find({
@@ -101,7 +107,48 @@ export class OrderController {
     }));
   }
 
+  @Transaction()
+  @Authorized()
+  @Get("/withAll/myOrders")
+  public async myOrders(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager): Promise<OrderDto[]> {
+    return OrderConverter.toDtos(await this.orderRepo(manager).find({
+      where: { user: { id: userId } },
+      relations: [
+        "user",
+        "location",
+        "orderItems",
+        "orderItems.article",
+        "orderItems.article.unitOfMeasurement",
+        "plannedCheckout",
+      ],
+      order: {
+        date: "DESC"
+      },
+    }));
+  }
+
+  @Transaction()
+  @Authorized("admin")
+  @Get("/withAll/byUser/:userId([0-9]+)")
+  public async byUser(@Param("userId") userId: number, @TransactionManager() manager: EntityManager): Promise<OrderDto[]> {
+    return OrderConverter.toDtos(await this.orderRepo(manager).find({
+      where: { user: { id: userId} },
+      relations: [
+        "user",
+        "location",
+        "orderItems",
+        "orderItems.article",
+        "orderItems.article.unitOfMeasurement",
+        "plannedCheckout",
+      ],
+      order: {
+        date: "DESC"
+      },
+    }));
+  }
+
   @Post("/withAll")
+  @Authorized("admin")
   @Transaction()
   public async saveWithAll(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager,
     @Body() newOrder: Order): Promise<OrderDto> {
@@ -112,6 +159,7 @@ export class OrderController {
   }
 
   @Put("/withAll/:id([0-9]+)")
+  @Authorized("admin")
   @Transaction()
   public async updateWithAll(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedOrder: Order): Promise<OrderDto> {
     const a = OrderConverter.toEntity(changedOrder);
@@ -126,6 +174,7 @@ export class OrderController {
   }
 
   @Delete("/withAll/:id([0-9]+)")
+  @Authorized("admin")
   @Transaction()
   public async deleteWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
     await this.stockUpdater.removeStockQuantityBeforeUpdate(manager, +id);

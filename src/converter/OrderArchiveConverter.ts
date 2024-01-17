@@ -7,7 +7,10 @@ export class OrderArchiveConverter {
     }
 
     public static toDto(orderArchive: OrderArchive): OrderArchiveDto {
+        const order = JSON.parse(orderArchive.order);
+        order.date = new Date(order.date);
+        if (order.plannedCheckout)
         return new OrderArchiveDto(orderArchive.id, orderArchive.archiveDate,
-            JSON.parse(orderArchive.archiveUser), JSON.parse(orderArchive.order));
+            JSON.parse(orderArchive.archiveUser), order);
     }
 }
