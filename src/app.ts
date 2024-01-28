@@ -1,44 +1,14 @@
 import * as compression from "compression";
+import * as cors from "cors";
 import * as express from "express";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import { verify, VerifyErrors } from "jsonwebtoken";
 import { configure, getLogger, Logger } from "log4js";
 import * as path from "path";
 import "reflect-metadata";
-import { Action, useExpressServer } from "routing-controllers";
-import { Container } from "typeorm-typedi-extensions";
-import { createConnection, useContainer } from "typeorm";
-import { ArticleController } from "./controller/ArticleController";
-import { ArticleStockController } from "./controller/ArticleStockController";
-import { CartController } from "./controller/CartController";
-import { ImageController } from "./controller/ImageController";
-import { LocationController } from "./controller/LocationController";
-import { MessageController } from "./controller/MessageController";
-import { OpeningHourController } from "./controller/OpeningHourController";
-import { OrderArchiveController } from "./controller/OrderArchiveController";
-import { OrderController } from "./controller/OrderController";
-import { OrderItemController } from "./controller/OrderItemController";
-import { RoleController } from "./controller/RoleController";
-import { SecurityController } from "./controller/SecurityController";
-import { UnitOfMeasurementController } from "./controller/UnitOfMeasurementController";
-import { UserController } from "./controller/UserController";
-import { User } from "./entity/User";
-import { SocketService } from "./socket/SocketService";
-
-import { JwtConfiguration } from "./utils/JwtConfiguration";
 import { ResetTokenEvictor } from "./utils/ResetTokenEvictor";
 import { StartupNotifier } from "./utils/StartupNotifier";
-import { SuppressNextMiddlewareHandler } from "./utils/SuppressNextMiddlewareHandler";
-import { UrlService } from "./utils/UrlService";
-import { UserNotConfirmedEvictor } from "./utils/UserNotConfirmedEvictor";
-import { CustomErrorHandler } from "./utils/CustomErrorHandler";
-import { DeliveryNoteController } from "./controller/DeliveryNoteController";
-import { ConfirmationController } from "./controller/ConfirmationController";
-import { Server as SocketIdServer } from "socket.io";
-import { MessageTemplateController } from "./controller/MessageTemplateController";
-import { Settings } from "luxon";
 import { orderRouter } from "./routes/person.routes";
 import { articleRouter } from "./routes/article.routes";
 import { unitOfMeasurementRouter } from "./routes/unitOfMeasurement.routes";
@@ -56,12 +26,11 @@ import { locationRouter } from "./routes/location.routes";
 import { imageRouter } from "./routes/image.routes";
 import { orderarchiveRouter } from "./routes/orderArchive.routes";
 import { securityRouter } from "./routes/security.routes";
-
+import { AppEnv } from "./utils/app-env";
+import { errorHandler } from "./middleware/error.middleware";
+import { AppDataSource } from "./utils/app-data-source";
 
 const LOGGER: Logger = getLogger("Server");
-
-declare var process: any;
-declare var dirname: any;
 
 class Server {
 
@@ -69,54 +38,53 @@ class Server {
     return new Server();
   }
 
-  public app: express.Express;
+  public app: express.Application;
   private server: any;
-  private io: SocketIdServer;
-  private root: string;
-  private port: number;
-  private protocol: string;
-  private portHttps: number;
-  private portHttp: number;
-  private host: string;
-  private env: string;
-  private socketService: SocketService;
-  private jwtConfig: JwtConfiguration;
-
-  private url: string;
 
   constructor() {
-
     configure({
       appenders: { out: { type: "stdout" } },
       categories: { default: { appenders: ["out"], level: "info" } },
     });
-    LOGGER.info("Node Version: " + process.version);
-    LOGGER.info("Node Env: " + JSON.stringify(process.env));
+    this.logServerType();
     this.app = express();
     this.app.use(compression());
-    this.config();
-    this.socketService = new SocketService();
-    process.env.TZ = 'Europe/zurich';
-    Settings.defaultZone = "Europe/zurich";
+    this.app.use(express.json());
+    this.app.use(errorHandler);
+    AppDataSource.initialize()
+      .then(async () => {
+        new ResetTokenEvictor().schedule(0);
+        this.routes();
+        this.staticRoutes();
+        this.defaultRoute();
+        this.createServer();
+        this.app.get("*", (req: express.Request, res: express.Response) => {
+          res.status(505).json({ message: "Bad Request" });
+        });
 
-    useContainer(Container);
-    createConnection().then(async connection => {
-      await connection.runMigrations({ transaction: "each" });
-      new ResetTokenEvictor().schedule(0);
-      new UserNotConfirmedEvictor().schedule(0);
-      this.routes();
-      this.staticRoutes();
-      this.defaultRoute();
-      this.createServer();
-      this.listen();
-      new StartupNotifier().notify("david.leuenberger@gmx.ch", this.env + ":" + this.port);
-    }).catch(err => {
-      LOGGER.error("Create Connection error: {}", err);
-    });
+        // Start listening
+        this.listen();
+        new StartupNotifier().notify("david.leuenberger@gmx.ch", AppEnv.getUrl());
+      }).catch(err => {
+        LOGGER.error("Create Connection error: {}", err);
+      });
+  }
+
+  private corsOptions(): cors.CorsOptions {
+    let corsOptions: cors.CorsOptions = {};
+    if (AppEnv.prod) {
+      corsOptions = {
+        allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
+        methods: "POST, GET, PATCH, DELETE, PUT",
+        origin: "*",
+        preflightContinue: false,
+      };
+    }
+    return corsOptions;
   }
 
   private createServer() {
-    if (this.env === "production" || fs.existsSync("../certificate/ssl/privkey.pem")) {
+    if (AppEnv.prod) {
       this.redirectHttp();
       this.server = this.createHttpsServer();
     } else {
@@ -126,96 +94,56 @@ class Server {
 
   private createHttpsServer() {
     LOGGER.info("Start HTTPS server");
-    this.port = this.portHttps;
-    this.protocol = "https";
     return https.createServer({
-      ca: fs.readFileSync("../certificate/ssl/chain.pem"),
-      cert: fs.readFileSync("../certificate/ssl/cert.pem"),
-      key: fs.readFileSync("../certificate/ssl/privkey.pem"),
+      ca: fs.readFileSync("../../certificate/ssl/chain.pem"),
+      cert: fs.readFileSync("../../certificate/ssl/cert.pem"),
+      key: fs.readFileSync("../../certificate/ssl/privkey.pem"),
     }, this.app);
   }
 
   private createHttpServer() {
     LOGGER.info("Start HTTP server");
-    this.port = this.portHttp;
-    this.protocol = "http";
     return http.createServer(this.app);
   }
 
   private redirectHttp() {
-    LOGGER.info(`Redirect from ${this.portHttp} to ${this.portHttps}.`);
+    LOGGER.info(`Redirect from ` + AppEnv.portHttp + ` to ` + AppEnv.portHttps + `.`);
     // set up plain http server
     const httpApp = express();
     const httpServer = http.createServer(httpApp);
     httpApp.use("*", this.redirectToHttps);
-    httpServer.listen(this.portHttp);
+    httpServer.listen(AppEnv.portHttp);
   }
 
   private redirectToHttps(req: express.Request, res: express.Response, next: express.NextFunction) {
-    res.redirect("https://shop.el-refugio-denia.com" + req.url);
+    res.redirect(AppEnv.getUrl() + req.url);
+//    res.redirect("https://shop.el-refugio-denia.com" + req.url);
   }
 
-  private config(): void {
-    this.portHttps = process.env.PORT || 3002;
-    this.portHttp = process.env.PORT_HTTP || 3001;
-    this.root = path.join(__dirname);
-    this.host = "localhost";
-    this.env = process.env.NODE_ENV || "development";
-
-    this.jwtConfig = new JwtConfiguration(this.env);
-    if (this.env === "production") {
-      this.jwtConfig.initProd("../certificate/jwt/private-key.pem", "../certificate/jwt/public-key.pem");
-      this.portHttps = process.env.PORT || 443;
-      this.portHttp = process.env.PORT_HTTP || 80;
+  private logServerType(): void {
+    if (AppEnv.prod) {
       LOGGER.info(`PRODUCTION-MODE, use private/public keys.`);
     } else {
       LOGGER.info(`DEVELOPMENT-MODE, use shared secret.`);
     }
   }
 
-  private async authorizationChecker(action: Action, roles: string[]): Promise<boolean> {
-    const authHeaderName = "authorization";
-    const header = action.request.headers[authHeaderName];
-    if (!header) {
-      return false;
-    }
-    const token = header.substring(7); // remove "Bearer " prefix
-    const user: any = await this.verifyToken(token, this.jwtConfig.getVerifySecret());
-    return user && (!roles.length || roles.filter(role => user.roles.indexOf(role) !== -1).length > 0);
-  }
-
-  private async currentUserChecker(action: Action): Promise<number> {
-    const authHeaderName = "authorization";
-    const header = action.request.headers[authHeaderName];
-    const token = header.substring(7); // remove "Bearer " prefix
-    const user = await this.verifyToken(token, this.jwtConfig.getVerifySecret());
-    return user.id;
-  }
-
   private staticRoutes(): void {
-    const staticRoutePath = __dirname + "/client";
+    const staticRoutePath =  path.join(__dirname, "client");
     if (fs.existsSync(staticRoutePath)) {
       LOGGER.info(`Static-Route: serve files from "/client" in "/"`);
-      this.app.use(express.static(__dirname + "/client", { redirect: true }));
+      this.app.use(express.static(staticRoutePath));
     }
   }
 
   private defaultRoute(): void {
-    this.app.get("*", (req, res) => {
-      res.sendFile(__dirname + "/client/index.html");
+    this.app.get("*", function (req, res) {
+      res.sendFile(path.join(__dirname, "client", "index.html"));
     });
   }
 
   private routes(): void {
-    let corsOptions = {};
-    if (this.env !== "production") {
-      corsOptions = {
-        allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-        methods: "POST, GET, PATCH, DELETE, PUT",
-        origin: "*",
-        preflightContinue: false,
-      };
-    }
+    this.app.use(cors(this.corsOptions()));
     this.app.use("/api/article", articleRouter);
     this.app.use("/api/articleStock", articleStockRouter);
     this.app.use("/api/cart", cartRouter);
@@ -233,63 +161,20 @@ class Server {
     this.app.use("/api/authenticate", securityRouter);
     this.app.use("/api/unitOfMeasurement", unitOfMeasurementRouter);
     this.app.use("/api/user", userRouter);
-
-    useExpressServer(this.app, {
-      authorizationChecker: async (action: Action, roles: string[]) => this.authorizationChecker(action, roles),
-      controllers: [
-        ArticleController,
-        ArticleStockController,
-        CartController,
-        OrderArchiveController,
-        OrderController,
-        OrderItemController,
-        LocationController,
-        OpeningHourController,
-        ImageController,
-        RoleController,
-        UnitOfMeasurementController,
-        UserController,
-        SecurityController,
-        MessageController,
-        MessageTemplateController,
-        DeliveryNoteController,
-        ConfirmationController,
-      ],
-      cors: corsOptions,
-      currentUserChecker: async (action: Action) => this.currentUserChecker(action),
-      defaultErrorHandler: false,
-      middlewares: [
-        CustomErrorHandler,
-        SuppressNextMiddlewareHandler,
-      ],
-    });
   }
 
-  private verifyToken(tokenAsString: string, secret: string | Buffer): Promise<User> {
-    return new Promise<User>((resolve, reject) => verify(tokenAsString, secret, (err: VerifyErrors, decoded: User) => {
-      if (decoded) {
-        resolve(decoded);
-      } else {
-        reject();
-      }
-    }));
-  }
-
-  // Start HTTP server listening
-  private listen(): void {
-    this.server.listen(this.port);
-
-    const urlService = Container.get(UrlService);
-    urlService.setState(this.env, this.protocol, this.host, this.port);
-
-    // add error handler
-    this.server.on("error", this.logError);
-
-    // start listening on port
-    this.server.on("listening", () => {
-      LOGGER.info(`Citrus server running at ${this.protocol}://${this.host}:${this.port}/`);
-    });
-  }
+    // Start HTTP server listening
+    private listen(): void {
+      this.server.listen(AppEnv.getPort());
+  
+      // // add error handler
+      this.server.on("error", this.logError);
+  
+      // start listening on port
+      this.server.on("listening", () => {
+        LOGGER.info("Citrus server running at " + AppEnv.getUrl());
+      });
+    }
 
   private logError(error: Error) {
     LOGGER.error(`ERROR: ${error.stack}`);

@@ -51,7 +51,7 @@ Router.get(
     "/withAll/myOrders",
     authentification,
     authorization(["admin"]),
-    OrderController.getByOrders
+    OrderController.getMyOrders
 );
 Router.get(
     "/withAll/byUser/:id([0-9]+)",

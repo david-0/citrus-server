@@ -1,4 +1,3 @@
-import * as bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { sign } from "jsonwebtoken";
 import { Container } from "typedi";
@@ -14,6 +13,7 @@ import { AppMailService } from "../utils/app-mail-service";
 import { AppJwtConfiguration } from "../utils/app-jwt-configuration";
 import { UserConverter } from "../converter/UserConverter";
 import { EntityManager } from "typeorm";
+import { encrypt } from "../utils/helpers";
 
 export class SecurityController {
 
@@ -23,18 +23,21 @@ export class SecurityController {
 
       const user = await SecurityController.findUserbyEmail(manager, body.email);
       if (!user) {
-        await this.authenticateAudit(manager, "not registered", user, body, req);
-        res.status(403);
-        return "login NOT successfull";
+        await SecurityController.authenticateAudit(manager, "not registered", user, body, req);
+        return res.status(403).json("login NOT successfull");
       }
-      const checkedUser = await SecurityController.checkLogin(user, body.password);
-      if (!!checkedUser && (typeof checkedUser !== "string")) {
-        await this.authenticateAudit(manager, "success", checkedUser, body, req);
-        return { token: SecurityController.createToken(checkedUser) };
+      const isPasswordValid = encrypt.comparepassword(user.password, body.password);
+      // const checkedUser = await SecurityController.checkLogin(user, body.password);
+      if (!isPasswordValid) {
+        await SecurityController.authenticateAudit(manager, "password failed", user, body, req);
+        return res.status(403).json({ message: "login NOT successfull" });
       }
-      await this.authenticateAudit(manager, "password failed", user, body, req);
-      res.status(403);
-      return "login NOT successfull";
+      await SecurityController.authenticateAudit(manager, "success", user, body, req);
+      const token = encrypt.generateToken({
+        id: user.id,
+        roles: user.roles.map(r => r.name),
+      });
+      return res.status(200).json({ message: "Login successful", user, token });
     });
   }
 
@@ -58,7 +61,7 @@ export class SecurityController {
       const body: any = req.body;
       const user = await SecurityController.findUserbyId(manager, +userId);
       const userPassword = await SecurityController.getUserPassword(manager, +userId);
-      const ok: boolean = await bcrypt.compare(body.currentPassword, userPassword.password);
+      const ok = encrypt.comparepassword(body.currentPassword, userPassword.password);
       if (!ok) {
         await SecurityController.changeMyPasswordAudit(manager, "password failed", user, req);
         return res.status(403).send("password not changed");
@@ -72,7 +75,7 @@ export class SecurityController {
   static async resetPasswordWithTokenEndpoint(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const body: any = req.body;
-      const resetToken = await this.findResetTokenByToken(manager, body.token);
+      const resetToken = await SecurityController.findResetTokenByToken(manager, body.token);
       if (resetToken && resetToken.user) {
         await SecurityController.updatePassword(manager, resetToken.user.id, body.password);
         await SecurityController.changePasswordWithTokenAudit(manager, "success", resetToken.user, req);
@@ -125,7 +128,7 @@ export class SecurityController {
         await SecurityController.registerUserAudit(manager, newUser, req);
         return Promise.resolve(0);
       } catch (e) {
-        await this.registerUserWithExceptionAudit(manager, newUser, req, e);
+        await SecurityController.registerUserWithExceptionAudit(manager, newUser, req, e);
         return Promise.resolve(2);
       }
     });
@@ -173,9 +176,8 @@ export class SecurityController {
     await manager.getRepository(UserAudit).save(audit, { data: request });
   }
 
-  private static async updatePassword(manager: EntityManager, userId: number, password: string): Promise<void> {
-    const passwordHash = await bcrypt.hash(password, 10);
-    await manager.getRepository(User).update({ id: userId }, { password: passwordHash });
+  private static async updatePassword(manager: EntityManager, userId: number, unhashedPwd: string): Promise<void> {
+    await manager.getRepository(User).update({ id: userId }, { password: unhashedPwd });
     return;
   }
 
@@ -232,20 +234,12 @@ export class SecurityController {
       .getOne();
   }
 
-  private static async checkLogin(user: User, password: string): Promise<any> {
-    if (!!user && user.password.length > 0) {
-      const ok: boolean = await bcrypt.compare(password, user.password);
-      if (ok) {
-        return user;
-      }
-    }
-    return await new Promise<string>((resolve, reject) => resolve("Login not successful!"));
-  }
+
 
   private static createToken(user: User): string {
     const roles = user.roles.map(role => role.name);
     return sign({ id: user.id, roles },
-      AppJwtConfiguration.getSignSecret(), AppJwtConfiguration.getSignOptions());
+      AppJwtConfiguration.signSecret, AppJwtConfiguration.signOptions);
   }
 
   private static async changePasswordAudit(manager: EntityManager, currentUser: User, userToChange: User, request: Request) {

@@ -2,44 +2,25 @@ import * as fs from "fs";
 import {SignOptions} from "jsonwebtoken";
 import {Logger} from "log4js";
 import log4js = require("log4js");
+import { AppEnv } from "./app-env";
 
 const LOGGER: Logger = log4js.getLogger("JwtConfiguration");
 
 export class JwtConfiguration {
-  private devSharedKey: string = "sdjhwisnd,inres";
-  private signSecret: Buffer;
-  private verifySecret: Buffer;
-  private signOptions: SignOptions = {expiresIn: "1h"};
 
-  constructor(private env: string) {
+  constructor(public readonly signSecret: string | Buffer, public readonly verifySecret: string | Buffer, public readonly signOptions: SignOptions) {
   }
 
-  public initProd(privateKeyFilename: string, publicKeyFilename: string) {
+  static initDev(): JwtConfiguration {
+    return new JwtConfiguration(AppEnv.devSharedKey, AppEnv.devSharedKey, { expiresIn: "1h" });
+  }
+
+  static initProd(privateKeyFilename: string, publicKeyFilename: string): JwtConfiguration {
     if (!fs.existsSync(privateKeyFilename) || !fs.existsSync(publicKeyFilename)) {
       LOGGER.fatal(`in PRODUCTION-MODE, the private (${privateKeyFilename}) and public
-       (${publicKeyFilename}) key files must exist. `);
+       (${publicKeyFilename}) key files must exist.`);
       process.exit(0);
     }
-    this.signSecret = fs.readFileSync(privateKeyFilename);
-    this.verifySecret = fs.readFileSync(publicKeyFilename);
-    this.signOptions = {expiresIn: "1h", algorithm: "RS256"};
-  }
-
-  public getSignSecret(): string | Buffer {
-    if (this.env === "development") {
-      return this.devSharedKey;
-    }
-    return this.signSecret;
-  }
-
-  public getVerifySecret(): string | Buffer {
-    if (this.env === "development") {
-      return this.devSharedKey;
-    }
-    return this.verifySecret;
-  }
-
-  public getSignOptions(): SignOptions {
-    return this.signOptions;
+    return new JwtConfiguration(fs.readFileSync(privateKeyFilename), fs.readFileSync(publicKeyFilename), { expiresIn: "1h", algorithm: "RS512" });
   }
 }
