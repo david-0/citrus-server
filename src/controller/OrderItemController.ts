@@ -1,105 +1,106 @@
-import { OrderItemDto } from "citrus-common";
-import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { OrderItemConverter } from "../converter/OrderItemConverter";
 import { OrderItem } from "../entity/OrderItem";
 import { ArticleStock } from "../entity/ArticleStock";
 import { Order } from "../entity/Order";
+import { Request, Response } from "express";
+import { AppDataSource } from "../utils/app-data-source";
+import { EntityManager } from "typeorm";
 
-@Authorized("admin")
-@JsonController("/api/orderItem")
 export class OrderItemController {
-  private orderItemRepo: (manager: EntityManager) => Repository<OrderItem>;
 
-  constructor() {
-    this.orderItemRepo = manager => manager.getRepository(OrderItem);
+  private static withUserRelation = ["users"];
+
+  static async get(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const orderitem = await manager.getRepository(OrderItem).findOne({ where: { id: +id } });
+      return res.status(200).json(OrderItemConverter.toDto(orderitem));
+    });
   }
 
-  @Transaction()
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderItemDto> {
-    return OrderItemConverter.toDto(await this.orderItemRepo(manager).findOne(id));
+  static async getAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const orderitems = await manager.getRepository(OrderItem).find({
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(OrderItemConverter.toDtos(orderitems));
+    });
   }
 
-  @Transaction()
-  @Get()
-  public async getAll(@TransactionManager() manager: EntityManager): Promise<OrderItemDto[]> {
-    return OrderItemConverter.toDtos(await this.orderItemRepo(manager).find({
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async update(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const newOrderItem = OrderItemConverter.toEntity(req.body);
+      const orderitemRepository = manager.getRepository(OrderItem);
+      const loadedOrderItem = await orderitemRepository.findOne({ where: { id: +id } });
+      const mergedOrderItem = orderitemRepository.merge(loadedOrderItem, newOrderItem);
+      await OrderItemController.updateOnRemove(manager, mergedOrderItem);
+      const updatedOrderItem = await orderitemRepository.save(mergedOrderItem);
+      await OrderItemController.updateOnInsert(manager, updatedOrderItem);
+      return res.status(200).json(OrderItemConverter.toDto(updatedOrderItem));
+    });
   }
 
-  @Transaction()
-  @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() newItem: OrderItem): Promise<OrderItemDto> {
-    const item = OrderItemConverter.toEntity(newItem);
-    const savedItem = await this.orderItemRepo(manager).save(item);
-    await this.updateOnInsert(manager, item);
-    return OrderItemConverter.toDto(savedItem);
+  static async save(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const newOrderItem = OrderItemConverter.toEntity(req.body);
+      const savedOrderItem = await manager.getRepository(OrderItem).save(newOrderItem);
+      await OrderItemController.updateOnInsert(manager, savedOrderItem);
+      return res.status(200).json(OrderItemConverter.toDto(savedOrderItem));
+    });
   }
 
-  @Transaction()
-  @Put("/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedItem: OrderItem): Promise<OrderItemDto> {
-    const a = OrderItemConverter.toEntity(changedItem);
-    a.id = +id;
-    await this.updateOnRemove(manager, a);
-    const saved = await this.orderItemRepo(manager).save(a);
-    await this.updateOnInsert(manager, a);
-    return OrderItemConverter.toDto(saved);
+  static async delete(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const orderitemToDelete = new OrderItem();
+      orderitemToDelete.id = +id;
+      await OrderItemController.updateOnRemove(manager, orderitemToDelete);
+      const deletedOrderItem = await manager.getRepository(OrderItem).remove(orderitemToDelete);
+      return res.status(200).json(OrderItemConverter.toDto(deletedOrderItem));
+    });
   }
 
-  @Transaction()
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderItemDto> {
-    const orderItem = new OrderItem();
-    orderItem.id = +id;
-    await this.updateOnRemove(manager, orderItem);
-    const saved = await this.orderItemRepo(manager).remove(orderItem);
-    return OrderItemConverter.toDto(saved);
+  private static async updateOnInsert(manager: EntityManager, entity: OrderItem) {
+    await OrderItemController.updateStockOnInsert(manager, entity);
+    await OrderItemController.updateTotalPriceOnInsert(manager, entity);
   }
 
-  private async updateOnInsert(manager: EntityManager, entity: OrderItem) {
-    await this.updateStockOnInsert(manager, entity);
-    await this.updateTotalPriceOnInsert(manager, entity);
+  private static async updateOnRemove(manager: EntityManager, entity: OrderItem) {
+    await OrderItemController.updateStockOnRemove(manager, entity);
+    await OrderItemController.updateTotalPriceOnRemove(manager, entity);
   }
 
-  private async updateOnRemove(manager: EntityManager, entity: OrderItem) {
-    await this.updateStockOnRemove(manager, entity);
-    await this.updateTotalPriceOnRemove(manager, entity);
-  }
-
-  private async updateStockOnInsert(manager: EntityManager, entity: OrderItem) {
-    const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
-    const stock = await this.loadArticleStock(manager, entity.article.id, loadedEntity.order.location.id);
+  private static async updateStockOnInsert(manager: EntityManager, entity: OrderItem) {
+    const loadedEntity = await OrderItemController.ensureOrderAndArticleLoaded(manager, entity);
+    const stock = await OrderItemController.loadArticleStock(manager, entity.article.id, loadedEntity.order.location.id);
     stock.reservedQuantity += +entity.quantity;
     await manager.getRepository(ArticleStock).save(stock);
   }
 
-  private async updateStockOnRemove(manager: EntityManager, entity: OrderItem) {
-    const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
-    const stock = await this.loadArticleStock(manager, loadedEntity.article.id, loadedEntity.order.location.id);
+  private static async updateStockOnRemove(manager: EntityManager, entity: OrderItem) {
+    const loadedEntity = await OrderItemController.ensureOrderAndArticleLoaded(manager, entity);
+    const stock = await OrderItemController.loadArticleStock(manager, loadedEntity.article.id, loadedEntity.order.location.id);
     stock.reservedQuantity -= +loadedEntity.quantity;
     await manager.getRepository(ArticleStock).save(stock);
   }
 
-  private async updateTotalPriceOnInsert(manager: EntityManager, entity: OrderItem) {
-    const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
+  private static async updateTotalPriceOnInsert(manager: EntityManager, entity: OrderItem) {
+    const loadedEntity = await OrderItemController.ensureOrderAndArticleLoaded(manager, entity);
     loadedEntity.order.totalPrice += loadedEntity.quantity * loadedEntity.article.price;
     await manager.getRepository(Order).save(loadedEntity.order);
   }
 
-  private async updateTotalPriceOnRemove(manager: EntityManager, entity: OrderItem) {
-    const loadedEntity = await this.ensureOrderAndArticleLoaded(entity, manager);
+  private static async updateTotalPriceOnRemove(manager: EntityManager, entity: OrderItem) {
+    const loadedEntity = await OrderItemController.ensureOrderAndArticleLoaded(manager, entity);
     loadedEntity.order.totalPrice -= loadedEntity.quantity * loadedEntity.article.price;
     await manager.getRepository(Order).save(loadedEntity.order);
   }
 
-  private async ensureOrderAndArticleLoaded(entity: OrderItem, manager: EntityManager) {
+  private static async ensureOrderAndArticleLoaded(manager: EntityManager, entity: OrderItem) {
     if (!entity.article || !entity.order || !entity.order.id || !entity.order.location || !entity.order.location.id) {
-      entity = await manager.getRepository(OrderItem).findOne(entity.id, {
+      entity = await manager.getRepository(OrderItem).findOne({
+        where: { id: entity.id },
         relations: [
           "article",
           "order",
@@ -110,7 +111,7 @@ export class OrderItemController {
     return entity;
   }
 
-  private async loadArticleStock(manager: EntityManager, articleId: number, locationId: number): Promise<ArticleStock> {
+  private static async loadArticleStock(manager: EntityManager, articleId: number, locationId: number): Promise<ArticleStock> {
     return (await manager.getRepository(ArticleStock)
       .find({
         relations: ["article", "location"],

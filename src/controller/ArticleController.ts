@@ -1,157 +1,99 @@
-import { ArticleDto } from "citrus-common";
-import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { ArticleConverter } from "../converter/ArticleConverter";
 import { Article } from "../entity/Article";
+import { AppDataSource } from "../utils/app-data-source";
+import { Request, Response } from "express";
 
-@JsonController("/api/article")
 export class ArticleController {
-  private articleRepo: (manager: EntityManager) => Repository<Article>;
 
-  constructor() {
-    this.articleRepo = manager => manager.getRepository(Article);
+  private static withAllRelations = [
+    "unitOfMeasurement",
+    "articleStocks",
+    "articleStocks.location",
+    "articleStocks.article",
+    "articleStocks.article.unitOfMeasurement",
+  ];
+
+  static async get(req: Request, res: Response) {
+
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const article = await manager.getRepository(Article).findOne({ where: { id: +id } });
+      return res.status(200).json(ArticleConverter.toDto(article));
+    });
   }
 
-  @Transaction()
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
-    return ArticleConverter.toDto(await this.articleRepo(manager).findOne(id, { relations: ["unitOfMeasurement"] }));
+  static async getAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const articles = await manager.getRepository(Article).find({
+        relations: ["unitOfMeasurement"],
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(ArticleConverter.toDtos(articles));
+    });
   }
 
-  @Transaction()
-  @Get()
-  public async getAll(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
-    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
-      relations: ["unitOfMeasurement"],
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async update(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const newArticle = ArticleConverter.toEntity(req.body);
+      delete newArticle.articleStocks; // do not save stocks
+      const articleRepository = manager.getRepository(Article);
+      const loadedArticle = await articleRepository.findOne({ where: { id: +id } });
+      const mergedArticle = articleRepository.merge(loadedArticle, newArticle);
+      const updatedArticle = await articleRepository.save(mergedArticle);
+      return res.status(200).json(ArticleConverter.toDto(updatedArticle));
+    });
   }
 
-  @Transaction()
-  @Get("/inSale")
-  public async getAllInSale(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
-    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
-      relations: [
-        "unitOfMeasurement",
-        "articleStocks",
-        "articleStocks.location",
-        "articleStocks.article",
-        "articleStocks.article.unitOfMeasurement",
-      ],
-      order: {
-        id: "ASC"
-      },
-      where: { inSale: true },
-    }));
+  static async save(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const newArticle = ArticleConverter.toEntity(req.body);
+      delete newArticle.articleStocks; // do not save stocks
+      const savedArticle = await manager.getRepository(Article).save(newArticle);
+      return res.status(200).json(ArticleConverter.toDto(savedArticle));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/withStock/:id([0-9]+)")
-  public async getWithStock(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
-    return ArticleConverter.toDto(await this.articleRepo(manager).findOne(id, {
-      relations: [
-        "unitOfMeasurement",
-        "articleStocks",
-        "articleStocks.location",
-        "articleStocks.article",
-        "articleStocks.article.unitOfMeasurement",
-      ],
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async delete(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const articleToDelete = new Article();
+      articleToDelete.id = +id;
+      const deletedArticle = await manager.getRepository(Article).remove(articleToDelete);
+      return res.status(200).json(ArticleConverter.toDto(deletedArticle));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/withStock")
-  public async getAllWithStock(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
-    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
-      relations: [
-        "unitOfMeasurement",
-        "articleStocks",
-        "articleStocks.location",
-        "articleStocks.article",
-        "articleStocks.article.unitOfMeasurement",
-      ],
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async getAllInSale(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const articles = await manager.getRepository(Article).find({
+        where: { inSale: true },
+        relations: this.withAllRelations,
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(ArticleConverter.toDtos(articles));
+    });
   }
 
-  @Transaction()
-  @Get("/withAll/:id([0-9]+)")
-  public async getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
-    return ArticleConverter.toDto(await this.articleRepo(manager).findOne(id, {
-      relations: [
-        "unitOfMeasurement",
-        "articleStocks",
-        "articleStocks.location",
-        "articleStocks.article",
-        "articleStocks.article.unitOfMeasurement",
-      ],
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async getWithAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const article = await manager.getRepository(Article).findOne({
+        where: { id: +id },
+        relations: this.withAllRelations,
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(ArticleConverter.toDto(article));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/withAll")
-  public async getAllWithAll(@TransactionManager() manager: EntityManager): Promise<ArticleDto[]> {
-    return ArticleConverter.toDtos(await this.articleRepo(manager).find({
-      relations: [
-        "unitOfMeasurement",
-        "articleStocks",
-        "articleStocks.location",
-        "articleStocks.article",
-        "articleStocks.article.unitOfMeasurement",
-      ],
-      order: {
-        id: "ASC"
-      },
-    }));
-  }
-
-  @Transaction()
-  @Authorized("admin")
-  @Delete("/withAll/:id([0-9]+)")
-  public async deleteWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
-    const article = new Article();
-    article.id = +id;
-    return ArticleConverter.toDto(await this.articleRepo(manager).remove(article));
-  }
-
-  @Transaction()
-  @Authorized("admin")
-  @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() article: Article): Promise<ArticleDto> {
-    const a = ArticleConverter.toEntity(article);
-    delete a.articleStocks; // do not save stocks
-    return ArticleConverter.toDto(await this.articleRepo(manager).save(a));
-  }
-
-  @Transaction()
-  @Authorized("admin")
-  @Put("/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() newArticle: Article): Promise<ArticleDto> {
-    const a = ArticleConverter.toEntity(newArticle);
-    a.id = +id;
-    delete a.articleStocks; // do not save stocks
-    return ArticleConverter.toDto(await this.articleRepo(manager).save(a));
-  }
-
-  @Transaction()
-  @Authorized("admin")
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<ArticleDto> {
-    const article = new Article();
-    article.id = +id;
-    return ArticleConverter.toDto(await this.articleRepo(manager).remove(article));
+  static async getAllWithAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const articles = await manager.getRepository(Article).find({
+        relations: this.withAllRelations,
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(ArticleConverter.toDtos(articles));
+    });
   }
 }

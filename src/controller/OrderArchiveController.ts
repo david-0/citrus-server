@@ -1,75 +1,72 @@
-import { OrderArchiveDto } from "citrus-common";
-import { Authorized, CurrentUser, Delete, Get, JsonController, Param } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { OrderArchiveConverter } from "../converter/OrderArchiveConverter";
 import { ArticleStock } from "../entity/ArticleStock";
 import { Order } from "../entity/Order";
 import { OrderArchive } from "../entity/OrderArchive";
 import { OrderItem } from "../entity/OrderItem";
 import { User } from "../entity/User";
+import { Request, Response } from "express";
+import { AppDataSource } from "../utils/app-data-source";
+import { EntityManager } from "typeorm";
 
-@JsonController("/api/orderArchive")
 export class OrderArchiveController {
-  private orderArchiveRepo: (manager: EntityManager) => Repository<OrderArchive>;
-  private userRepo: (manager: EntityManager) => Repository<User>;
-  private orderRepo: (manager: EntityManager) => Repository<Order>;
 
-  constructor() {
-    this.orderArchiveRepo = manager => manager.getRepository(OrderArchive);
-    this.userRepo = manager => manager.getRepository(User);
-    this.orderRepo = manager => manager.getRepository(Order);
+  static async get(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const orderarchive = await manager.getRepository(OrderArchive).findOne({
+        where: { id: +id }
+      });
+      return res.status(200).json(OrderArchiveConverter.toDto(orderarchive));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager,
-    @Param("id") id: number) {
-    return OrderArchiveConverter.toDto(await this.orderArchiveRepo(manager).findOne(id));
+  static async getAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const orderarchives = await manager.getRepository(OrderArchive).find({
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(OrderArchiveConverter.toDtos(orderarchives));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get()
-  public async getAll(@TransactionManager() manager: EntityManager) {
-    const orderArchiveList = await this.orderArchiveRepo(manager).find();
-    return OrderArchiveConverter.toDtos(orderArchiveList);
+  static async archiveOrder(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const userId = req["currentUser"].id;
+      const { id: orderId } = req.params;
+      const user = await OrderArchiveController.reloadUserWithOrderArchives(manager, userId);
+      const order = await OrderArchiveController.reloadOrderWithAll(manager, +orderId);
+      await OrderArchiveController.createArchiveOrderAndSave(manager, user, order);
+      await OrderArchiveController.revertReservationQuantityAndDeleteOrder(manager, order);
+      return res.status(200).send(+orderId);
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/archiving/:id([0-9]+)")
-  public async archiveOrder(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager, @Param("id") orderId: number): Promise<number> {
-    const user = await this.reloadUserWithRoles(manager, userId);
-    const order = await this.reloadOrderWithAll(manager, orderId);
-    await this.createArchiveOrderAndSave(user, order, manager);
-    await this.revertReservationQuantityAndDeleteOrder(order, manager);
-    return orderId;
+  static async myOrders(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const userId = req["currentUser"].id;
+      const user = await OrderArchiveController.reloadUserWithOrderArchives(manager, userId);
+      const orderArchiveList = await manager.getRepository(OrderArchive).find();
+      const orders = OrderArchiveConverter.toDtos(orderArchiveList)
+        .filter(o => o.order.user.email === user.email)
+        .sort((o1, o2) => o2.order.date.getTime() - o1.order.date.getTime());
+      return res.status(200).json(orders);
+    });
+  }
+  static async byUser(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { userId } = req.params;
+      const user = await OrderArchiveController.reloadUserWithOrderArchives(manager, +userId);
+      const orderArchiveList = await manager.getRepository(OrderArchive).find();
+      const orders = OrderArchiveConverter.toDtos(orderArchiveList)
+        .filter(o => o.order.user.email === user.email)
+        .sort((o1, o2) => o2.order.date.getTime() - o1.order.date.getTime());
+      return res.status(200).json(orders);
+    });
   }
 
-  @Transaction()
-  @Authorized()
-  @Get("/myOrders")
-  public async myOrders(@CurrentUser({ required: true }) userId: number, @TransactionManager() manager: EntityManager): Promise<OrderArchiveDto[]> {
-    const user = await this.reloadUserWithRoles(manager, userId);
-    const orderArchiveList = await this.orderArchiveRepo(manager).find();
-    return OrderArchiveConverter.toDtos(orderArchiveList)
-      .filter(o => o.order.user.email === user.email)
-      .sort((o1, o2) => o2.order.date.getTime() - o1.order.date.getTime());
-  }
-  @Transaction()
-  @Authorized("admin")
-  @Get("/byUser/:userId([0-9]+)")
-  public async byUser(@Param("userId") userId: number, @TransactionManager() manager: EntityManager): Promise<OrderArchiveDto[]> {
-    const user = await this.reloadUserWithRoles(manager, userId);
-    const orderArchiveList = await this.orderArchiveRepo(manager).find();
-    return OrderArchiveConverter.toDtos(orderArchiveList)
-      .filter(o => o.order.user.email === user.email)
-      .sort((o1, o2) => o2.order.date.getTime() - o1.order.date.getTime());
-  }
-
-  private async reloadOrderWithAll(manager: EntityManager, orderId: number) {
-    return await this.orderRepo(manager).findOne(orderId, {
+  private static async reloadOrderWithAll(manager: EntityManager, orderId: number) {
+    return await manager.getRepository(Order).findOne({
+      where: { id: orderId },
       relations: [
         "user",
         "user.roles",
@@ -85,37 +82,38 @@ export class OrderArchiveController {
     });
   }
 
-  private async reloadUserWithRoles(manager: EntityManager, userId: number) {
-    return await this.userRepo(manager).findOne(userId, {
+  private static async reloadUserWithOrderArchives(manager: EntityManager, userId: number) {
+    return await manager.getRepository(User).findOne({
+      where: { id: userId },
       relations: [
-        "roles",
+        "orderarchives",
       ],
     });
   }
 
-  private async revertReservationQuantityAndDeleteOrder(order: Order, manager: EntityManager) {
+  private static async revertReservationQuantityAndDeleteOrder(manager: EntityManager, order: Order,) {
     for (const item of order.orderItems) {
-      await this.revertReservedQuantity(manager, item, order.location.id);
+      await OrderArchiveController.revertReservedQuantity(manager, item, order.location.id);
       await manager.getRepository(OrderItem).remove(item);
     }
-    await this.orderRepo(manager).remove(order);
+    await manager.getRepository(Order).remove(order);
   }
 
-  private async createArchiveOrderAndSave(user: User, order: Order, manager: EntityManager) {
+  private static async createArchiveOrderAndSave(manager: EntityManager, user: User, order: Order) {
     const archiveOrder = new OrderArchive();
     archiveOrder.archiveDate = new Date();
     archiveOrder.archiveUser = JSON.stringify(user);
     archiveOrder.order = JSON.stringify(order);
-    await this.orderArchiveRepo(manager).save(archiveOrder);
+    await manager.getRepository(OrderArchive).save(archiveOrder);
   }
 
-  private async revertReservedQuantity(manager: EntityManager, orderItem: OrderItem, locationId: number) {
-    const stock = await this.loadArticleStock(manager, orderItem.article.id, locationId);
+  private static async revertReservedQuantity(manager: EntityManager, orderItem: OrderItem, locationId: number) {
+    const stock = await OrderArchiveController.loadArticleStock(manager, orderItem.article.id, locationId);
     stock.reservedQuantity -= +orderItem.quantity;
     await manager.getRepository(ArticleStock).save(stock);
   }
 
-  private async loadArticleStock(manager: EntityManager, articleId: number, locationId: number): Promise<ArticleStock> {
+  private static async loadArticleStock(manager: EntityManager, articleId: number, locationId: number): Promise<ArticleStock> {
     return (await manager.getRepository(ArticleStock)
       .find({
         relations: ["article", "location"],
@@ -127,12 +125,13 @@ export class OrderArchiveController {
       }))[0];
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OrderArchiveDto> {
-    const orderArchive = new OrderArchive();
-    orderArchive.id = +id;
-    return OrderArchiveConverter.toDto(await this.orderArchiveRepo(manager).remove(orderArchive));
+  static async delete(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const orderarchiveToDelete = new OrderArchive();
+      orderarchiveToDelete.id = +id;
+      const deletedOrderArchive = await manager.getRepository(OrderArchive).remove(orderarchiveToDelete);
+      return res.status(200).json(OrderArchiveConverter.toDto(deletedOrderArchive));
+    });
   }
 }

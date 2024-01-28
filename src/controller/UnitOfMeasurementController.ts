@@ -1,76 +1,77 @@
-import { UnitOfMeasurementDto } from "citrus-common";
-import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { UnitOfMeasurementConverter } from "../converter/UnitOfMeasurementConverter";
 import { UnitOfMeasurement } from "../entity/UnitOfMeasurement";
+import { Request, Response } from "express";
+import { AppDataSource } from "../utils/app-data-source";
 
-@Authorized("admin")
-@JsonController("/api/unitOfMeasurement")
 export class UnitOfMeasurementController {
-  private unitOfMeasurementRepo: (manager: EntityManager) => Repository<UnitOfMeasurement>;
+  private static withArticleRelation = ["articles"];
 
-  constructor() {
-    this.unitOfMeasurementRepo = manager => manager.getRepository(UnitOfMeasurement);
+  static async get(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const unitofmeasurement = await manager.getRepository(UnitOfMeasurement).findOne({ where: { id: +id } });
+      return res.status(200).json(UnitOfMeasurementConverter.toDto(unitofmeasurement));
+    });
   }
 
-  @Transaction()
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<UnitOfMeasurementDto> {
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).findOne(id));
+  static async getAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const unitofmeasurements = await manager.getRepository(UnitOfMeasurement).find({
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(UnitOfMeasurementConverter.toDtos(unitofmeasurements));
+    });
   }
 
-  @Transaction()
-  @Get()
-  public async getAll(@TransactionManager() manager: EntityManager): Promise<UnitOfMeasurementDto[]> {
-    return UnitOfMeasurementConverter.toDtos(await this.unitOfMeasurementRepo(manager).find({
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async update(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const newUnitOfMeasurement = UnitOfMeasurementConverter.toEntity(req.body);
+      const unitofmeasurementRepository = manager.getRepository(UnitOfMeasurement);
+      const loadedUnitOfMeasurement = await unitofmeasurementRepository.findOne({ where: { id: +id } });
+      const mergedUnitOfMeasurement = unitofmeasurementRepository.merge(loadedUnitOfMeasurement, newUnitOfMeasurement);
+      const updatedUnitOfMeasurement = await unitofmeasurementRepository.save(mergedUnitOfMeasurement);
+      return res.status(200).json(UnitOfMeasurementConverter.toDto(updatedUnitOfMeasurement));
+    });
   }
 
-  @Transaction()
-  @Get("/withArticles/:id([0-9]+)")
-  public async getWithArticles(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<UnitOfMeasurementDto> {
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).findOne(id, { relations: ["articles"] }));
+  static async save(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const newUnitOfMeasurement = UnitOfMeasurementConverter.toEntity(req.body);
+      const savedUnitOfMeasurement = await manager.getRepository(UnitOfMeasurement).save(newUnitOfMeasurement);
+      return res.status(200).json(UnitOfMeasurementConverter.toDto(savedUnitOfMeasurement));
+    });
   }
 
-  @Transaction()
-  @Get("/withArticles")
-  public async getAllWithArticles(@TransactionManager() manager: EntityManager): Promise<UnitOfMeasurementDto[]> {
-    return UnitOfMeasurementConverter.toDtos(await this.unitOfMeasurementRepo(manager).find({ relations: ["articles"] }));
+  static async delete(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const unitofmeasurementToDelete = new UnitOfMeasurement();
+      unitofmeasurementToDelete.id = +id;
+      const deletedUnitOfMeasurement = await manager.getRepository(UnitOfMeasurement).remove(unitofmeasurementToDelete);
+      return res.status(200).json(UnitOfMeasurementConverter.toDto(deletedUnitOfMeasurement));
+    });
   }
 
-  @Transaction()
-  @Delete("/withArticles/:id([0-9]+)")
-  public async deleteWithArticles(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<UnitOfMeasurementDto> {
-    const a = new UnitOfMeasurement();
-    a.id = +id;
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).remove(a));
+  static async getWithArticles(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const unitofmeasurement = await manager.getRepository(UnitOfMeasurement).findOne({
+        where: { id: +id },
+        relations: this.withArticleRelation,
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(UnitOfMeasurementConverter.toDto(unitofmeasurement));
+    });
   }
 
-  @Transaction()
-  @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() newUnitOfMeasurement: UnitOfMeasurement): Promise<UnitOfMeasurementDto> {
-    const a = UnitOfMeasurementConverter.toEntity(newUnitOfMeasurement);
-    delete a.articles;
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).save(a));
-  }
-
-  @Transaction()
-  @Put("/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedUnitOfMeasurement: UnitOfMeasurement): Promise<UnitOfMeasurementDto> {
-    const a = UnitOfMeasurementConverter.toEntity(changedUnitOfMeasurement);
-    a.id = +id;
-    delete a.articles;
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).save(a));
-  }
-
-  @Transaction()
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const a = new UnitOfMeasurement();
-    a.id = +id;
-    return UnitOfMeasurementConverter.toDto(await this.unitOfMeasurementRepo(manager).remove(a));
+  static async getAllWithArticles(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const unitofmeasurements = await manager.getRepository(UnitOfMeasurement).find({
+        relations: this.withArticleRelation,
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(UnitOfMeasurementConverter.toDtos(unitofmeasurements));
+    });
   }
 }

@@ -1,118 +1,118 @@
-import { LocationDto } from "citrus-common";
-import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { LocationConverter } from "../converter/LocationConverter";
 import { Location } from "../entity/Location";
 import { OpeningHour } from "../entity/OpeningHour";
+import { Request, Response } from "express";
+import { AppDataSource } from "../utils/app-data-source";
 
-@JsonController("/api/location")
 export class LocationController {
-  private locationRepo: (manager: EntityManager) => Repository<Location>;
 
-  constructor() {
-    this.locationRepo = manager => manager.getRepository(Location);
+  private static withOpeningHourRelation = ["openingHours"];
+  private static withAllRelations = ["articleStocks", "openingHours"];
+
+  static async get(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const location = await manager.getRepository(Location).findOne({ where: { id: +id } });
+      return res.status(200).json(LocationConverter.toDto(location));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<LocationDto> {
-    return LocationConverter.toDto(await this.locationRepo(manager).findOne(id));
+  static async getAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const locations = await manager.getRepository(Location).find({
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(LocationConverter.toDtos(locations));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get()
-  public async getAll(@TransactionManager() manager: EntityManager): Promise<LocationDto[]> {
-    return LocationConverter.toDtos(await this.locationRepo(manager).find({
-      order: {
-        id: "ASC"
-      },
-    }
-    ));
+  static async update(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const newLocation = LocationConverter.toEntity(req.body);
+      const locationRepository = manager.getRepository(Location);
+      const loadedLocation = await locationRepository.findOne({ where: { id: +id } });
+      const mergedLocation = locationRepository.merge(loadedLocation, newLocation);
+      const updatedLocation = await locationRepository.save(mergedLocation);
+      return res.status(200).json(LocationConverter.toDto(updatedLocation));
+    });
   }
 
-  @Transaction()
-  @Get("/withOpeningHours/:id([0-9]+)")
-  public async getWithOpeningHours(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<LocationDto> {
-    return LocationConverter.toDto(await this.locationRepo(manager).findOne(id, { relations: ["openingHours"] }));
+  static async save(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const newLocation = LocationConverter.toEntity(req.body);
+      const savedLocation = await manager.getRepository(Location).save(newLocation);
+      return res.status(200).json(LocationConverter.toDto(savedLocation));
+    });
   }
 
-  @Transaction()
-  @Get("/withOpeningHours")
-  public async getAllWithOpeningHours(@TransactionManager() manager: EntityManager): Promise<LocationDto[]> {
-    return LocationConverter.toDtos(await this.locationRepo(manager).createQueryBuilder("l")
-      .leftJoinAndSelect("l.openingHours", "o")
-      .orderBy({ "o.fromDate": "ASC" })
-      .getMany());
+  static async delete(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const locationToDelete = await manager.getRepository(Location).findOne({
+        where: { id: +id },
+        relations: ["openingHours"]
+      });
+      for (const item of locationToDelete.openingHours) {
+        await manager.getRepository(OpeningHour).remove(item);
+      }
+      const deletedLocation = await manager.getRepository(Location).remove(locationToDelete);
+      return res.status(200).json(LocationConverter.toDto(deletedLocation));
+    });
   }
 
-  @Transaction()
-  @Get("/withOpeningHoursStocksAndArticle")
-  public async getAllWithOpeningHoursStocksAndArticle(@TransactionManager() manager: EntityManager): Promise<LocationDto[]> {
-    return LocationConverter.toDtos(await this.locationRepo(manager).createQueryBuilder("l")
-      .leftJoinAndSelect("l.openingHours", "o")
-      .leftJoinAndSelect("l.articleStocks", "s")
-      .leftJoinAndSelect("s.article", "a")
-      .orderBy({ "o.fromDate": "ASC" })
-      .getMany());
+  static async getWithOpeningHours(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const location = await manager.getRepository(Location).findOne({
+        where: { id: +id },
+        relations: this.withOpeningHourRelation
+      });
+      return res.status(200).json(LocationConverter.toDto(location));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Post("/withOpeningHours")
-  public async saveWithOpeningHours(@TransactionManager() manager: EntityManager, @Body() newLocation: Location): Promise<LocationDto> {
-    const a = LocationConverter.toEntity(newLocation);
-    delete a.articleStocks;
-    return LocationConverter.toDto(await this.locationRepo(manager).save(a));
+  static async getAllWithOpeningHours(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const locations = await manager.getRepository(Location).createQueryBuilder("l")
+        .leftJoinAndSelect("l.openingHours", "o")
+        .orderBy({ "o.fromDate": "ASC" })
+        .getMany();
+      return res.status(200).json(LocationConverter.toDtos(locations));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Put("/withOpeningHours/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedLocation: Location): Promise<LocationDto> {
-    const a = LocationConverter.toEntity(changedLocation);
-    delete a.articleStocks;
-    a.id = +id;
-    return LocationConverter.toDto(await this.locationRepo(manager).save(a));
+
+  static async getAllWithOpeningHoursStocksAndArticle(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const locations = await manager.getRepository(Location).createQueryBuilder("l")
+        .leftJoinAndSelect("l.openingHours", "o")
+        .leftJoinAndSelect("l.articleStocks", "s")
+        .leftJoinAndSelect("s.article", "a")
+        .orderBy({ "o.fromDate": "ASC" })
+        .getMany();
+      return res.status(200).json(LocationConverter.toDtos(locations));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/withAll/:id([0-9]+)")
-  public async getWithAll(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<LocationDto> {
-    return LocationConverter.toDto(await this.locationRepo(manager).findOne(id, { relations: ["articleStocks", "openingHours"] }));
+  static async getWithAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const location = await manager.getRepository(Location).findOne({
+        where: { id: +id },
+        relations: this.withAllRelations,
+      });
+      return res.status(200).json(LocationConverter.toDto(location));
+    });
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Get("/withAll")
-  public async getAllWithAll(@TransactionManager() manager: EntityManager): Promise<LocationDto[]> {
-    return LocationConverter.toDtos(await this.locationRepo(manager).find({
-      relations: ["articleStocks", "openingHours"],
-      order: {
-        id: "ASC"
-      },
-    }));
-  }
-
-  @Transaction()
-  @Authorized("admin")
-  @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() location: Location): Promise<LocationDto> {
-    const a = LocationConverter.toEntity(location);
-    delete a.articleStocks;
-    return LocationConverter.toDto(await this.locationRepo(manager).save(a));
-  }
-
-  @Transaction()
-  @Authorized("admin")
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const location = await this.locationRepo(manager).findOne(id, { relations: ["openingHours"] });
-    for (const item of location.openingHours) {
-      await manager.getRepository(OpeningHour).remove(item);
-    }
-    return LocationConverter.toDto(await this.locationRepo(manager).remove(location));
+  static async getAllWithAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const locations = await manager.getRepository(Location).find({
+        order: { id: "ASC" },
+        relations: this.withAllRelations,
+      });
+      return res.status(200).json(LocationConverter.toDtos(locations));
+    });
   }
 }

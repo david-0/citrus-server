@@ -1,45 +1,32 @@
-import {MessageDto, UserDto} from "citrus-common";
+import { MessageDto, UserDto } from "citrus-common";
 import * as express from "express";
-import {Authorized, Body, CurrentUser, JsonController, Post, Req, Res} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {Message} from "../entity/Message";
-import {User} from "../entity/User";
-import {MailService} from "../utils/MailService";
+import { Message } from "../entity/Message";
+import { User } from "../entity/User";
+import { AppDataSource } from "../utils/app-data-source";
+import { AppMailService } from "../utils/app-mail-service";
 
-@Authorized("admin")
-@JsonController("/api/message")
 export class MessageController {
-  private mailService: MailService;
 
-  private userRepo: (manager: EntityManager) => Repository<User>;
-  private messageRepo: (manager: EntityManager) => Repository<Message>;
-
-  constructor() {
-    this.mailService = new MailService("../configuration/smtp.json");
-    this.userRepo = manager => manager.getRepository(User);
-    this.messageRepo = manager => manager.getRepository(Message);
-  }
-
-  @Post()
-  @Transaction()
-  public async sendMessage(@CurrentUser({required: true}) userId: number,
-                           @TransactionManager() manager: EntityManager,
-                           @Req() request: express.Request,
-                           @Body() message: MessageDto,
-                           @Res() response: express.Response): Promise<any> {
-    const messageEntity = new Message();
-    messageEntity.subject = message.subject;
-    messageEntity.content = message.content;
-    messageEntity.receivers = [];
-    const sendMessageInfos: Array<{ user: UserDto, message: string }> = [];
-    for (const userFromClient of message.receivers) {
-      const user = await this.userRepo(manager).findOne(userFromClient.id);
-      messageEntity.receivers.push(user);
-      const msg = await this.mailService.sendMailTextOnly(user.email, message.subject, message.content)
-        .catch(error => ({message: error.message, stack: error.stack}));
-      sendMessageInfos.push({user, message: msg});
-    }
-    messageEntity.responses = JSON.stringify(sendMessageInfos);
-    return this.messageRepo(manager).save(messageEntity, {data: userId});
+  static async update(req: express.Request, res: express.Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const message: MessageDto = req.body;
+      const userId = req["currentUser"].id;
+      const messageEntity = new Message();
+      messageEntity.subject = message.subject;
+      messageEntity.content = message.content;
+      messageEntity.receivers = [];
+      const sendMessageInfos: Array<{ user: UserDto, message: string }> = [];
+      for (const userFromClient of message.receivers) {
+        const user = await manager.getRepository(User).findOne({
+          where: { id: userFromClient.id }
+        });
+        messageEntity.receivers.push(user);
+        const msg = await AppMailService.sendMailTextOnly(user.email, message.subject, message.content)
+          .catch(error => ({ message: error.message, stack: error.stack }));
+        sendMessageInfos.push({ user, message: msg });
+      }
+      messageEntity.responses = JSON.stringify(sendMessageInfos);
+      return await manager.getRepository(Message).save(messageEntity, { data: userId });
+    });
   }
 }

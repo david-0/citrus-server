@@ -1,54 +1,56 @@
-import { OpeningHourDto } from "citrus-common";
-import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { OpeningHourConverter } from "../converter/OpeningHourConverter";
 import { OpeningHour } from "../entity/OpeningHour";
+import { Request, Response } from "express";
+import { AppDataSource } from "../utils/app-data-source";
 
-@Authorized("admin")
-@JsonController("/api/openingHour")
 export class OpeningHourController {
-  private openingHourRepo: (manager: EntityManager) => Repository<OpeningHour>;
 
-  constructor() {
-    this.openingHourRepo = manager => manager.getRepository(OpeningHour);
+  private static withUserRelation = ["users"];
+
+  static async get(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const openinghour = await manager.getRepository(OpeningHour).findOne({ where: { id: +id } });
+      return res.status(200).json(OpeningHourConverter.toDto(openinghour));
+    });
   }
 
-  @Transaction()
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OpeningHourDto> {
-    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).findOne(id));
+  static async getAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const openinghours = await manager.getRepository(OpeningHour).find({
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(OpeningHourConverter.toDtos(openinghours));
+    });
   }
 
-  @Transaction()
-  @Get()
-  public async getAll(@TransactionManager() manager: EntityManager): Promise<OpeningHourDto[]> {
-    return OpeningHourConverter.toDtos(await this.openingHourRepo(manager).find({
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async update(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const newOpeningHour = OpeningHourConverter.toEntity(req.body);
+      const openinghourRepository = manager.getRepository(OpeningHour);
+      const loadedOpeningHour = await openinghourRepository.findOne({ where: { id: +id } });
+      const mergedOpeningHour = openinghourRepository.merge(loadedOpeningHour, newOpeningHour);
+      const updatedOpeningHour = await openinghourRepository.save(mergedOpeningHour);
+      return res.status(200).json(OpeningHourConverter.toDto(updatedOpeningHour));
+    });
   }
 
-  @Transaction()
-  @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() newOpeningHour: OpeningHour): Promise<OpeningHourDto> {
-    const openingHour = OpeningHourConverter.toEntity(newOpeningHour);
-    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).save(openingHour));
+  static async save(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const newOpeningHour = OpeningHourConverter.toEntity(req.body);
+      const savedOpeningHour = await manager.getRepository(OpeningHour).save(newOpeningHour);
+      return res.status(200).json(OpeningHourConverter.toDto(savedOpeningHour));
+    });
   }
 
-  @Transaction()
-  @Put("/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedOpeningHour: OpeningHour): Promise<OpeningHourDto> {
-    const o = OpeningHourConverter.toEntity(changedOpeningHour);
-    o.id = +id;
-    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).save(o));
-  }
-
-  @Transaction()
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<OpeningHourDto> {
-    const openingHour = new OpeningHour();
-    openingHour.id = +id;
-    return OpeningHourConverter.toDto(await this.openingHourRepo(manager).remove(openingHour));
+  static async delete(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const openinghourToDelete = new OpeningHour();
+      openinghourToDelete.id = +id;
+      const deletedOpeningHour = await manager.getRepository(OpeningHour).remove(openinghourToDelete);
+      return res.status(200).json(OpeningHourConverter.toDto(deletedOpeningHour));
+    });
   }
 }

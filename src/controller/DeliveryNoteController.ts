@@ -1,76 +1,61 @@
 // @ts-ignore
 import { UserDto, OrderDto } from "citrus-common";
 import * as express from "express";
-import { Authorized, Body, CurrentUser, JsonController, Post, Req, Res } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { User } from "../entity/User";
-import { MailService } from "../utils/MailService";
 import { Order } from "../entity/Order";
 import doc = require("pdfkit");
-import { of } from "rxjs";
 import { DateTime } from "luxon";
+import { AppDataSource } from "../utils/app-data-source";
+import { EntityManager } from "typeorm";
 
-@Authorized("admin")
-@JsonController("/api/deliveryNote")
 export class DeliveryNoteController {
-  private mailService: MailService;
+  private static margin = 40;
+  private static padding = 10;
 
-  private userRepo: (manager: EntityManager) => Repository<User>;
-  private orderRepo: (manager: EntityManager) => Repository<Order>;
+  static async returnDeliveryNote(req: express.Request, res: express.Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const orderIds: number[] = req.body;
+      const userId = req["currentUser"].id;
+      const currentUser: UserDto = await manager.getRepository(User).findOne({
+        where: { id: userId }
+      });
+      res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+      res.attachment("Lieferschein.pdf");
+      res.contentType('application/pdf');
 
-  private margin = 40;
-  private padding = 10;
+      let myDoc = new doc({ bufferPages: true, autoFirstPage: false });
+      myDoc.pipe(res);
 
-  constructor() {
-    this.userRepo = manager => manager.getRepository(User);
-    this.orderRepo = manager => manager.getRepository(Order);
-  }
+      const currentDate = new Date();
 
-  @Post()
-  @Transaction()
-  public async returnDeliveryNote(@CurrentUser({ required: true }) userId: number,
-    @TransactionManager() manager: EntityManager,
-    @Req() request: express.Request,
-    @Body() orderIds: number[],
-    @Res() response: express.Response): Promise<any> {
-    let currentUser: UserDto = await this.userRepo(manager).findOne(userId);
-    response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
-    //    response.attachment("Lieferschein_" + orderIds.join(",") + ".pdf");
-    response.attachment("Lieferschein.pdf");
-    response.contentType('application/pdf');
+      const orders = await DeliveryNoteController.loadOrders(manager, orderIds);
+      orders.sort((a, b) => DeliveryNoteController.comparator(a, b));
 
-    let myDoc = new doc({ bufferPages: true, autoFirstPage: false });
-    myDoc.pipe(response);
-
-    const currentDate = new Date();
-
-    const orders = await this.loadOrders(orderIds, manager);
-    orders.sort((a, b) => this.comparator(a,b)); 
-
-    let lastLocationId = undefined;
-    let page = 0;
-    for (let order of orders) {
-      await this.updateDeliveryDate(order, currentDate, manager);
-      if (lastLocationId !== order.location.id && !this.isEven(page)) {
+      let lastLocationId = undefined;
+      let page = 0;
+      for (let order of orders) {
+        await DeliveryNoteController.updateDeliveryDate(manager, order, currentDate);
+        if (lastLocationId !== order.location.id && !DeliveryNoteController.isEven(page)) {
+          page++;
+        }
+        if (DeliveryNoteController.isEven(+page)) {
+          myDoc.addPage({
+            margin: 0,
+            size: [595, 839]
+          });
+          DeliveryNoteController.printContent(myDoc, order, 0, currentUser);
+        } else {
+          DeliveryNoteController.printContent(myDoc, order, 1, currentUser);
+        }
         page++;
+        lastLocationId = order.location.id;
       }
-      if (this.isEven(+page)) {
-        myDoc.addPage({
-          margin: 0,
-          size: [595, 839]
-        });
-        this.printContent(myDoc, order, 0, currentUser);
-      } else {
-        this.printContent(myDoc, order, 1, currentUser);
-      }
-      page++;
-      lastLocationId = order.location.id;
-    }
-    myDoc.end();
-    return;
+      myDoc.end();
+      return;
+    });
   }
 
-  private comparator(a: OrderDto, b: OrderDto ) {
+  private static comparator(a: OrderDto, b: OrderDto) {
     const comparedLocationId = a.location.id - b.location.id;
     if (comparedLocationId != 0) {
       return comparedLocationId;
@@ -87,112 +72,113 @@ export class DeliveryNoteController {
     return comparedId;
   }
 
-  private async loadOrders(orderIds: number[], manager: EntityManager): Promise<OrderDto[]> {
+  private static async loadOrders(manager: EntityManager, orderIds: number[]): Promise<OrderDto[]> {
     let result = [];
     for (let orderId of orderIds) {
-      result.push(await this.getOrder(orderId, manager));
+      result.push(await DeliveryNoteController.getOrder(manager, orderId));
     }
     return result;
   }
 
-  private isEven(n: number): boolean {
+  private static isEven(n: number): boolean {
     return n % 2 == 0;
   }
 
-  private async updateDeliveryDate(order: OrderDto, currentDate: Date, manager: EntityManager) {
+  private static async updateDeliveryDate(manager: EntityManager, order: OrderDto, currentDate: Date) {
     order.deliveryNoteCreated = currentDate;
-    await this.orderRepo(manager).save(order);
+    await manager.getRepository(Order).save(order);
   }
 
-  private printContent(myDoc: PDFKit.PDFDocument, order: OrderDto, pagePart: number, currentUser: UserDto) {
-    const widthA5 = this.convert(210);
-    const width = widthA5 - 2 * this.margin;
-    const heightA5 = this.convert(148);
-    const height = heightA5 - 2 * this.margin;
+  private static printContent(myDoc: PDFKit.PDFDocument, order: OrderDto, pagePart: number, currentUser: UserDto) {
+    const widthA5 = DeliveryNoteController.convert(210);
+    const width = widthA5 - 2 * DeliveryNoteController.margin;
+    const heightA5 = DeliveryNoteController.convert(148);
+    const height = heightA5 - 2 * DeliveryNoteController.margin;
     const offset = pagePart * heightA5;
-    const addressColumnRight = this.margin + width - this.convert(65);
+    const addressColumnRight = DeliveryNoteController.margin + width - DeliveryNoteController.convert(65);
 
     myDoc.lineWidth(1) //
-      .moveTo(this.margin, this.margin + offset)
-      .lineTo(this.margin + width, this.margin + offset)
-      .lineTo(this.margin + width, this.margin + offset + height)
-      .lineTo(this.margin, this.margin + offset + height)
-      .lineTo(this.margin, this.margin + offset)
+      .moveTo(DeliveryNoteController.margin, DeliveryNoteController.margin + offset)
+      .lineTo(DeliveryNoteController.margin + width, DeliveryNoteController.margin + offset)
+      .lineTo(DeliveryNoteController.margin + width, DeliveryNoteController.margin + offset + height)
+      .lineTo(DeliveryNoteController.margin, DeliveryNoteController.margin + offset + height)
+      .lineTo(DeliveryNoteController.margin, DeliveryNoteController.margin + offset)
       .stroke();
     myDoc.font('Helvetica')
       .fontSize(24)
-      .text("Lieferschein", this.margin + this.padding, this.margin + offset + this.padding)
+      .text("Lieferschein", DeliveryNoteController.margin + DeliveryNoteController.padding, DeliveryNoteController.margin + offset + DeliveryNoteController.padding)
       .fontSize(14)
       .text("Bestellnummer: " + order.id)
-      .text("Bestellung von:", addressColumnRight, this.margin + offset + this.padding + 10)
-      .text(this.formatDate(order.date) + " " + this.formatTime(order.date), addressColumnRight, this.margin + offset + this.padding + 30)
-      .text(order.user.prename + " " + order.user.name, addressColumnRight, this.margin + offset + this.padding + 50)
-      .text(order.user.phone, addressColumnRight, this.margin + offset + this.padding + 65)
-      .text(order.user.email, addressColumnRight, this.margin + offset + this.padding + 80)
+      .text("Bestellung von:", addressColumnRight, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 10)
+      .text(DeliveryNoteController.formatDate(order.date) + " " + DeliveryNoteController.formatTime(order.date), addressColumnRight, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 30)
+      .text(order.user.prename + " " + order.user.name, addressColumnRight, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 50)
+      .text(order.user.phone, addressColumnRight, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 65)
+      .text(order.user.email, addressColumnRight, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 80)
 
-      .text(`Abholstandort: ${order.location.description}`, this.margin + this.padding, this.margin + offset + this.padding + 50)
-      .text("    am " + this.formatDate(order.plannedCheckout.fromDate)
-        + " geöffnet von: " + this.formatTime(order.plannedCheckout.fromDate)
-        + " bis: " + this.formatTime(order.plannedCheckout.toDate))
-      .text(`Bestellte Artikel`, this.margin + this.padding, this.margin + offset + this.padding + 95)
-      .moveTo(this.margin + this.padding, this.margin + offset + this.padding + 115)
-      .lineTo(this.margin + width - this.padding, this.margin + offset + this.padding + 115)
+      .text(`Abholstandort: ${order.location.description}`, DeliveryNoteController.margin + DeliveryNoteController.padding, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 50)
+      .text("    am " + DeliveryNoteController.formatDate(order.plannedCheckout.fromDate)
+        + " geöffnet von: " + DeliveryNoteController.formatTime(order.plannedCheckout.fromDate)
+        + " bis: " + DeliveryNoteController.formatTime(order.plannedCheckout.toDate))
+      .text(`Bestellte Artikel`, DeliveryNoteController.margin + DeliveryNoteController.padding, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 95)
+      .moveTo(DeliveryNoteController.margin + DeliveryNoteController.padding, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 115)
+      .lineTo(DeliveryNoteController.margin + width - DeliveryNoteController.padding, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 115)
       .stroke();
-    let yCurrentLine = this.margin + offset + this.padding + 120;
+    let yCurrentLine = DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 120;
     for (const item of order.orderItems) {
-      myDoc.text(item.quantity.toFixed(1), this.margin + this.padding, yCurrentLine, {
-        width: this.convert(13),
+      myDoc.text(item.quantity.toFixed(1), DeliveryNoteController.margin + DeliveryNoteController.padding, yCurrentLine, {
+        width: DeliveryNoteController.convert(13),
         align: 'right',
       })
-        .text(item.article.unitOfMeasurement.shortcut, this.margin + this.padding + this.convert(15), yCurrentLine, {
-          width: this.convert(8),
+        .text(item.article.unitOfMeasurement.shortcut, DeliveryNoteController.margin + DeliveryNoteController.padding + DeliveryNoteController.convert(15), yCurrentLine, {
+          width: DeliveryNoteController.convert(8),
         });
-      myDoc.text(item.article.description, this.margin + this.padding + this.convert(25), yCurrentLine, {
-        width: this.convert(70),
+      myDoc.text(item.article.description, DeliveryNoteController.margin + DeliveryNoteController.padding + DeliveryNoteController.convert(25), yCurrentLine, {
+        width: DeliveryNoteController.convert(70),
       });
       myDoc.text((item.copiedPrice).toFixed(2) + " CHF/" + item.article.unitOfMeasurement.shortcut,
-        this.margin + this.padding + this.convert(95), yCurrentLine, {
-        width: this.convert(40),
+        DeliveryNoteController.margin + DeliveryNoteController.padding + DeliveryNoteController.convert(95), yCurrentLine, {
+        width: DeliveryNoteController.convert(40),
         align: "right"
       });
-      myDoc.text((item.copiedPrice * item.quantity).toFixed(2) + " CHF", this.margin + this.padding + this.convert(130), yCurrentLine, {
-        width: this.convert(39),
+      myDoc.text((item.copiedPrice * item.quantity).toFixed(2) + " CHF", DeliveryNoteController.margin + DeliveryNoteController.padding + DeliveryNoteController.convert(130), yCurrentLine, {
+        width: DeliveryNoteController.convert(39),
         align: 'right'
       });
-      yCurrentLine = yCurrentLine + this.convert(6);
+      yCurrentLine = yCurrentLine + DeliveryNoteController.convert(6);
     }
-    const yTotalLine = this.margin + offset + this.padding + 235;
-    myDoc.moveTo(this.margin + this.padding, yTotalLine - 5).lineTo(this.margin + width - this.padding, yTotalLine - 5).stroke();
+    const yTotalLine = DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 235;
+    myDoc.moveTo(DeliveryNoteController.margin + DeliveryNoteController.padding, yTotalLine - 5).lineTo(DeliveryNoteController.margin + width - DeliveryNoteController.padding, yTotalLine - 5).stroke();
     myDoc.fontSize(16)
-      .text("Gesamtpreis Bestellung:", this.margin + this.padding, yTotalLine, { width: this.convert(105) })
+      .text("Gesamtpreis Bestellung:", DeliveryNoteController.margin + DeliveryNoteController.padding, yTotalLine, { width: DeliveryNoteController.convert(105) })
       .font("Helvetica-Bold")
-      .text((order.totalPrice).toFixed(2) + " CHF", this.margin + this.padding + this.convert(130), yTotalLine, {
-        width: this.convert(39),
+      .text((order.totalPrice).toFixed(2) + " CHF", DeliveryNoteController.margin + DeliveryNoteController.padding + DeliveryNoteController.convert(130), yTotalLine, {
+        width: DeliveryNoteController.convert(39),
         align: 'right',
       });
-    myDoc.moveTo(this.margin + this.padding, yTotalLine + 18).lineTo(this.margin + width - this.padding, yTotalLine + 18).stroke()
+    myDoc.moveTo(DeliveryNoteController.margin + DeliveryNoteController.padding, yTotalLine + 18).lineTo(DeliveryNoteController.margin + width - DeliveryNoteController.padding, yTotalLine + 18).stroke()
       .font('Helvetica')
       .fontSize(14);
     if (order.comment) {
-      myDoc.text("Bestellkommentar:", this.margin + this.padding, this.margin + offset + this.padding + 263)
+      myDoc.text("Bestellkommentar:", DeliveryNoteController.margin + DeliveryNoteController.padding, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 263)
         .font("Helvetica-Bold")
-        .text(order.comment, this.margin + this.padding, this.margin + offset + this.padding + 280, {
-          width: this.convert(176),
+        .text(order.comment, DeliveryNoteController.margin + DeliveryNoteController.padding, DeliveryNoteController.margin + offset + DeliveryNoteController.padding + 280, {
+          width: DeliveryNoteController.convert(176),
           height: 80
         })
     }
     myDoc.fontSize(10)
       .font('Helvetica')
-      .text("Lieferschein erstellt am " + this.formatDate(new Date()) + " um " + this.formatTime(new Date())
-        + " von " + currentUser.prename + " " + currentUser.name, this.margin + this.padding, this.margin + offset + height - 13);
+      .text("Lieferschein erstellt am " + DeliveryNoteController.formatDate(new Date()) + " um " + DeliveryNoteController.formatTime(new Date())
+        + " von " + currentUser.prename + " " + currentUser.name, DeliveryNoteController.margin + DeliveryNoteController.padding, DeliveryNoteController.margin + offset + height - 13);
   }
 
-  private convert(mm: number): number {
+  private static convert(mm: number): number {
     return mm / (25.4 / 72);
   }
 
-  private async getOrder(oderId: number, manager: EntityManager): Promise<OrderDto> {
-    return await this.orderRepo(manager).findOne(oderId, {
+  private static async getOrder(manager: EntityManager, orderId: number): Promise<OrderDto> {
+    return await manager.getRepository(Order).findOne({
+      where: { id: orderId },
       relations: [
         "user",
         "location",
@@ -207,11 +193,11 @@ export class DeliveryNoteController {
     });
   }
 
-  private formatDate(date: Date): string {    
+  private static formatDate(date: Date): string {
     return DateTime.fromJSDate(date).toFormat('dd.LL.yyyy');
   }
 
-  private formatTime(date: Date): string {
+  private static formatTime(date: Date): string {
     return DateTime.fromJSDate(date).toLocal().toFormat('HH:mm');
   }
 

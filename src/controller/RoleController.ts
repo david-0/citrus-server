@@ -1,81 +1,78 @@
-import { RoleDto } from "citrus-common";
-import { Authorized, Body, Delete, Get, JsonController, Param, Post, Put } from "routing-controllers";
-import { EntityManager, Repository, Transaction, TransactionManager } from "typeorm";
 import { RoleConverter } from "../converter/RoleConverter";
 import { Role } from "../entity/Role";
+import { Request, Response } from "express";
+import { AppDataSource } from "../utils/app-data-source";
 
-@Authorized("admin")
-@JsonController("/api/role")
 export class RoleController {
-  private roleRepo: (manager: EntityManager) => Repository<Role>;
 
-  constructor() {
-    this.roleRepo = manager => manager.getRepository(Role);
+  private static withUserRelation = ["users"];
+
+  static async get(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const role = await manager.getRepository(Role).findOne({ where: { id: +id } });
+      return res.status(200).json(RoleConverter.toDto(role));
+    });
   }
 
-  @Transaction()
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<RoleDto> {
-    return RoleConverter.toDto(await this.roleRepo(manager).findOne(id));
+  static async getAll(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const roles = await manager.getRepository(Role).find({
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(RoleConverter.toDtos(roles));
+    });
   }
 
-  @Transaction()
-  @Get()
-  public async getAll(@TransactionManager() manager: EntityManager): Promise<RoleDto[]> {
-    return RoleConverter.toDtos(await this.roleRepo(manager).find({
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async update(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const newRole = RoleConverter.toEntity(req.body);
+      const roleRepository = manager.getRepository(Role);
+      const loadedRole = await roleRepository.findOne({ where: { id: +id } });
+      const mergedRole = roleRepository.merge(loadedRole, newRole);
+      const updatedRole = await roleRepository.save(mergedRole);
+      return res.status(200).json(RoleConverter.toDto(updatedRole));
+    });
   }
 
-  @Transaction()
-  @Get("/withUsers/:id([0-9]+)")
-  public async getWithUsers(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<RoleDto> {
-    return RoleConverter.toDto(await this.roleRepo(manager).findOne(id, { relations: ["users"] }));
+  static async save(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const newRole = RoleConverter.toEntity(req.body);
+      const savedRole = await manager.getRepository(Role).save(newRole);
+      return res.status(200).json(RoleConverter.toDto(savedRole));
+    });
   }
 
-  @Transaction()
-  @Get("/withUsers")
-  public async getAllWithUsers(@TransactionManager() manager: EntityManager): Promise<RoleDto[]> {
-    return RoleConverter.toDtos(await this.roleRepo(manager).find({
-      relations: ["users"],
-      order: {
-        id: "ASC"
-      },
-    }));
+  static async delete(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const roleToDelete = new Role();
+      roleToDelete.id = +id;
+      const deletedRole = await manager.getRepository(Role).remove(roleToDelete);
+      return res.status(200).json(RoleConverter.toDto(deletedRole));
+    });
   }
 
-  @Transaction()
-  @Delete("/withUsers/:id([0-9]+)")
-  public async deleteWithUsers(@TransactionManager() manager: EntityManager, @Param("id") id: number): Promise<RoleDto> {
-    const role = new Role();
-    role.id = +id;
-    return RoleConverter.toDto(await this.roleRepo(manager).remove(role));
+  static async getWithUsers(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const role = await manager.getRepository(Role).findOne({
+        where: { id: +id },
+        relations: this.withUserRelation,
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(RoleConverter.toDto(role));
+    });
   }
 
-  @Transaction()
-  @Put("/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager, @Param("id") id: number, @Body() changedRole: Role): Promise<RoleDto> {
-    const a = RoleConverter.toEntity(changedRole);
-    a.id = +id;
-    delete a.users;
-    return RoleConverter.toDto(await this.roleRepo(manager).save(a));
-  }
-
-  @Transaction()
-  @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Body() newRole: Role): Promise<RoleDto> {
-    const a = RoleConverter.toEntity(newRole);
-    delete a.users;
-    return RoleConverter.toDto(await this.roleRepo(manager).save(a));
-  }
-
-  @Transaction()
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const a = new Role();
-    a.id = +id;
-    return RoleConverter.toDto(await this.roleRepo(manager).remove(a));
+  static async getAllWithUsers(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const roles = await manager.getRepository(Role).find({
+        relations: this.withUserRelation,
+        order: { id: "ASC" },
+      });
+      return res.status(200).json(RoleConverter.toDtos(roles));
+    });
   }
 }

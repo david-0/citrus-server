@@ -1,78 +1,43 @@
-import {Request, Response} from "express";
+import { Request, Response } from "express";
 import * as fs from "fs";
-import {getType} from "mime";
-import {Form} from "multiparty";
-import {Authorized, Body, Delete, Get, JsonController, Param, Post, Put, Req, Res} from "routing-controllers";
-import {EntityManager, Repository, Transaction, TransactionManager} from "typeorm";
-import {Image} from "../entity/Image";
+import mime from 'mime';
+import { Form } from "multiparty";
+import { Image } from "../entity/Image";
+import { AppDataSource } from "../utils/app-data-source";
 
-@JsonController("/api/image")
 export class ImageController {
 
-  private imageRepo: (manager: EntityManager) => Repository<Image>;
-
-  constructor() {
-    this.imageRepo = manager => manager.getRepository(Image);
-  }
-
-  @Transaction()
-  @Get("/:id([0-9]+)")
-  public async get(@TransactionManager() manager: EntityManager,
-             @Param("id") id: number,
-             @Res() response: Response) {
-    const image = await this.imageRepo(manager).findOne(id);
-    response.contentType(image.contentType);
-    return image.image;
-  }
-
-  // @Transaction()
-  // @Authorized("admin")
-  // @Get()
-  // public getAll(@TransactionManager() manager: EntityManager) {
-  //   return this.imageRepo(manager).find();
-  // }
-
-  @Transaction()
-  @Authorized("admin")
-  @Post()
-  public async save(@TransactionManager() manager: EntityManager, @Req() request: Request) {
-    const form = new Form();
-    const image = new Image();
-    await new Promise<void>((resolve, reject) => {
-      form.parse(request, (err, fields, files) => {
-        if (files.fileKey) {
-          image.contentType = getType(files.fileKey[0].originalFilename);
-          image.image = fs.readFileSync(files.fileKey[0].path);
-        }
-        resolve();
+  static async get(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const { id } = req.params;
+      const image = await manager.getRepository(Image).findOne({
+        where: { id: +id },
+        order: { id: "ASC" },
       });
+      res.contentType(image.contentType);
+      res.status(200);
+      return image.image;
     });
-    if (image.image) {
-      const entity = await this.imageRepo(manager).save(image);
-      return entity.id;
-    }
-    return null;
   }
 
-  @Transaction()
-  @Authorized("admin")
-  @Put("/:id([0-9]+)")
-  public async update(@TransactionManager() manager: EntityManager,
-                      @Body() image: Image,
-                      @Param("id") id: number,
-                      @Req() request: Request) {
-    const picture = await this.imageRepo(manager).findOne(id);
-    picture.contentType = image.contentType;
-    picture.image = image.image;
-    return this.imageRepo(manager).save(picture);
-  }
-
-  @Transaction()
-  @Authorized("admin")
-  @Delete("/:id([0-9]+)")
-  public async delete(@TransactionManager() manager: EntityManager, @Param("id") id: number) {
-    const picture = new Image();
-    picture.id = +id;
-    return await this.imageRepo(manager).remove(picture);
+  static async save(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const form = new Form();
+      const image = new Image();
+      await new Promise<void>((resolve, reject) => {
+        form.parse(req, (err, fields, files) => {
+          if (files.fileKey) {
+            image.contentType = mime.getType(files.fileKey[0].originalFilename);
+            image.image = fs.readFileSync(files.fileKey[0].path);
+          }
+          resolve();
+        });
+      });
+      if (image.image) {
+        const savedImage = await manager.getRepository(Image).save(image);
+        return savedImage.id;
+      }
+      return null;
+    });
   }
 }

@@ -3,42 +3,59 @@ import * as express from "express";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import {verify, VerifyErrors} from "jsonwebtoken";
-import {configure, getLogger, Logger} from "log4js";
+import { verify, VerifyErrors } from "jsonwebtoken";
+import { configure, getLogger, Logger } from "log4js";
 import * as path from "path";
 import "reflect-metadata";
-import {Action, useExpressServer} from "routing-controllers";
-import {Container} from "typeorm-typedi-extensions";
-import {createConnection, useContainer} from "typeorm";
-import {ArticleController} from "./controller/ArticleController";
-import {ArticleStockController} from "./controller/ArticleStockController";
-import {CartController} from "./controller/CartController";
-import {ImageController} from "./controller/ImageController";
-import {LocationController} from "./controller/LocationController";
-import {MessageController} from "./controller/MessageController";
-import {OpeningHourController} from "./controller/OpeningHourController";
-import {OrderArchiveController} from "./controller/OrderArchiveController";
-import {OrderController} from "./controller/OrderController";
-import {OrderItemController} from "./controller/OrderItemController";
-import {RoleController} from "./controller/RoleController";
-import {SecurityController} from "./controller/SecurityController";
-import {UnitOfMeasurementController} from "./controller/UnitOfMeasurementController";
-import {UserController} from "./controller/UserController";
-import {User} from "./entity/User";
-import {SocketService} from "./socket/SocketService";
+import { Action, useExpressServer } from "routing-controllers";
+import { Container } from "typeorm-typedi-extensions";
+import { createConnection, useContainer } from "typeorm";
+import { ArticleController } from "./controller/ArticleController";
+import { ArticleStockController } from "./controller/ArticleStockController";
+import { CartController } from "./controller/CartController";
+import { ImageController } from "./controller/ImageController";
+import { LocationController } from "./controller/LocationController";
+import { MessageController } from "./controller/MessageController";
+import { OpeningHourController } from "./controller/OpeningHourController";
+import { OrderArchiveController } from "./controller/OrderArchiveController";
+import { OrderController } from "./controller/OrderController";
+import { OrderItemController } from "./controller/OrderItemController";
+import { RoleController } from "./controller/RoleController";
+import { SecurityController } from "./controller/SecurityController";
+import { UnitOfMeasurementController } from "./controller/UnitOfMeasurementController";
+import { UserController } from "./controller/UserController";
+import { User } from "./entity/User";
+import { SocketService } from "./socket/SocketService";
 
-import {JwtConfiguration} from "./utils/JwtConfiguration";
-import {ResetTokenEvictor} from "./utils/ResetTokenEvictor";
-import {StartupNotifier} from "./utils/StartupNotifier";
-import {SuppressNextMiddlewareHandler} from "./utils/SuppressNextMiddlewareHandler";
-import {UrlService} from "./utils/UrlService";
-import {UserNotConfirmedEvictor} from "./utils/UserNotConfirmedEvictor";
-import {CustomErrorHandler} from "./utils/CustomErrorHandler";
-import {DeliveryNoteController} from "./controller/DeliveryNoteController";
-import {ConfirmationController} from "./controller/ConfirmationController";
-import {Server as SocketIdServer} from "socket.io";
+import { JwtConfiguration } from "./utils/JwtConfiguration";
+import { ResetTokenEvictor } from "./utils/ResetTokenEvictor";
+import { StartupNotifier } from "./utils/StartupNotifier";
+import { SuppressNextMiddlewareHandler } from "./utils/SuppressNextMiddlewareHandler";
+import { UrlService } from "./utils/UrlService";
+import { UserNotConfirmedEvictor } from "./utils/UserNotConfirmedEvictor";
+import { CustomErrorHandler } from "./utils/CustomErrorHandler";
+import { DeliveryNoteController } from "./controller/DeliveryNoteController";
+import { ConfirmationController } from "./controller/ConfirmationController";
+import { Server as SocketIdServer } from "socket.io";
 import { MessageTemplateController } from "./controller/MessageTemplateController";
 import { Settings } from "luxon";
+import { orderRouter } from "./routes/person.routes";
+import { articleRouter } from "./routes/article.routes";
+import { unitOfMeasurementRouter } from "./routes/unitOfMeasurement.routes";
+import { roleRouter } from "./routes/role.routes";
+import { userRouter } from "./routes/user.routes";
+import { articleStockRouter } from "./routes/articleStock.routes";
+import { orderitemRouter } from "./routes/orderItem.routes";
+import { openinghourRouter } from "./routes/openingHour.routes";
+import { confirmationRouter } from "./routes/confirmation.routes";
+import { messageRouter } from "./routes/message.routes";
+import { cartRouter } from "./routes/cart.routes";
+import { messageTemplateRouter } from "./routes/messageTemplate.routes";
+import { deliveryNoteRouter } from "./routes/deliveryNote.routes";
+import { locationRouter } from "./routes/location.routes";
+import { imageRouter } from "./routes/image.routes";
+import { orderarchiveRouter } from "./routes/orderArchive.routes";
+import { securityRouter } from "./routes/security.routes";
 
 
 const LOGGER: Logger = getLogger("Server");
@@ -70,8 +87,8 @@ class Server {
   constructor() {
 
     configure({
-      appenders: {out: {type: "stdout"}},
-      categories: {default: {appenders: ["out"], level: "info"}},
+      appenders: { out: { type: "stdout" } },
+      categories: { default: { appenders: ["out"], level: "info" } },
     });
     LOGGER.info("Node Version: " + process.version);
     LOGGER.info("Node Env: " + JSON.stringify(process.env));
@@ -84,7 +101,7 @@ class Server {
 
     useContainer(Container);
     createConnection().then(async connection => {
-      await connection.runMigrations({transaction: "each"});
+      await connection.runMigrations({ transaction: "each" });
       new ResetTokenEvictor().schedule(0);
       new UserNotConfirmedEvictor().schedule(0);
       this.routes();
@@ -179,7 +196,7 @@ class Server {
     const staticRoutePath = __dirname + "/client";
     if (fs.existsSync(staticRoutePath)) {
       LOGGER.info(`Static-Route: serve files from "/client" in "/"`);
-      this.app.use(express.static(__dirname + "/client", {redirect: true}));
+      this.app.use(express.static(__dirname + "/client", { redirect: true }));
     }
   }
 
@@ -199,6 +216,24 @@ class Server {
         preflightContinue: false,
       };
     }
+    this.app.use("/api/article", articleRouter);
+    this.app.use("/api/articleStock", articleStockRouter);
+    this.app.use("/api/cart", cartRouter);
+    this.app.use("/api/confimation", confirmationRouter);
+    this.app.use("/api/deliveryNote", deliveryNoteRouter);
+    this.app.use("/api/image", imageRouter);
+    this.app.use("/api/location", locationRouter);
+    this.app.use("/api/message", messageRouter);
+    this.app.use("/api/messageTemplate", messageTemplateRouter);
+    this.app.use("/api/openingHours", openinghourRouter);
+    this.app.use("/api/orderArchive", orderarchiveRouter);
+    this.app.use("/api/order", orderRouter);
+    this.app.use("/api/oderItem", orderitemRouter);
+    this.app.use("/api/role", roleRouter);
+    this.app.use("/api/authenticate", securityRouter);
+    this.app.use("/api/unitOfMeasurement", unitOfMeasurementRouter);
+    this.app.use("/api/user", userRouter);
+
     useExpressServer(this.app, {
       authorizationChecker: async (action: Action, roles: string[]) => this.authorizationChecker(action, roles),
       controllers: [
@@ -218,7 +253,7 @@ class Server {
         MessageController,
         MessageTemplateController,
         DeliveryNoteController,
-        ConfirmationController, 
+        ConfirmationController,
       ],
       cors: corsOptions,
       currentUserChecker: async (action: Action) => this.currentUserChecker(action),

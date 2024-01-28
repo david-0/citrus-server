@@ -1,34 +1,30 @@
 import { DateTime } from "luxon";
-import { Authorized, Body, JsonController, Post } from "routing-controllers";
-import { EntityManager, Transaction, TransactionManager } from "typeorm";
 import { Order } from "../entity/Order";
-import { MailService } from "../utils/MailService";
+import { AppMailService } from "../utils/app-mail-service";
+import { Request, Response } from "express";
+import { AppDataSource } from "../utils/app-data-source";
+import { EntityManager } from "typeorm";
 
-@Authorized("admin")
-@JsonController("/api/confirmation")
 export class ConfirmationController {
-  private mailService: MailService;
 
-  constructor() {
-    this.mailService = new MailService("../configuration/smtp.json");
+  static async resendOrderConfirmation(req: Request, res: Response) {
+    return await AppDataSource.transaction(async (manager) => {
+      const order: { orderId: number } = req.body;
+      const result = await ConfirmationController.resendConfirmation(manager, +order.orderId);
+      return res.status(200).json(result);
+    });
   }
 
-  @Post()
-  @Transaction()
-  public async resendOrderConfirmation(
-    @TransactionManager() manager: EntityManager,
-    @Body() orderId: { orderId: number }): Promise<boolean> {
-    return this.resendConfirmation(manager, orderId.orderId);
-  }
-
-  public async resendConfirmation(manager: EntityManager, orderId: number): Promise<boolean> {
-    const orderWithDependencies = await manager.getRepository(Order).findOne(orderId,
-      { relations: ["plannedCheckout", "user", "location", "orderItems", "orderItems.article", "orderItems.article.unitOfMeasurement"] });
-    await this.sendOrderConfirmation(orderWithDependencies);
+  static async resendConfirmation(manager: EntityManager, orderId: number): Promise<boolean> {
+    const orderWithDependencies = await manager.getRepository(Order).findOne({
+      where: { id: orderId },
+      relations: ["plannedCheckout", "user", "location", "orderItems", "orderItems.article", "orderItems.article.unitOfMeasurement"]
+    });
+    await ConfirmationController.sendOrderConfirmation(orderWithDependencies);
     return true;
   }
 
-  private async sendOrderConfirmation(order: Order) {
+  private static async sendOrderConfirmation(order: Order) {
     let orderTextTable = "Menge".padStart(7) + " " + "".padEnd(8) + "Beschreibung".padEnd(36) + "Preis".padStart(8) + "\r\n";
     orderTextTable += "".padEnd(60, "-") + "\r\n";
     for (const orderItem of order.orderItems) {
@@ -52,22 +48,22 @@ export class ConfirmationController {
       comment +
       "Die Früchte können von Ihnen wie folgt abgeholt werden: \r\n" +
       "Abholstandort: " + order.location.description + "\r\n" +
-      "Datum: " + this.formatDate(order.plannedCheckout.fromDate) + "\r\n" +
-      "Zeit:  zwischen " + this.formatTime(order.plannedCheckout.fromDate) + " und " + this.formatTime(order.plannedCheckout.toDate) + "\r\n" +
+      "Datum: " + ConfirmationController.formatDate(order.plannedCheckout.fromDate) + "\r\n" +
+      "Zeit:  zwischen " + ConfirmationController.formatTime(order.plannedCheckout.fromDate) + " und " + ConfirmationController.formatTime(order.plannedCheckout.toDate) + "\r\n" +
       "Adresse: " + order.location.street + " " + order.location.number + "\r\n " +
       "".padEnd(8) + order.location.zipcode + " " + order.location.city + "\r\n" +
       "Bemerkung: " + order.location.comment + "\r\n" +
       "\r\n" +
       "Freundliche Grüsse\r\n" +
       "Ihr Früchtebestellungs Team";
-    await this.mailService.sendMailTextOnly(order.user.email, "Bestellbestätigung", text);
+    await AppMailService.sendMailTextOnly(order.user.email, "Bestellbestätigung", text);
   }
 
-  private formatDate(date: Date): string {
+  private static formatDate(date: Date): string {
     return DateTime.fromJSDate(date).toFormat('dd.LL.yyyy');
   }
 
-  private formatTime(date: Date): string {
+  private static formatTime(date: Date): string {
     return DateTime.fromJSDate(date).toLocal().toFormat('HH:mm');
   }
 }
