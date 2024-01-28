@@ -16,6 +16,8 @@ import { OrderArchive } from "../entity/OrderArchive";
 import { OrderItem } from "../entity/OrderItem";
 import { UnitOfMeasurement } from "../entity/UnitOfMeasurement";
 import { UserNotConfirmed } from "../entity/UserNotConfirmed";
+import { Location } from "../entity/Location";
+import { Image } from "../entity/Image";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
