@@ -234,8 +234,6 @@ export class SecurityController {
       .getOne();
   }
 
-
-
   private static createToken(user: User): string {
     const roles = user.roles.map(role => role.name);
     return sign({ id: user.id, roles },
