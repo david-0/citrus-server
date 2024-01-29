@@ -35,7 +35,7 @@ export class ArticleStockController {
       const { id } = req.params;
       const articleStock = await manager.getRepository(ArticleStock).findOne({
         where: { id: +id },
-        relations: this.withArticleRelation,
+        relations: ArticleStockController.withArticleRelation,
       });
       return res.status(200).json(ArticleStockConverter.toDto(articleStock));
     });
@@ -44,7 +44,7 @@ export class ArticleStockController {
   static async getAllWithArticle(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const articleStocks = await manager.getRepository(ArticleStock).find({
-        relations: this.withArticleRelation,
+        relations: ArticleStockController.withArticleRelation,
         order: { id: "ASC" },
       });
       return res.status(200).json(ArticleStockConverter.toDtos(articleStocks));
@@ -56,7 +56,7 @@ export class ArticleStockController {
       const { id } = req.params;
       const articleStock = await manager.getRepository(ArticleStock).findOne({
         where: { id: +id },
-        relations: this.withAllRelations,
+        relations: ArticleStockController.withAllRelations,
       });
       return res.status(200).json(ArticleStockConverter.toDto(articleStock));
     });
@@ -65,7 +65,7 @@ export class ArticleStockController {
   static async getAllWithAll(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const articleStocks = await manager.getRepository(ArticleStock).find({
-        relations: this.withAllRelations,
+        relations: ArticleStockController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(ArticleStockConverter.toDtos(articleStocks));

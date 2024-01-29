@@ -66,7 +66,7 @@ export class LocationController {
       const { id } = req.params;
       const location = await manager.getRepository(Location).findOne({
         where: { id: +id },
-        relations: this.withOpeningHourRelation
+        relations: LocationController.withOpeningHourRelation
       });
       return res.status(200).json(LocationConverter.toDto(location));
     });
@@ -100,7 +100,7 @@ export class LocationController {
       const { id } = req.params;
       const location = await manager.getRepository(Location).findOne({
         where: { id: +id },
-        relations: this.withAllRelations,
+        relations: LocationController.withAllRelations,
       });
       return res.status(200).json(LocationConverter.toDto(location));
     });
@@ -110,7 +110,7 @@ export class LocationController {
     return await AppDataSource.transaction(async (manager) => {
       const locations = await manager.getRepository(Location).find({
         order: { id: "ASC" },
-        relations: this.withAllRelations,
+        relations: LocationController.withAllRelations,
       });
       return res.status(200).json(LocationConverter.toDtos(locations));
     });

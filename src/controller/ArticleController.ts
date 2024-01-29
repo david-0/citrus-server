@@ -68,7 +68,7 @@ export class ArticleController {
     return await AppDataSource.transaction(async (manager) => {
       const articles = await manager.getRepository(Article).find({
         where: { inSale: true },
-        relations: this.withAllRelations,
+        relations: ArticleController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(ArticleConverter.toDtos(articles));
@@ -80,7 +80,7 @@ export class ArticleController {
       const { id } = req.params;
       const article = await manager.getRepository(Article).findOne({
         where: { id: +id },
-        relations: this.withAllRelations,
+        relations: ArticleController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(ArticleConverter.toDto(article));
@@ -90,7 +90,7 @@ export class ArticleController {
   static async getAllWithAll(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const articles = await manager.getRepository(Article).find({
-        relations: this.withAllRelations,
+        relations: ArticleController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(ArticleConverter.toDtos(articles));

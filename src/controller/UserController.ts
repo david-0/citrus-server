@@ -7,7 +7,7 @@ export class UserController {
 
   private static withRoleRelation = ["roles"];
   private static withAllRelations = [
-    "users",
+    "roles",
     "orders"];
 
   static async get(req: Request, res: Response) {
@@ -78,7 +78,7 @@ export class UserController {
       const { id } = req.params;
       const user = await manager.getRepository(User).findOne({
         where: { id: +id },
-        relations: this.withRoleRelation,
+        relations: UserController.withRoleRelation,
         order: { id: "ASC" },
       });
       return res.status(200).json(UserConverter.toDto(user));
@@ -88,7 +88,7 @@ export class UserController {
   static async getAllWithRoles(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const users = await manager.getRepository(User).find({
-        relations: this.withRoleRelation,
+        relations: UserController.withRoleRelation,
         order: { id: "ASC" },
       });
       return res.status(200).json(UserConverter.toDtos(users));
@@ -100,7 +100,7 @@ export class UserController {
       const { id } = req.params;
       const user = await manager.getRepository(User).findOne({
         where: { id: +id },
-        relations: this.withAllRelations,
+        relations: UserController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(UserConverter.toDto(user));
@@ -110,7 +110,7 @@ export class UserController {
   static async getAllWithAll(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const users = await manager.getRepository(User).find({
-        relations: this.withAllRelations,
+        relations: UserController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(UserConverter.toDtos(users));

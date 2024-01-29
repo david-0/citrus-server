@@ -86,7 +86,7 @@ export class OrderArchiveController {
     return await manager.getRepository(User).findOne({
       where: { id: userId },
       relations: [
-        "orderarchives",
+        "roles",
       ],
     });
   }

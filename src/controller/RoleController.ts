@@ -59,7 +59,7 @@ export class RoleController {
       const { id } = req.params;
       const role = await manager.getRepository(Role).findOne({
         where: { id: +id },
-        relations: this.withUserRelation,
+        relations: RoleController.withUserRelation,
         order: { id: "ASC" },
       });
       return res.status(200).json(RoleConverter.toDto(role));
@@ -69,7 +69,7 @@ export class RoleController {
   static async getAllWithUsers(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const roles = await manager.getRepository(Role).find({
-        relations: this.withUserRelation,
+        relations: RoleController.withUserRelation,
         order: { id: "ASC" },
       });
       return res.status(200).json(RoleConverter.toDtos(roles));

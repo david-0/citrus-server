@@ -6,7 +6,6 @@ import { AppDataSource } from "../utils/app-data-source";
 import { Request, Response } from "express";
 import { EntityManager } from "typeorm";
 
-//@JsonController("/api/order")
 export class OrderController {
 
   private static withAllRelations = [
@@ -78,7 +77,7 @@ export class OrderController {
       const { id } = req.params;
       const order = await manager.getRepository(Order).findOne({
         where: { id: +id },
-        relations: this.withAllRelations,
+        relations: OrderController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(OrderConverter.toDto(order));
@@ -88,7 +87,7 @@ export class OrderController {
   static async getAllWithAll(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const order = await manager.getRepository(Order).find({
-        relations: this.withAllRelations,
+        relations: OrderController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(OrderConverter.toDtos(order));
@@ -100,7 +99,7 @@ export class OrderController {
       const userId = req["currentUser"].id;
       const order = await manager.getRepository(Order).findOne({
         where: { user: { id: +userId } },
-        relations: this.withAllRelations,
+        relations: OrderController.withAllRelations,
         order: { id: "ASC" },
       });
       return res.status(200).json(OrderConverter.toDto(order));
@@ -110,12 +109,12 @@ export class OrderController {
   static async getByUser(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const { id } = req.params;
-      const order = await manager.getRepository(Order).findOne({
+      const orders = await manager.getRepository(Order).find({
         where: { user: { id: +id } },
-        relations: this.withAllRelations,
+        relations: OrderController.withAllRelations,
         order: { id: "ASC" },
       });
-      return res.status(200).json(OrderConverter.toDto(order));
+      return res.status(200).json(OrderConverter.toDtos(orders));
     });
   }
 

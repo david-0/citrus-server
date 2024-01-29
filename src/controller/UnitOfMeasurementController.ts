@@ -58,7 +58,7 @@ export class UnitOfMeasurementController {
       const { id } = req.params;
       const unitofmeasurement = await manager.getRepository(UnitOfMeasurement).findOne({
         where: { id: +id },
-        relations: this.withArticleRelation,
+        relations: UnitOfMeasurementController.withArticleRelation,
         order: { id: "ASC" },
       });
       return res.status(200).json(UnitOfMeasurementConverter.toDto(unitofmeasurement));
@@ -68,7 +68,7 @@ export class UnitOfMeasurementController {
   static async getAllWithArticles(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const unitofmeasurements = await manager.getRepository(UnitOfMeasurement).find({
-        relations: this.withArticleRelation,
+        relations: UnitOfMeasurementController.withArticleRelation,
         order: { id: "ASC" },
       });
       return res.status(200).json(UnitOfMeasurementConverter.toDtos(unitofmeasurements));
