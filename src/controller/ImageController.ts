@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as fs from "fs";
-import mime from 'mime';
+import * as mime from 'mime';
 import { Form } from "multiparty";
 import { Image } from "../entity/Image";
 import { AppDataSource } from "../utils/app-data-source";
