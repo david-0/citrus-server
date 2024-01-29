@@ -15,8 +15,7 @@ export class ImageController {
         order: { id: "ASC" },
       });
       res.contentType(image.contentType);
-      res.status(200);
-      return image.image;
+      return res.status(200).send(image.image);
     });
   }
 
