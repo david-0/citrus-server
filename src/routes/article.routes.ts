@@ -32,7 +32,7 @@ Router.delete(
     ArticleController.delete
 );
 Router.get(
-    "inSale",
+    "/inSale",
     ArticleController.getAllInSale
 );
 Router.get(
