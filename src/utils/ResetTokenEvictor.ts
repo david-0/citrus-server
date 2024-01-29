@@ -1,5 +1,6 @@
-import {getManager, LessThan} from "typeorm";
-import {ResetToken} from "../entity/ResetToken";
+import { LessThan } from "typeorm";
+import { ResetToken } from "../entity/ResetToken";
+import { AppDataSource } from "./app-data-source";
 
 export class ResetTokenEvictor {
 
@@ -11,6 +12,6 @@ export class ResetTokenEvictor {
   }
 
   private evict() {
-    getManager().getRepository(ResetToken).delete({validTo: LessThan(new Date())});
+    AppDataSource.getRepository(ResetToken).delete({ validTo: LessThan(new Date()) });
   }
 }

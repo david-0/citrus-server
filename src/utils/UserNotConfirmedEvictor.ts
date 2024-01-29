@@ -1,6 +1,6 @@
-import {getManager, LessThan} from "typeorm";
-import {ResetToken} from "../entity/ResetToken";
-import {UserNotConfirmed} from "../entity/UserNotConfirmed";
+import { LessThan } from "typeorm";
+import { UserNotConfirmed } from "../entity/UserNotConfirmed";
+import { AppDataSource } from "./app-data-source";
 
 export class UserNotConfirmedEvictor {
 
@@ -12,6 +12,6 @@ export class UserNotConfirmedEvictor {
   }
 
   private evict() {
-    getManager().getRepository(UserNotConfirmed).delete({validTo: LessThan(new Date())});
+    AppDataSource.getRepository(UserNotConfirmed).delete({ validTo: LessThan(new Date()) });
   }
 }
