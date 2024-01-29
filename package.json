@@ -2,6 +2,7 @@
   "name": "citrus-server",
   "version": "0.0.1",
   "description": "Serverpart",
+  "type": "commonjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/david-0/citrus-server.git"
@@ -22,7 +23,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@foliojs-fork/pdfkit": "^0.14.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/body-parser": "^1.19.5",
     "@types/compression": "^1.7.5",
@@ -53,6 +53,7 @@
     "mime": "^4.0.1",
     "multiparty": "^4.2.3",
     "nodemailer": "^6.9.8",
+    "pdfkit": "^0.14.0",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
