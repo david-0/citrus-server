@@ -34,9 +34,9 @@ export class ImageController {
       });
       if (image.image) {
         const savedImage = await manager.getRepository(Image).save(image);
-        return savedImage.id;
+        return res.status(200).json(savedImage.id);
       }
-      return null;
+      return res.status(500).send("no image saved");
     });
   }
 }
