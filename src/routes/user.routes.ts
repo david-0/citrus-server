@@ -80,30 +80,30 @@ Router.delete(
 );
 
 Router.post(
-    "/api/user/:id([0-9]+)/changepassword",
+    "/:id([0-9]+)/changepassword",
     authentification,
     authorization(["admin"]),
     SecurityController.addChangePasswordEndpoint
 );
 Router.post(
-    "/api/user/changemypassword",
+    "/changemypassword",
     authentification,
     SecurityController.addChangeMyPasswordEndpoint
 );
 Router.post(
-    "/api/user/resetPasswordWithToken",
+    "/resetPasswordWithToken",
     SecurityController.resetPasswordWithTokenEndpoint
 );
 Router.post(
-    "/api/user/createTokenByEmail",
+    "/createTokenByEmail",
     SecurityController.createTokenByEmailEndpoint
 );
 Router.post(
-    "/api/user/register",
+    "/register",
     SecurityController.register
 );
 Router.post(
-    "/api/user/confirm",
+    "/confirm",
     SecurityController.userConfirmation
 );
 

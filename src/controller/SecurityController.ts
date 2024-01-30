@@ -57,11 +57,10 @@ export class SecurityController {
   static async addChangeMyPasswordEndpoint(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const currentUserId = req["currentUser"].id;
-      const { id: userId } = req.params;
       const body: any = req.body;
-      const user = await SecurityController.findUserbyId(manager, +userId);
-      const userPassword = await SecurityController.getUserPassword(manager, +userId);
-      const ok = encrypt.comparepassword(body.currentPassword, userPassword.password);
+      const user = await SecurityController.findUserbyId(manager, +currentUserId);
+      const userPassword = await SecurityController.getUserPassword(manager, +currentUserId);
+      const ok = encrypt.comparepassword(userPassword.password, body.currentPassword);
       if (!ok) {
         await SecurityController.changeMyPasswordAudit(manager, "password failed", user, req);
         return res.status(403).send("password not changed");
@@ -232,12 +231,6 @@ export class SecurityController {
       .leftJoinAndSelect("user.roles", "roles")
       .where("user.email = :email", { email: emailAddress })
       .getOne();
-  }
-
-  private static createToken(user: User): string {
-    const roles = user.roles.map(role => role.name);
-    return sign({ id: user.id, roles },
-      AppJwtConfiguration.signSecret, AppJwtConfiguration.signOptions);
   }
 
   private static async changePasswordAudit(manager: EntityManager, currentUser: User, userToChange: User, request: Request) {
