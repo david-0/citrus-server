@@ -156,7 +156,7 @@ class Server {
     this.app.use("/api/openingHours", openinghourRouter);
     this.app.use("/api/orderArchive", orderarchiveRouter);
     this.app.use("/api/order", orderRouter);
-    this.app.use("/api/oderItem", orderitemRouter);
+    this.app.use("/api/orderItem", orderitemRouter);
     this.app.use("/api/role", roleRouter);
     this.app.use("/api/authenticate", securityRouter);
     this.app.use("/api/unitOfMeasurement", unitOfMeasurementRouter);
