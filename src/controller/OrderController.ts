@@ -97,12 +97,12 @@ export class OrderController {
   static async getMyOrders(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const userId = req["currentUser"].id;
-      const order = await manager.getRepository(Order).findOne({
+      const orders = await manager.getRepository(Order).find({
         where: { user: { id: +userId } },
         relations: OrderController.withAllRelations,
         order: { id: "ASC" },
       });
-      return res.status(200).json(OrderConverter.toDto(order));
+      return res.status(200).json(OrderConverter.toDtos(orders));
     });
   }
 

@@ -33,7 +33,7 @@ export class OrderArchiveController {
     return await AppDataSource.transaction(async (manager) => {
       const userId = req["currentUser"].id;
       const { id: orderId } = req.params;
-      const user = await OrderArchiveController.reloadUserWithOrderArchives(manager, userId);
+      const user = await OrderArchiveController.reloadUserWithRoles(manager, userId);
       const order = await OrderArchiveController.reloadOrderWithAll(manager, +orderId);
       await OrderArchiveController.createArchiveOrderAndSave(manager, user, order);
       await OrderArchiveController.revertReservationQuantityAndDeleteOrder(manager, order);
@@ -44,7 +44,7 @@ export class OrderArchiveController {
   static async myOrders(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const userId = req["currentUser"].id;
-      const user = await OrderArchiveController.reloadUserWithOrderArchives(manager, userId);
+      const user = await OrderArchiveController.reloadUserWithRoles(manager, userId);
       const orderArchiveList = await manager.getRepository(OrderArchive).find();
       const orders = OrderArchiveConverter.toDtos(orderArchiveList)
         .filter(o => o.order.user.email === user.email)
@@ -55,7 +55,7 @@ export class OrderArchiveController {
   static async byUser(req: Request, res: Response) {
     return await AppDataSource.transaction(async (manager) => {
       const { userId } = req.params;
-      const user = await OrderArchiveController.reloadUserWithOrderArchives(manager, +userId);
+      const user = await OrderArchiveController.reloadUserWithRoles(manager, +userId);
       const orderArchiveList = await manager.getRepository(OrderArchive).find();
       const orders = OrderArchiveConverter.toDtos(orderArchiveList)
         .filter(o => o.order.user.email === user.email)
@@ -82,7 +82,7 @@ export class OrderArchiveController {
     });
   }
 
-  private static async reloadUserWithOrderArchives(manager: EntityManager, userId: number) {
+  private static async reloadUserWithRoles(manager: EntityManager, userId: number) {
     return await manager.getRepository(User).findOne({
       where: { id: userId },
       relations: [
