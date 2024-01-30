@@ -10,6 +10,7 @@ import { ConfirmationController } from "./ConfirmationController";
 import { OrderStockQuantityUpdater } from "./OrderStockQuantityUpdater";
 import { AppDataSource } from "../utils/app-data-source";
 import { EntityManager } from "typeorm";
+import { OrderConverter } from "../converter/OrderConverter";
 
 export class CartController {
 
@@ -17,7 +18,7 @@ export class CartController {
     return await AppDataSource.transaction(async (manager) => {
       const cartDto: CartDto = req.body;
       const userId = req["currentUser"].id;
-      const user: User = await manager.getRepository(User).findOne(userId);
+      const user: User = await manager.getRepository(User).findOne({ where: { id: +userId } });
       const order = new Order();
       order.date = new Date();
       order.user = user;
@@ -48,7 +49,7 @@ export class CartController {
       const savedOrder = await manager.getRepository(Order).save(order);
       await OrderStockQuantityUpdater.addStockQuantityAfterUpdate(manager, order.id);
       await ConfirmationController.resendConfirmation(manager, savedOrder.id);
-      return savedOrder;
+      return res.status(200).json(OrderConverter.toDto(savedOrder));
     });
   }
 
