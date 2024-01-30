@@ -88,7 +88,6 @@ Router.post(
 Router.post(
     "/api/user/changemypassword",
     authentification,
-    authorization,
     SecurityController.addChangeMyPasswordEndpoint
 );
 Router.post(

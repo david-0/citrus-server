@@ -26,7 +26,6 @@ Router.get(
 Router.get(
     "/myOrders",
     authentification,
-    authorization,
     OrderArchiveController.myOrders
 );
 Router.get(
