@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { sign } from "jsonwebtoken";
 import { Container } from "typedi";
 import { ResetToken } from "../entity/ResetToken";
 import { User } from "../entity/User";
@@ -10,7 +9,6 @@ import { v4 as uuid } from 'uuid';
 import { DateTime } from "luxon";
 import { AppDataSource } from "../utils/app-data-source";
 import { AppMailService } from "../utils/app-mail-service";
-import { AppJwtConfiguration } from "../utils/app-jwt-configuration";
 import { UserConverter } from "../converter/UserConverter";
 import { EntityManager } from "typeorm";
 import { encrypt } from "../utils/helpers";
