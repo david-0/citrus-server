@@ -37,7 +37,7 @@ export class OrderArchiveController {
       const order = await OrderArchiveController.reloadOrderWithAll(manager, +orderId);
       await OrderArchiveController.createArchiveOrderAndSave(manager, user, order);
       await OrderArchiveController.revertReservationQuantityAndDeleteOrder(manager, order);
-      return res.status(200).send(+orderId);
+      return res.status(200).json(+orderId);
     });
   }
 

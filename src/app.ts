@@ -153,7 +153,7 @@ class Server {
     this.app.use("/api/location", locationRouter);
     this.app.use("/api/message", messageRouter);
     this.app.use("/api/messageTemplate", messageTemplateRouter);
-    this.app.use("/api/openingHours", openinghourRouter);
+    this.app.use("/api/openingHour", openinghourRouter);
     this.app.use("/api/orderArchive", orderarchiveRouter);
     this.app.use("/api/order", orderRouter);
     this.app.use("/api/orderItem", orderitemRouter);

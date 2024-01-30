@@ -26,7 +26,8 @@ export class MessageController {
         sendMessageInfos.push({ user, message: msg });
       }
       messageEntity.responses = JSON.stringify(sendMessageInfos);
-      return await manager.getRepository(Message).save(messageEntity, { data: userId });
+      const savedMessage = await manager.getRepository(Message).save(messageEntity, { data: userId });
+      return res.status(200).json(savedMessage);
     });
   }
 }

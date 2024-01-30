@@ -17,7 +17,10 @@ export class ArticleController {
 
     return await AppDataSource.transaction(async (manager) => {
       const { id } = req.params;
-      const article = await manager.getRepository(Article).findOne({ where: { id: +id } });
+      const article = await manager.getRepository(Article).findOne({
+        where: { id: +id },
+        relations: ["unitOfMeasurement"],
+      });
       return res.status(200).json(ArticleConverter.toDto(article));
     });
   }
